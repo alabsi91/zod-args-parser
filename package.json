@@ -1,0 +1,50 @@
+{
+  "name": "zod-args-parser",
+  "version": "1.0.0",
+  "description": "A strictly typed command-line arguments parser powered by Zod.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/test.ts",
+    "build": "node scripts/build.mjs",
+    "test": "eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
+    "prepare": "npm run test && npm run build"
+  },
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js",
+      "default": "./lib/module/index",
+      "types": "./lib/typescript/index.d.ts"
+    }
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "zod": "^3.23.8",
+    "zod-args-parser": "file:zod-args-parser-1.0.0.tgz"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@eslint/js": "^9.14.0",
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "glob": "^11.0.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-jsdoc": "^1.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.14.0"
+  }
+}

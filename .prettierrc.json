@@ -1,0 +1,10 @@
+{
+  "plugins": ["prettier-plugin-jsdoc"],
+  "arrowParens": "avoid",
+  "printWidth": 120,
+  "semi": true,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "endOfLine": "auto",
+  "singleQuote": false
+}
