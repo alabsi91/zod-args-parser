@@ -6,6 +6,7 @@ A strictly typed command-line arguments parser powered by Zod.
 
 - **Strict typing for subcommands, options, and arguments**.
 - **Flag coupling support**: e.g., `-rf` to combine `-r` and `-f` flags.
+- **Negative flag support**: e.g., `--no-verbose` to negate `--verbose`.
 - **Flexible option value formatting**: Supports both `--input-dir path` and `--input-dir=path` styles.
 - **Help message generation**: Built-in methods to generate help text for the CLI and each subcommand.
 
@@ -18,7 +19,17 @@ npm install zod-args-parser
 ## Usage
 
 ```ts
-import { createCli, createSubcommand, safeParse } from "zod-args-parser";
+import { createCli, createSubcommand, createOptions, safeParse } from "zod-args-parser";
+
+// Share same options between subcommands
+const sharedOptions = createOptions([
+  {
+    name: "verbose",
+    aliases: ["v"],
+    description: "Verbose mode",
+    type: z.boolean().optional(),
+  },
+]);
 
 // Create a CLI schema
 // This will be used when no subcommands are provided
@@ -33,6 +44,7 @@ const cliProgram = createCli({
       aliases: ["h"],
       type: z.boolean(),
     },
+    ...sharedOptions,
   ],
 });
 
@@ -108,9 +120,7 @@ type Arguments = InferArgumentsType<typeof subcommand>;
 
 ## API
 
-### `createSubcommand(input: Subcommand)`
-
-Defines a subcommand with associated options and arguments.
+### `Subcommand`
 
 - `name: string`  
   The name of the subcommand.

@@ -243,7 +243,9 @@ export type ArgumentsArr2ArrType<T extends Argument[] | undefined> = T extends A
   ? { arguments: { [K in keyof T]: T[K] extends { type: z.ZodTypeAny } ? z.infer<T[K]["type"]> : never } }
   : object;
 
-export type Positional<S extends Partial<Subcommand>> = S["allowPositional"] extends true ? { positional: string[] } : object;
+export type Positional<S extends Partial<Subcommand>> = S["allowPositional"] extends true
+  ? { positional: string[] }
+  : object;
 
 export type Info<T extends Option[] | undefined> = T extends Option[]
   ? {
@@ -273,14 +275,61 @@ export type PrintMethods<N extends Subcommand["name"] | undefined> = {
   printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, options?: PrintHelpOpt) => void;
 };
 
-export type UnSafeParseResult<S extends Partial<Subcommand>[]> = Prettify<
-  ParseResult<S> & PrintMethods<S[number]["name"]>
->;
+export type UnSafeParseResult<S extends Partial<Subcommand>[]> =
+  CheckDuplicatedSubcommands<S> extends infer E extends string
+    ? E
+    : Prettify<ParseResult<S> & PrintMethods<S[number]["name"]>>;
 
-export type SafeParseResult<S extends Partial<Subcommand>[]> = Prettify<
-  ({ success: false; error: Error } | { success: true; data: ParseResult<S> }) & PrintMethods<S[number]["name"]>
->;
+export type SafeParseResult<S extends Partial<Subcommand>[]> =
+  CheckDuplicatedSubcommands<S> extends infer E extends string
+    ? E
+    : Prettify<
+        ({ success: false; error: Error } | { success: true; data: ParseResult<S> }) & PrintMethods<S[number]["name"]>
+      >;
 
 export type ActionFn<T extends Subcommand | Cli> = {
   setAction: (actions: (res: UnSafeParseResult<[T]>) => void) => void;
 };
+
+/** - Combine `name` and `aliases` to a `string[]` */
+type MapNameAndAliases2StrArr<T extends { name?: string; aliases?: string[] }[]> = T extends [
+  infer First extends Subcommand,
+  ...infer Rest,
+]
+  ? Rest extends { name?: string; aliases?: string[] }[]
+    ? [First["name"], ...(First["aliases"] extends string[] ? First["aliases"] : []), ...MapNameAndAliases2StrArr<Rest>]
+    : [First["name"], ...(First["aliases"] extends string[] ? First["aliases"] : [])]
+  : [];
+
+/**
+ * - Find duplicated items in an array and return it
+ * - Return `false` if not found
+ */
+type IsDuplicatesInArr<Input extends any[]> = Input extends [infer Item, ...infer Rest]
+  ? Rest extends any[]
+    ? Item extends Rest[number]
+      ? Item
+      : IsDuplicatesInArr<Rest>
+    : false
+  : false;
+
+/**
+ * - Check if there are duplicated options including aliases in `subcommand`
+ * - Return an error message if duplicated is found
+ * - Return `subcommand` if not found
+ */
+export type CheckDuplicatedOptions<T extends Subcommand | Cli> = T["options"] extends infer O extends Option[]
+  ? IsDuplicatesInArr<MapNameAndAliases2StrArr<O>> extends infer D extends string
+    ? `>>> Error: Duplicated Options \`${D}\` <<<`
+    : T
+  : T;
+
+/**
+ * - Check for duplicated subcommands including aliases
+ * - Return an error message if duplicated is found
+ * - Return the `subcommand[]` if no error
+ */
+export type CheckDuplicatedSubcommands<T extends Partial<Subcommand>[]> =
+  IsDuplicatesInArr<MapNameAndAliases2StrArr<T>> extends infer D extends string
+    ? `>>> Error: Duplicated Subcommand \`${D}\` <<<`
+    : T;
