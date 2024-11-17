@@ -12,20 +12,13 @@ export type Subcommand = {
   name: string;
 
   /**
-   * - The action is executed with the result of the parsed arguments.
-   * - To get typescript types use `setAction` instead of this.
-   *
-   * @example
-   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
-   *   helpCommand.setAction(res => console.log(res));
-   */
-  action?: (results?: any) => void;
-
-  /**
    * - The description of the subcommand.
    * - Used for generating the help message.
    */
   description?: string;
+
+  /** - The usage message in the help message. */
+  usage?: string;
 
   /** - Used for generating the help message. */
   placeholder?: string;
@@ -64,18 +57,22 @@ export type Subcommand = {
    *   which arguments are optional.
    */
   arguments?: [Argument, ...Argument[]];
+
+  /**
+   * - The action is executed with the result of the parsed arguments.
+   * - To get typescript types use `setAction` instead of this.
+   *
+   * @example
+   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
+   *   helpCommand.setAction(res => console.log(res));
+   */
+  action?: (results?: any) => void;
 };
 
 export type Cli = Prettify<
   Omit<Subcommand, "name"> & {
     /** - The name of the CLI program. */
     cliName: string;
-
-    /**
-     * - The usage of the CLI program.
-     * - Used for generating the help message.
-     */
-    usage?: string;
   }
 >;
 

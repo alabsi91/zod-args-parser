@@ -19,13 +19,13 @@ npm install zod-args-parser
 ## Usage
 
 ```ts
+import { z } from "zod";
 import { createCli, createSubcommand, createOptions, safeParse } from "zod-args-parser";
 
 // Share same options between subcommands
 const sharedOptions = createOptions([
   {
     name: "verbose",
-    aliases: ["v"],
     description: "Verbose mode",
     type: z.boolean().optional(),
   },
@@ -33,25 +33,43 @@ const sharedOptions = createOptions([
 
 // Create a CLI schema
 // This will be used when no subcommands are provided
-const cliProgram = createCli({
+const cliSchema = createCli({
   cliName: "my-cli",
   description: "A description for my CLI",
   example: "example of how to use my cli\nmy-cli --help",
   options: [
     {
       name: "help",
-      description: "Show this help message",
       aliases: ["h"],
-      type: z.boolean(),
+      type: z.boolean().optional().describe("Show this help message"),
+    },
+    {
+      name: "version",
+      aliases: ["v"],
+      description: "Show version",
+      type: z.boolean().optional(),
     },
     ...sharedOptions,
   ],
 });
 
-// Execute this function when the CLI is run
-cliProgram.setAction(results => {
-  const { help } = results;
-  if (help) results.printCliHelp();
+// Execute this function when the CLI is run (no subcommands)
+cliSchema.setAction(results => {
+  const { help, version, verbose } = results;
+
+  if (help) {
+    results.printCliHelp();
+    return;
+  }
+
+  if (version) {
+    console.log("v1.0.0");
+    return;
+  }
+
+  if (verbose) {
+    console.log("Verbose mode enabled");
+  }
 });
 
 // Create a subcommand schema
@@ -77,7 +95,7 @@ helpCommandSchema.setAction(results => {
 
 const results = safeParse(
   process.argv.slice(2),
-  cliProgram,
+  cliSchema,
   helpCommandSchema,
   // Add more subcommands
 );
@@ -131,6 +149,9 @@ type Arguments = InferArgumentsType<typeof subcommand>;
 - `description?: string`  
   A description of the subcommand for the help message.
 
+- `usage?: string`  
+  The usage of the subcommand for the help message.
+
 - `placeholder?: string`  
   A placeholder displayed in the help message alongside the subcommand name.
 
@@ -145,7 +166,7 @@ type Arguments = InferArgumentsType<typeof subcommand>;
   An array of options for the subcommand.
 
   - `name: string`  
-    The name of the option. Should be a valid variable name in JavaScript.
+    The name of the option. camelCase is recommended. E.g. `inputDir` -> `--input-dir`
 
   - `aliases?: string[]`  
     An array of aliases for the option.

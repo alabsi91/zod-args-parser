@@ -57,6 +57,11 @@ for (const filePath of tsFiles) {
   const fileBaseName = path.basename(fileName, path.extname(fileName)); // without extension
   const fileContent = await fs.readFile(filePath, "utf8");
 
+  // Ignore
+  if (["types.ts"].includes(fileName)) {
+    continue;
+  }
+
   // commonjs paths
   const commonjsOutputDir = path.join(commonjsDir, dir);
   const commonjsOutputPath = path.join(commonjsOutputDir, `${fileBaseName}.js`);
@@ -88,6 +93,11 @@ for (const filePath of tsFiles) {
   const fileName = path.basename(filePath);
   const fileBaseName = path.basename(fileName, path.extname(fileName)); // without extension
   const fileContent = await fs.readFile(filePath, "utf8");
+
+  // Ignore
+  if (["types.ts"].includes(fileName)) {
+    continue;
+  }
 
   // esm paths
   const esmOutputDir = path.join(esmDir, dir);

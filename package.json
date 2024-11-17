@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A strictly typed command-line arguments parser powered by Zod.",
   "author": "Ahmed ALABSI <alabsi91@gmail>",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/test.ts",
+    "dev": "tsx watch example/cli.ts",
     "build": "node scripts/build.mjs",
     "test": "eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
     "prepare": "npm run test && npm run build"
@@ -46,6 +46,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
+    "@eslint/compat": "^1.2.3",
     "@eslint/js": "^9.14.0",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^22.9.0",

@@ -50,10 +50,25 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
       help.printCliHelp(params, opt);
     },
     printSubcommandHelp(subcommandStr, opt) {
-      const subcommand = subcommandArr.find(c => c.name === subcommandStr);
+      const subcommand = subcommandArr.find(c => {
+        if (c.name === subcommandStr) return true;
+        if (!subcommandStr) return false;
+        if (!c.aliases?.length) return false;
+        return c.aliases.includes(subcommandStr);
+      });
       if (!subcommand) return console.error(`Cannot print help for subcommand "${subcommandStr}" as it does not exist`);
       help.printSubcommandHelp(subcommand, opt, cliOptions.cliName);
     },
+  };
+
+  /** - Get current subcommand props */
+  const GetSubcommandProps = (cmd = results.subcommand) => {
+    return subcommandArr.find(c => {
+      if (c.name === cmd) return true;
+      if (!cmd) return false;
+      if (!c.aliases?.length) return false;
+      return c.aliases.includes(cmd);
+    });
   };
 
   const addRawArg = (optionName: string, rawArg: string) => {
@@ -88,7 +103,7 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
       results.subcommand = allSubcommands.has(arg) ? arg : undefined;
 
       // add positional and arguments array
-      const subcommandProps = subcommandArr.find(c => c.name === results.subcommand);
+      const subcommandProps = GetSubcommandProps();
       if (subcommandProps?.allowPositional) results.positional = [];
       if (subcommandProps?.arguments?.length) results.arguments = [];
 
@@ -106,7 +121,7 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
         throw new Error(`Flag arguments cannot be assigned using "=": "${arg}"`);
       }
 
-      const subcommandProps = subcommandArr.find(c => c.name === results.subcommand);
+      const subcommandProps = GetSubcommandProps();
       if (!subcommandProps) throw new Error(`Unknown subcommand: "${results.subcommand}"`);
 
       if (!subcommandProps.options) {
@@ -117,8 +132,6 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
       }
 
       const optionName = transformArg(argument);
-      if (optionName in results) throw new Error(`Duplicate option: "${argument}"`);
-
       const isNegative = argument.startsWith("--no-");
 
       const option = subcommandProps.options.find(o => {
@@ -134,6 +147,10 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
 
       if (!option) {
         throw new Error(`Unknown option: "${argument}"`);
+      }
+
+      if (option.name in results) {
+        throw new Error(`Duplicated option: "${argument}"`);
       }
 
       const isTypeBoolean = isBooleanSchema(option.type);
@@ -173,7 +190,7 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
       continue;
     }
 
-    const subcommandProps = subcommandArr.find(c => c.name === results.subcommand);
+    const subcommandProps = GetSubcommandProps();
 
     // * arguments
     if (subcommandProps?.arguments?.length) {
@@ -212,7 +229,7 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
   }
 
   // check for missing options - set defaults - add _source
-  const subcommandProps = subcommandArr.find(c => c.name === results.subcommand);
+  const subcommandProps = GetSubcommandProps();
   if (subcommandProps?.options?.length) {
     for (const option of subcommandProps.options) {
       if (option.name in results) {

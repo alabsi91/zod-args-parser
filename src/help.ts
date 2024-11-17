@@ -3,14 +3,13 @@ import { concat, getDefaultValueFromSchema, indent, ln, print, println, transfor
 
 import type { Argument, Cli, Option, PrintHelpOpt, Subcommand } from "./types.js";
 
-/** Colors */
 const colors: NonNullable<Required<PrintHelpOpt["customColors"]>> = {
   title: chalk.bold.blue,
   description: chalk.white,
   default: chalk.dim.italic,
   optional: chalk.dim.italic,
   exampleTitle: chalk.yellow,
-  example: chalk.dim.italic,
+  example: chalk.dim,
   command: chalk.yellow,
   option: chalk.cyan,
   argument: chalk.green,
@@ -126,13 +125,15 @@ function printSubcommandHelp(subcommand: Subcommand, printOptions: PrintHelpOpt 
   };
 
   // Print command usage
-  const usage = concat(
-    c.punctuation("$"),
-    cliName,
-    c.command(subcommand.name),
-    subcommand.options?.length ? c.option("[options]") : "",
-    subcommand.arguments?.length || subcommand.allowPositional ? c.argument("<arguments>") : "",
-  );
+  const usage =
+    subcommand.usage ??
+    concat(
+      c.punctuation("$"),
+      cliName,
+      c.command(subcommand.name),
+      subcommand.options?.length ? c.option("[options]") : "",
+      subcommand.arguments?.length || subcommand.allowPositional ? c.argument("<arguments>") : "",
+    );
   printTitle("Usage");
   println();
   println(indent(2), usage, ln(1));
@@ -293,7 +294,7 @@ function printPreparedCommands(commandsToPrint: PreparedToPrint[], c: typeof col
   for (const { names, placeholder, description } of commandsToPrint) {
     const optLength = names.length + (placeholder?.length ?? 0);
     const spacing = longest + 1 - optLength;
-    const normalizeDesc = description.replace(/\n/g, "\n" + indent(longest + 7));
+    const normalizeDesc = description.replace(/\n/g, "\n" + indent(longest + 7) + c.punctuation("└"));
 
     const coloredNames = names
       .split(/(,)/)
