@@ -38,7 +38,10 @@ cliSchema.setAction(results => {
 
   if (version) {
     console.log("v1.0.0");
+    return;
   }
+
+  console.error("Please try `argplay --help`");
 });
 
 // * Test different inputs 👇

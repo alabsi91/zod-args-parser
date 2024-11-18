@@ -1,5 +1,6 @@
 import { help } from "./help.js";
 import { parse, safeParse } from "./parser.js";
+import { generateAutocompleteScript } from "./autocomplete.js";
 
 import type {
   ActionFn,
@@ -11,13 +12,13 @@ import type {
   UnSafeParseResult,
 } from "./types.js";
 
-function createSubcommand<const T extends Subcommand>(input: CheckDuplicatedOptions<T>): Prettify<T & ActionFn<T>> {
+function createCli<const T extends Cli>(input: CheckDuplicatedOptions<T>): Prettify<T & ActionFn<T>> {
   return Object.assign(input, {
     setAction: (action: (res: UnSafeParseResult<[T]>) => void) => (input.action = action),
   });
 }
 
-function createCli<const T extends Cli>(input: CheckDuplicatedOptions<T>): Prettify<T & ActionFn<T>> {
+function createSubcommand<const T extends Subcommand>(input: CheckDuplicatedOptions<T>): Prettify<T & ActionFn<T>> {
   return Object.assign(input, {
     setAction: (action: (res: UnSafeParseResult<[T]>) => void) => (input.action = action),
   });
@@ -29,6 +30,15 @@ function createOptions<const T extends [Option, ...Option[]]>(options: T): T {
 
 const { printCliHelp, printSubcommandHelp } = help;
 
-export { createCli, createSubcommand, createOptions, parse, printCliHelp, printSubcommandHelp, safeParse };
+export {
+  createCli,
+  createSubcommand,
+  createOptions,
+  parse,
+  safeParse,
+  printCliHelp,
+  printSubcommandHelp,
+  generateAutocompleteScript,
+};
 
 export type * from "./types.js";
