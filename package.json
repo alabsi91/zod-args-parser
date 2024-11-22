@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A strictly typed command-line arguments parser powered by Zod.",
   "author": "Ahmed ALABSI <alabsi91@gmail>",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "tsx watch example/cli.ts",
+    "dev": "tsx watch example/index.ts",
     "build": "node scripts/build.mjs",
     "test": "eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
     "prepare": "npm run test && npm run build"

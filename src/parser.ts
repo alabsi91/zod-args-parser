@@ -16,18 +16,16 @@ import type {
   NoSubcommand,
   Option,
   PrintHelpOpt,
+  PrintMethods,
   SafeParseResult,
   Subcommand,
-  UnSafeParseResult,
+  UnSafeParseResult
 } from "./types.js";
 
-export function parse<T extends Subcommand[]>(argsv: string[], ...params: T): UnSafeParseResult<T>;
 export function parse<T extends Subcommand[], U extends Cli>(
   argsv: string[],
   ...params: [U, ...T]
-): UnSafeParseResult<[...T, NoSubcommand & U]>;
-
-export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ...params: [U, ...T]) {
+): UnSafeParseResult<[...T, NoSubcommand & U]> {
   const cliOptions = ("cliName" in params[0] ? params[0] : {}) as U;
   const subcommandArr = params as unknown as T;
   const allSubcommands = new Set<string>(subcommandArr.flatMap(c => [c.name, ...(c.aliases || [])]));
@@ -280,18 +278,19 @@ export function parse<T extends Subcommand[], U extends Cli>(argsv: string[], ..
   return results as UnSafeParseResult<[...T, NoSubcommand & U]>;
 }
 
-export function safeParse<T extends Subcommand[]>(argsv: string[], ...params: T): SafeParseResult<T>;
 export function safeParse<T extends Subcommand[], U extends Cli>(
   argsv: string[],
   ...params: [U, ...T]
-): SafeParseResult<[...T, NoSubcommand & U]>;
-
-export function safeParse<T extends Subcommand[], U extends Cli>(argsv: string[], ...params: [U, ...T]) {
+): SafeParseResult<[...T, NoSubcommand & U]> {
   const cliOptions = ("cliName" in params[0] ? params[0] : {}) as U;
   const subcommandArr = params as Subcommand[];
 
-  const printCliHelp = (opt?: PrintHelpOpt) => help.printCliHelp(params, opt);
-  const printSubcommandHelp = (subcommandStr: NonNullable<T[number]["name"]>, opt?: PrintHelpOpt) => {
+  type PrintTypes = PrintMethods<T[number]["name"]>;
+  type PrintCli = PrintTypes["printCliHelp"];
+  type PrintSubcommand = PrintTypes["printSubcommandHelp"];
+
+  const printCliHelp: PrintCli = opt => help.printCliHelp(params, opt);
+  const printSubcommandHelp: PrintSubcommand = (subcommandStr, opt) => {
     const subcommand = subcommandArr.find(c => c.name === subcommandStr);
     if (!subcommand) return console.error(`Cannot print help for subcommand "${subcommandStr}" as it does not exist`);
     help.printSubcommandHelp(subcommand, opt, cliOptions.cliName);
@@ -299,9 +298,9 @@ export function safeParse<T extends Subcommand[], U extends Cli>(argsv: string[]
 
   try {
     const data = parse(argsv, ...params);
-    // @ts-expect-error error
+    // @ts-expect-error The operand of a 'delete' operator must be optional.
     delete data.printCliHelp;
-    // @ts-expect-error error
+    // @ts-expect-errorThe operand of a 'delete' operator must be optional.
     delete data.printSubcommandHelp;
 
     return {
@@ -309,8 +308,13 @@ export function safeParse<T extends Subcommand[], U extends Cli>(argsv: string[]
       data: data as Omit<typeof data, "printCliHelp" | "printSubcommandHelp">,
       printCliHelp,
       printSubcommandHelp,
-    };
+    } as SafeParseResult<[...T, NoSubcommand & U]>;
   } catch (e) {
-    return { success: false, error: e as Error, printCliHelp, printSubcommandHelp };
+    return {
+      success: false,
+      error: e as Error,
+      printCliHelp,
+      printSubcommandHelp,
+    } as SafeParseResult<[...T, NoSubcommand & U]>;
   }
 }

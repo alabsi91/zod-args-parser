@@ -6,6 +6,7 @@ import { createCli, safeParse } from "../src/index.js";
 
 const padEnd = 16;
 const expectsFailure = chalk.yellow("expects failure".padEnd(padEnd));
+const expectsSuccess = chalk.yellow("expects success".padEnd(padEnd));
 const expectsTrue = chalk.yellow("expects `true`".padEnd(padEnd));
 const expectsFalse = chalk.yellow("expects `false`".padEnd(padEnd));
 const expectsUndefined = chalk.yellow("expects `undefined`").padEnd(padEnd);
@@ -310,4 +311,61 @@ it("-s, --string (default: 'hello world'): No arguments provided " + expectsStri
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.string, "hello world");
+});
+
+describe("booleanArg stringArg numberArg", () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    arguments: [
+      { name: "booleanArg", type: z.boolean() },
+      { name: "stringArg", type: z.string() },
+      { name: "numberArg", type: z.coerce.number() },
+    ],
+  });
+
+  const indent = 26;
+
+  it('true "hello world" 123'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["true", "hello world", "123"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [booleanArg, stringArg, numberArg] = result.data.arguments;
+    assert.equal(booleanArg, true);
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+  });
+
+  it('false "hello world" 123'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["false", "hello world", "123"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [booleanArg, stringArg, numberArg] = result.data.arguments;
+    assert.equal(booleanArg, false);
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+  });
+
+  it('0 "hello world" 123'.padEnd(indent) + expectsFailure, () => {
+    const args = ["0", "hello world", "123"];
+    const result = safeParse(args, cli);
+    if (result.success) assert.fail("Should have failed");
+  });
+
+  it("true 123".padEnd(indent) + expectsFailure, () => {
+    const args = ["0", "123"];
+    const result = safeParse(args, cli);
+    if (result.success) assert.fail("Should have failed");
+  });
+
+  it('true "hello world" string'.padEnd(indent) + expectsFailure, () => {
+    const args = ["0", "hello world", "string"];
+    const result = safeParse(args, cli);
+    if (result.success) assert.fail("Should have failed");
+  });
+
+  it('No arguments provided'.padEnd(indent) + expectsFailure, () => {
+    const args = [];
+    const result = safeParse(args, cli);
+    if (result.success) assert.fail("Should have failed");
+  });
 });

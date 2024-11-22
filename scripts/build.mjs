@@ -13,11 +13,11 @@ const commonjsDir = path.join(libDir, "commonjs");
 const esmDir = path.join(libDir, "module");
 
 // Clean lib directory
-console.log("🧹 ", `Cleaning "${libDir}"...\n`);
+console.log("🧹", `Cleaning "${libDir}"...\n`);
 await fs.rm(libDir, { recursive: true, force: true });
 
 // TypeScript Compiler Options
-console.log("📦 ", `Generating TypeScript declaration files...`);
+console.log("📦", `Generating TypeScript declaration files...`);
 
 const tsConfigPath = path.resolve("tsconfig.json");
 const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;

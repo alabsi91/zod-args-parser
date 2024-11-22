@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { createSubcommand } from "zod-args-parser";
-import { sharedOptions } from "../sharedOptions.js";
+import { sharedOptions } from "../shared.js";
 
 const parseArr = (val: unknown) => {
   if (typeof val === "string") {
-    return val.split(",").filter(Boolean);
+    return val
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
   }
   return val;
 };

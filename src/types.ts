@@ -267,7 +267,7 @@ export type ParseResult<S extends Partial<Subcommand>[]> = {
   >;
 }[number];
 
-export type PrintMethods<N extends Subcommand["name"] | undefined> = {
+export type PrintMethods<N extends Subcommand["name"]> = {
   printCliHelp: (options?: PrintHelpOpt) => void;
   printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, options?: PrintHelpOpt) => void;
 };
@@ -275,13 +275,14 @@ export type PrintMethods<N extends Subcommand["name"] | undefined> = {
 export type UnSafeParseResult<S extends Partial<Subcommand>[]> =
   CheckDuplicatedSubcommands<S> extends infer E extends string
     ? E
-    : Prettify<ParseResult<S> & PrintMethods<S[number]["name"]>>;
+    : Prettify<ParseResult<S> & PrintMethods<NonNullable<S[number]["name"]>>>;
 
 export type SafeParseResult<S extends Partial<Subcommand>[]> =
   CheckDuplicatedSubcommands<S> extends infer E extends string
     ? E
     : Prettify<
-        ({ success: false; error: Error } | { success: true; data: ParseResult<S> }) & PrintMethods<S[number]["name"]>
+        ({ success: false; error: Error } | { success: true; data: ParseResult<S> }) &
+          PrintMethods<NonNullable<S[number]["name"]>>
       >;
 
 export type ActionFn<T extends Subcommand | Cli> = {
@@ -315,7 +316,7 @@ type IsDuplicatesInArr<Input extends any[]> = Input extends [infer Item, ...infe
  * - Return an error message if duplicated is found
  * - Return `subcommand` if not found
  */
-export type CheckDuplicatedOptions<T extends Subcommand | Cli> = T["options"] extends infer O extends Option[]
+export type CheckDuplicatedOptions<T extends { options?: Option[] }> = T["options"] extends infer O extends Option[]
   ? IsDuplicatesInArr<MapNameAndAliases2StrArr<O>> extends infer D extends string
     ? `>>> Error: Duplicated Options \`${D}\` <<<`
     : T
