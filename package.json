@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A strictly typed command-line arguments parser powered by Zod.",
   "author": "Ahmed ALABSI <alabsi91@gmail>",
   "license": "MIT",
