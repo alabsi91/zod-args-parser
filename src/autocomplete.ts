@@ -130,8 +130,8 @@ function ${cli.cliName} {
     )
     $scriptPath = (Get-Command '${cli.cliName}.ps1').Source
     if ($scriptPath) {
-        $arguments = $arguments | Where-Object { $_ -notin "--", "--%" }
-        & $scriptPath $subcommand @arguments
+        $argumentList = @($subcommand) + ($arguments | Where-Object { $_ -notin '--', '--%' }) | Where-Object { $_ -ne '' }
+        & $scriptPath @argumentList
         return
     }
     Write-Error "Could not find '${cli.cliName}.ps1' script"
