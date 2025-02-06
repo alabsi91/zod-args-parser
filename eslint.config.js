@@ -1,8 +1,9 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
 import { includeIgnoreFile } from "@eslint/compat";
+import pluginJs from "@eslint/js";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import globals from "globals";
 import path from "path";
+import tseslint from "typescript-eslint";
 
 const gitignorePath = path.resolve(".gitignore");
 
@@ -15,6 +16,7 @@ export default [
   includeIgnoreFile(gitignorePath),
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
+  eslintPluginPrettierRecommended,
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
