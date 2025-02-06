@@ -19,7 +19,7 @@ import type {
   PrintMethods,
   SafeParseResult,
   Subcommand,
-  UnSafeParseResult
+  UnSafeParseResult,
 } from "./types.js";
 
 export function parse<T extends Subcommand[], U extends Cli>(
