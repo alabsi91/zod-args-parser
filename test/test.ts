@@ -13,6 +13,28 @@ const expectsUndefined = chalk.yellow("expects `undefined`").padEnd(padEnd);
 const expectsString = chalk.yellow("expects string".padEnd(padEnd));
 const expectsNumber = chalk.yellow("expects number".padEnd(padEnd));
 
+it("-h, --help (optional: boolean): Pass `--h` instead of `-h` " + expectsFailure, () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    options: [{ name: "help", type: z.boolean().optional(), aliases: ["h"] }],
+  });
+
+  const args = ["--h"];
+  const result = safeParse(args, cli);
+  if (result.success) assert.fail("Should have failed");
+});
+
+it("-h, --help (optional: boolean): Pass `-H` instead of `-h` " + expectsFailure, () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    options: [{ name: "help", type: z.boolean().optional(), aliases: ["h"] }],
+  });
+
+  const args = ["-H"];
+  const result = safeParse(args, cli);
+  if (result.success) assert.fail("Should have failed");
+});
+
 describe("-h, --help (required: boolean)", () => {
   const cli = createCli({
     cliName: "test-cli",
@@ -363,7 +385,7 @@ describe("booleanArg stringArg numberArg", () => {
     if (result.success) assert.fail("Should have failed");
   });
 
-  it('No arguments provided'.padEnd(indent) + expectsFailure, () => {
+  it("No arguments provided".padEnd(indent) + expectsFailure, () => {
     const args = [];
     const result = safeParse(args, cli);
     if (result.success) assert.fail("Should have failed");
