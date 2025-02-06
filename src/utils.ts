@@ -20,13 +20,18 @@ export function transformOptionToArg(name: string): string {
 
 /** - Check if an arg string is a short arg. E.g. `-i` -> `true` */
 export function isFlagArg(name: string): boolean {
-  return /^-[a-z]$/.test(name);
+  return /^-[A-Z-a-z]$/.test(name);
+}
+
+/** - Check if an arg string is a long arg. E.g. `--input-dir` -> `true` */
+export function isLongArg(name: string): boolean {
+  return /^--[A-Z-a-z-]+[A-Z-a-z]$/.test(name);
 }
 
 /** - Check if an arg string is an options arg. E.g. `--input-dir` -> `true` , `-i` -> `true` */
 export function isOptionArg(name: string | boolean): boolean {
   if (typeof name !== "string") return false;
-  return isFlagArg(name) || name.startsWith("--");
+  return isFlagArg(name) || isLongArg(name);
 }
 
 /**
