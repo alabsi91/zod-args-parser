@@ -1,6 +1,6 @@
 import { transformOptionToArg } from "./utils.js";
 
-import type { Cli, Subcommand } from "./types.js";
+import type { Cli, Option, Subcommand } from "./types.js";
 
 /**
  * - Generate bash autocomplete script for your CLI
@@ -149,4 +149,67 @@ Register-ArgumentCompleter -CommandName '${cli.cliName}' -ParameterName 'argumen
     $arguments = ${switchCase}
     $arguments | Where-Object { $_ -like "$wordToComplete*" }
 }`;
+}
+
+/**
+ * - Generates a ZSH autocomplete script for your CLI.
+ * - The generated script should be added to your `~/.zshrc` or `~/.zsh_profile` file:
+ *
+ *   - Run: `nano $HOME/.zshrc` or `nano $HOME/.zsh_profile`
+ *   - Add the following line: `source <generated script path>`
+ *   - Save and reopen zsh to take effect
+ */
+export function generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string {
+  const [cli, ...subcommands] = params;
+
+  const genArguments = (options: Option[]) => {
+    return options
+      ?.map(option => `'${transformOptionToArg(option.name)}[${option.description ?? ""}]'`)
+      .join(" \\\n            ");
+  };
+
+  const genSubCommand = (subcommand: Subcommand) => {
+    const options = subcommand.options;
+    if (!options || options.length === 0) return "";
+    return `${subcommand.name})
+          _arguments \\
+            ${genArguments(options)} \\
+            '1: :_files' \\
+            && ret=0
+          ;;`;
+  };
+
+  return `
+_${cli.cliName}_autocomplete() {
+  local ret=1
+
+  _arguments -C \\
+    '1: :_${cli.cliName}_commands' \\
+    '*:: :->subcmds' \\
+    && ret=0
+
+  case $state in
+    subcmds)
+      case "$words[1]" in
+        ${subcommands.map(genSubCommand).filter(Boolean).join("\n        ")}
+        *)
+          _message "No options available for this command"
+          ;;
+      esac
+      ;;
+  esac
+
+  return $ret
+}
+  
+_${cli.cliName}_commands() {
+  local -a commands=(
+    ${subcommands.map(subcommand => `"${subcommand.name}:${subcommand.description ?? ""}"`).join("\n    ")}
+  )
+
+  _describe -t subcommands 'subcommand' commands
+}
+
+compdef _${cli.cliName}_autocomplete ${cli.cliName}
+`;
 }
