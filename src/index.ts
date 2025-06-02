@@ -79,6 +79,10 @@ export { printCliHelp, printSubcommandHelp };
 
 export { parse, safeParse } from "./parser.js";
 
-export { generateBashAutocompleteScript, generatePowerShellAutocompleteScript } from "./autocomplete.js";
+export {
+  generateBashAutocompleteScript,
+  generateZshAutocompleteScript,
+  generatePowerShellAutocompleteScript,
+} from "./autocomplete.js";
 
 export type * from "./types.js";
