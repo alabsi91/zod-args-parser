@@ -174,7 +174,7 @@ export function generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]])
     return `${subcommand.name})
           _arguments \\
             ${genArguments(options)} \\
-            '1: :_files' \\
+            '*: :_files' \\
             && ret=0
           ;;`;
   };
@@ -193,7 +193,9 @@ _${cli.cliName}_autocomplete() {
       case "$words[1]" in
         ${subcommands.map(genSubCommand).filter(Boolean).join("\n        ")}
         *)
-          _message "No options available for this command"
+          _arguments \
+            '*: :_files' \
+            && ret=0
           ;;
       esac
       ;;
