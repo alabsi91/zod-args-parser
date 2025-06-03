@@ -193,8 +193,8 @@ _${cli.cliName}_autocomplete() {
       case "$words[1]" in
         ${subcommands.map(genSubCommand).filter(Boolean).join("\n        ")}
         *)
-          _arguments \
-            '*: :_files' \
+          _arguments \\
+            '*: :_files' \\
             && ret=0
           ;;
       esac
