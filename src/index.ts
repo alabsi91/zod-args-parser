@@ -1,5 +1,3 @@
-import { help } from "./help.js";
-
 import type {
   ActionFn,
   Argument,
@@ -74,15 +72,20 @@ export function createArguments<const T extends [Argument, ...Argument[]]>(args:
   return args;
 }
 
-const { printCliHelp, printSubcommandHelp } = help;
-export { printCliHelp, printSubcommandHelp };
+export { printCliHelp, printSubcommandHelp } from "./help-message/print-help-message.js";
 
-export { parse, safeParse } from "./parser.js";
+export { parse } from "./parser/parse.js";
+export { safeParse } from "./parser/safe-parse.js";
 
-export {
-  generateBashAutocompleteScript,
-  generateZshAutocompleteScript,
-  generatePowerShellAutocompleteScript,
-} from "./autocomplete.js";
+export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.js";
+export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.js";
+export { generateZshAutocompleteScript } from "./autocomplete-scripts/zsh-autocomplete-script.js";
+
+export { getArgumentsMetadata } from "./metadata/get-arguments-metadata.js";
+export { getCliMetadata } from "./metadata/get-cli-metadata.js";
+export { getOptionsMetadata } from "./metadata/get-options-metadata.js";
+export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.js";
+
+export { generateMarkdown } from "./markdown/generate-markdown.js";
 
 export type * from "./types.js";

@@ -1,5 +1,9 @@
 import { writeFile } from "fs/promises";
-import { generateBashAutocompleteScript, generatePowerShellAutocompleteScript } from "zod-args-parser";
+import {
+  generateBashAutocompleteScript,
+  generatePowerShellAutocompleteScript,
+  generateZshAutocompleteScript,
+} from "zod-args-parser";
 
 import { cliCommands } from "./cli.js";
 
@@ -11,7 +15,7 @@ import { cliCommands } from "./cli.js";
   - Save and reopen bash to take effect
 */
 const bashScript = generateBashAutocompleteScript(...cliCommands);
-await writeFile("./argplay-autocomplete.sh", bashScript, { encoding: "utf-8" });
+await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf-8" });
 
 /*
 - Generates a PowerShell autocomplete script for `argplay`.
@@ -23,4 +27,15 @@ await writeFile("./argplay-autocomplete.sh", bashScript, { encoding: "utf-8" });
     - Save and reopen powershell to take effect
 */
 const powershellScript = generatePowerShellAutocompleteScript(...cliCommands);
-await writeFile("./argplay-autocomplete.ps1", powershellScript, { encoding: "utf-8" });
+await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf-8" });
+
+/**
+ * - Generates a ZSH autocomplete script for your CLI.
+ * - The generated script should be added to your `~/.zshrc` or `~/.zsh_profile` file:
+ *
+ *   - Run: `nano $HOME/.zshrc` or `nano $HOME/.zsh_profile`
+ *   - Add the following line: `source <generated script path>`
+ *   - Save and reopen zsh to take effect
+ */
+const zshScript = generateZshAutocompleteScript(...cliCommands);
+await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf-8" });

@@ -13,7 +13,7 @@ A strictly typed command-line arguments parser powered by Zod.
 ## Installation
 
 ```bash
-npm install zod-args-parser
+npm install zod chalk zod-args-parser
 ```
 
 ## Usage
@@ -244,3 +244,14 @@ Parses the provided arguments and returns:
 ```ts
 { success: false, error: Error } | { success: true, data: ResultObj }
 ```
+
+## Extras
+
+- `generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+- `generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+- `generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+- `generateMarkdown(...params: [Cli, ...Subcommand[]]): string`
+
+## Example
+
+- [Example code](https://github.com/alabsi91/zod-args-parser/tree/main/example)

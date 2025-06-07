@@ -3,7 +3,7 @@ import { cliCommands } from "./cli.js";
 
 // * Test different inputs 👇
 
-const args = ["--help"];
+const args = ["help", "configure"];
 // const args = ["--version"];
 
 // const args = ["help", "process"];
