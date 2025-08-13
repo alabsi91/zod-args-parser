@@ -27,7 +27,7 @@ export function printOptions(optionsMetadata: OptionMetadata[], c: PrintHelpColo
       c.placeholder(metadata.placeholder),
       indent(spacing),
       c.description(normalizeDesc),
-      defaultStr ? c.default(defaultStr) : c.optional(metadata.optional),
+      defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "",
     );
 
     if (metadata.example) {
