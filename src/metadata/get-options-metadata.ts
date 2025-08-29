@@ -1,4 +1,5 @@
-import { getDefaultValueFromSchema, transformOptionToArg } from "../utils.js";
+import { transformOptionToArg } from "../utils.js";
+import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zodUtils.js";
 
 import type { Option, OptionMetadata } from "../types.js";
 
@@ -8,7 +9,7 @@ export function getOptionsMetadata(options: Option[]): OptionMetadata[] {
   if (!options || !options.length) return outputMetadata;
 
   for (const option of options) {
-    const defaultValue = getDefaultValueFromSchema(option.type);
+    const defaultValue = schemaDefaultValue(option.type);
     const aliases = option.aliases ?? [];
 
     outputMetadata.push({
@@ -17,8 +18,8 @@ export function getOptionsMetadata(options: Option[]): OptionMetadata[] {
       aliases,
       aliasesAsArgs: aliases.map(transformOptionToArg),
       placeholder: option.placeholder ?? "",
-      description: option.description ?? option.type.description ?? "",
-      optional: option.type.isOptional(),
+      description: option.description ?? schemaDescription(option.type) ?? "",
+      optional: isOptionalSchema(option.type),
       example: option.example ?? "",
       defaultValue,
       defaultValueAsString: JSON.stringify(defaultValue),

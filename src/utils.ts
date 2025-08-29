@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import { z } from "zod";
 
 /**
  * @param name - Should start with `'--'`
@@ -38,7 +37,7 @@ export function isOptionArg(name: string | boolean): boolean {
  * - Transform option name to no name. E.g. `include` -> `noInclude`
  * - For short name like `-i` it will be ignored
  */
-export function noName(name: string): string {
+export function negateOption(name: string): string {
   if (name.length === 1) return name;
   return "no" + name.replace(/^[a-z]/, g => g.toUpperCase());
 }
@@ -67,38 +66,6 @@ export function getOrdinalPlacement(index: number): string {
           : suffixes[0];
 
   return `${index + 1}${suffix}`;
-}
-
-/** - Check if a schema is a boolean */
-export function isBooleanSchema(schema: z.ZodTypeAny): boolean {
-  let type = schema;
-  while (type) {
-    if (type instanceof z.ZodBoolean) {
-      return true;
-    }
-
-    if (type instanceof z.ZodLiteral) {
-      return type.value === true || type.value === false;
-    }
-
-    type = type._def.innerType;
-  }
-
-  return false;
-}
-
-export function getDefaultValueFromSchema(schema: z.ZodTypeAny): unknown | undefined {
-  let type = schema;
-  while (type) {
-    if (type instanceof z.ZodDefault) {
-      const defaultValue = type._def.defaultValue();
-      return defaultValue;
-    }
-
-    type = type._def.innerType;
-  }
-
-  return undefined;
 }
 
 /** - Decouple flags E.g. `-rf` -> `-r, -f` */

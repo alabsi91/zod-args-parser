@@ -13,7 +13,7 @@ A strictly typed command-line arguments parser powered by Zod.
 ## Installation
 
 > [!IMPORTANT]  
-> `zod` version `4` is not supported at this time.
+> `zod` version `3.25.0` or later (including `4.0.0`) is required.
 
 ```bash
 npm install zod chalk zod-args-parser

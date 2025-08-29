@@ -1,10 +1,10 @@
-import { z } from "zod";
+import * as z from "zod";
 import { createCli } from "zod-args-parser";
 
-import { helpCommandSchema } from "./commands/helpCmd.js";
-import { countSchema } from "./commands/countCmd.js";
 import { configureSchema } from "./commands/configureCmd.js";
 import { convertSchema } from "./commands/convertCmd.js";
+import { countSchema } from "./commands/countCmd.js";
+import { helpCommandSchema } from "./commands/helpCmd.js";
 import { precessSchema } from "./commands/processCmd.js";
 
 // Create a CLI schema

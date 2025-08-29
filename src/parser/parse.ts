@@ -1,15 +1,17 @@
+import * as z from "zod/v4/core";
+
 import * as help from "../help-message/print-help-message.js";
 import {
   decoupleFlags,
   getOrdinalPlacement,
-  isBooleanSchema,
   isFlagArg,
   isOptionArg,
-  noName,
+  negateOption,
   stringToBoolean,
   transformArg,
   transformOptionToArg,
 } from "../utils.js";
+import { isBooleanSchema, isOptionalSchema, safeParseSchema, schemaDefaultValue } from "../zodUtils.js";
 
 import type { Cli, NoSubcommand, Option, PrintHelpOpt, Subcommand, UnSafeParseResult } from "../types.js";
 
@@ -125,11 +127,11 @@ export function parse<T extends Subcommand[], U extends Cli>(
 
       const option = subcommandProps.options.find(o => {
         if (o.name === optionName) return true;
-        if (isNegative && noName(o.name) === optionName) return true;
+        if (isNegative && negateOption(o.name) === optionName) return true;
 
         if (!o.aliases) return false;
         if (o.aliases.includes(optionName)) return true;
-        if (isNegative && o.aliases.map(noName).includes(optionName)) return true;
+        if (isNegative && o.aliases.map(negateOption).includes(optionName)) return true;
 
         return false;
       });
@@ -164,9 +166,9 @@ export function parse<T extends Subcommand[], U extends Cli>(
         throw new Error(`Expected a value for "${argument}" but got an argument "${nextArg}"`);
       }
 
-      const res = option.type.safeParse(optionValue);
+      const res = safeParseSchema(option.type, optionValue);
       if (!res.success) {
-        throw new Error(`Invalid value "${optionValue}" for "${argument}": ${res.error.errors[0].message}`);
+        throw new Error(`Invalid value "${optionValue}" for "${argument}": ${z.prettifyError(res.error)}`);
       }
 
       results[option.name] = res.data;
@@ -194,10 +196,10 @@ export function parse<T extends Subcommand[], U extends Cli>(
         const isTypeBoolean = isBooleanSchema(argType);
         if (isTypeBoolean) argValue = stringToBoolean(argValue);
 
-        const res = argType.safeParse(argValue);
+        const res = safeParseSchema(argType, argValue);
         if (!res.success) {
           throw new Error(
-            `The ${getOrdinalPlacement(currentArgCount)} argument "${arg}" is invalid: ${res.error.errors[0].message}`,
+            `The ${getOrdinalPlacement(currentArgCount)} argument "${arg}" is invalid: ${z.prettifyError(res.error)}`,
           );
         }
 
@@ -227,10 +229,10 @@ export function parse<T extends Subcommand[], U extends Cli>(
         continue;
       }
 
-      if (option.type.isOptional()) {
-        const hasDefault = typeof option.type._def.defaultValue === "function";
-        if (!hasDefault) continue;
-        results[option.name] = option.type._def.defaultValue();
+      if (isOptionalSchema(option.type)) {
+        const optionDefaultValue = schemaDefaultValue(option.type);
+        if (optionDefaultValue === undefined) continue;
+        results[option.name] = optionDefaultValue;
         addSource(option.name, "default");
         fillOption(option.name, option);
         continue;
@@ -249,13 +251,13 @@ export function parse<T extends Subcommand[], U extends Cli>(
     if (currentArgCount < subcommandArgCount) {
       for (let i = currentArgCount; i < subcommandArgCount; i++) {
         const argumentType = subcommandProps.arguments[i].type;
-        const hasDefault = typeof argumentType._def.defaultValue === "function";
-        if (hasDefault && results.arguments) {
-          results.arguments.push(argumentType._def.defaultValue());
+        const argumentDefaultValue = schemaDefaultValue(argumentType);
+        if (argumentDefaultValue !== undefined && results.arguments) {
+          results.arguments.push(argumentDefaultValue);
           continue;
         }
 
-        if (argumentType.isOptional()) continue;
+        if (isOptionalSchema(argumentType)) continue;
 
         throw new Error(`the ${getOrdinalPlacement(i)} argument is required: "${subcommandProps.arguments[i].name}"`);
       }
