@@ -1,4 +1,11 @@
-import type { z } from "zod";
+import type * as Z3 from "zod/v3";
+import type * as Z4 from "zod/v4/core";
+
+export type SchemaV3 = Z3.ZodTypeAny;
+export type SchemaV4 = Z4.$ZodType;
+export type Schema = SchemaV3 | SchemaV4;
+
+type ZodInfer<T extends Schema> = T extends SchemaV4 ? Z4.infer<T> : T extends SchemaV3 ? Z3.infer<T> : never;
 
 export interface CliMetadata {
   /** The name of the cli program. */
@@ -90,7 +97,7 @@ export interface OptionMetadata {
   readonly optional: boolean;
 
   /** - The zod type of the option. */
-  readonly type: z.ZodTypeAny;
+  readonly type: Schema;
 }
 
 export interface ArgumentMetadata {
@@ -113,7 +120,7 @@ export interface ArgumentMetadata {
   readonly optional: boolean;
 
   /** - The zod type of the argument. */
-  readonly type: z.ZodTypeAny;
+  readonly type: Schema;
 }
 
 export type Subcommand = {
@@ -209,7 +216,7 @@ export type Option = {
    *
    * @see https://zod.dev/?id=types
    */
-  type: z.ZodTypeAny;
+  type: Schema;
 
   /**
    * - The description of the option.
@@ -248,7 +255,7 @@ export type Argument = {
    *
    * @see https://zod.dev/?id=types
    */
-  type: z.ZodTypeAny;
+  type: Schema;
 
   /**
    * - The description of the argument.
@@ -320,7 +327,7 @@ export type _Info = {
  *   type OptionsType = InferOptionsType<typeof subcommand>;
  */
 export type InferOptionsType<T extends Partial<Subcommand>> = T["options"] extends infer U extends Option[]
-  ? ToOptional<{ [K in U[number]["name"]]: z.infer<Extract<U[number], { name: K }>["type"]> }>
+  ? ToOptional<{ [K in U[number]["name"]]: ZodInfer<Extract<U[number], { name: K }>["type"]> }>
   : undefined;
 
 /**
@@ -331,7 +338,7 @@ export type InferOptionsType<T extends Partial<Subcommand>> = T["options"] exten
  *   type ArgumentsType = InferArgumentsType<typeof subcommand>;
  */
 export type InferArgumentsType<T extends Partial<Subcommand>> = T["arguments"] extends infer U extends Argument[]
-  ? { [K in keyof U]: U[K] extends { type: z.ZodTypeAny } ? z.infer<U[K]["type"]> : never }
+  ? { [K in keyof U]: U[K] extends { type: Schema } ? ZodInfer<U[K]["type"]> : never }
   : undefined;
 
 /** `{ some props } & { other props }` => `{ some props, other props }` */
@@ -349,11 +356,11 @@ type ToOptional<T> = Prettify<
 >;
 
 export type OptionsArr2RecordType<T extends Option[] | undefined> = T extends Option[]
-  ? ToOptional<{ [K in T[number]["name"]]: z.infer<Extract<T[number], { name: K }>["type"]> }>
+  ? ToOptional<{ [K in T[number]["name"]]: ZodInfer<Extract<T[number], { name: K }>["type"]> }>
   : object;
 
 export type ArgumentsArr2ArrType<T extends Argument[] | undefined> = T extends Argument[]
-  ? { arguments: { [K in keyof T]: T[K] extends { type: z.ZodTypeAny } ? z.infer<T[K]["type"]> : never } }
+  ? { arguments: { [K in keyof T]: T[K] extends { type: Schema } ? ZodInfer<T[K]["type"]> : never } }
   : object;
 
 export type Positional<S extends Partial<Subcommand>> = S["allowPositional"] extends true
@@ -364,7 +371,7 @@ export type Info<T extends Option[] | undefined> = T extends Option[]
   ? {
       _info: ToOptional<{
         [K in T[number]["name"]]: Extract<T[number], { name: K }> extends infer U extends Option
-          ? undefined extends z.infer<U["type"]>
+          ? undefined extends ZodInfer<U["type"]>
             ? undefined | Prettify<_Info & U> // if optional add undefined
             : Prettify<_Info & U>
           : never;
