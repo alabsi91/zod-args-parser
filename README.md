@@ -12,6 +12,9 @@ A strictly typed command-line arguments parser powered by Zod.
 
 ## Installation
 
+> [!IMPORTANT]  
+> `zod` version `4` is not supported at this time.
+
 ```bash
 npm install zod chalk zod-args-parser
 ```
