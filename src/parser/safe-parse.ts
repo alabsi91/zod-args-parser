@@ -1,5 +1,6 @@
 import * as help from "../help-message/print-help-message.js";
 import { parse } from "./parse.js";
+import { findSubcommand } from "./parser-helpers.js";
 
 import type { Cli, NoSubcommand, PrintMethods, SafeParseResult, Subcommand } from "../types.js";
 
@@ -15,9 +16,13 @@ export function safeParse<T extends Subcommand[], U extends Cli>(
   type PrintSubcommand = PrintTypes["printSubcommandHelp"];
 
   const printCliHelp: PrintCli = opt => help.printCliHelp(params, opt);
-  const printSubcommandHelp: PrintSubcommand = (subcommandStr, opt) => {
-    const subcommand = subcommandArr.find(c => c.name === subcommandStr);
-    if (!subcommand) return console.error(`Cannot print help for subcommand "${subcommandStr}" as it does not exist`);
+
+  const printSubcommandHelp: PrintSubcommand = (subCmdName, opt) => {
+    const subcommand = findSubcommand(subCmdName, subcommandArr);
+    if (!subcommand) {
+      return console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);
+    }
+
     help.printSubcommandHelp(subcommand, opt, cliOptions.cliName);
   };
 

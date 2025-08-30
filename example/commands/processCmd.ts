@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { createSubcommand } from "zod-args-parser";
 import { sharedOptions } from "../shared.js";
 

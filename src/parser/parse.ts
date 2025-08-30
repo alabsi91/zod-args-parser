@@ -1,107 +1,92 @@
 import * as z from "zod/v4/core";
 
 import * as help from "../help-message/print-help-message.js";
-import {
-  decoupleFlags,
-  getOrdinalPlacement,
-  isFlagArg,
-  isOptionArg,
-  negateOption,
-  stringToBoolean,
-  transformArg,
-  transformOptionToArg,
-} from "../utils.js";
+import { generateOrdinalSuffix, isFlagArg, isOptionArg, stringToBoolean, transformOptionToArg } from "../utils.js";
 import { isBooleanSchema, isOptionalSchema, safeParseSchema, schemaDefaultValue } from "../zodUtils.js";
+import { decoupleFlags, findOption, findSubcommand } from "./parser-helpers.js";
 
-import type { Cli, NoSubcommand, Option, PrintHelpOpt, Subcommand, UnSafeParseResult } from "../types.js";
+import type { Cli, NoSubcommand, PrintHelpOpt, Subcommand, UnSafeParseResult } from "../types.js";
+
+type InfoEntry = { rawArg?: string; rawValue?: string; source: "cli" | "default" };
+
+/** The return result object temporarily type. used inside the `parse` function */
+type ResultsTempType = Record<string, unknown> & {
+  subcommand: string | undefined;
+  positional?: string[];
+  arguments?: unknown[];
+  _info?: Record<string, InfoEntry>;
+  printCliHelp: (options?: PrintHelpOpt) => void;
+  printSubcommandHelp: (subcommand: string, options?: PrintHelpOpt) => void;
+};
 
 export function parse<T extends Subcommand[], U extends Cli>(
-  argsv: string[],
+  argv: string[],
   ...params: [U, ...T]
 ): UnSafeParseResult<[...T, NoSubcommand & U]> {
   const cliOptions = ("cliName" in params[0] ? params[0] : {}) as U;
   const subcommandArr = params as unknown as T;
   const allSubcommands = new Set<string>(subcommandArr.flatMap(c => [c.name, ...(c.aliases || [])]));
 
-  // decouple flags E.g. `-rf` -> `-r, -f`
-  argsv = decoupleFlags(argsv);
+  argv = decoupleFlags(argv); // decouple flags E.g. `-rf` -> `-r, -f`
 
-  type ResultObj = Record<string, unknown> & {
-    subcommand: string | undefined;
-    positional?: string[];
-    arguments?: unknown[];
-    _info?: Record<string, { rawArg?: string; rawValue?: string; source: "cli" | "default" }>;
-    printCliHelp: (options?: PrintHelpOpt) => void;
-    printSubcommandHelp: (subcommand: any, options?: PrintHelpOpt) => void;
-  };
-
-  const results: ResultObj = {
+  const results: ResultsTempType = {
     subcommand: undefined,
     printCliHelp(opt) {
       help.printCliHelp(params, opt);
     },
-    printSubcommandHelp(subcommandStr, opt) {
-      const subcommand = subcommandArr.find(c => {
-        if (c.name === subcommandStr) return true;
-        if (!subcommandStr) return false;
-        if (!c.aliases?.length) return false;
-        return c.aliases.includes(subcommandStr);
-      });
-      if (!subcommand) return console.error(`Cannot print help for subcommand "${subcommandStr}" as it does not exist`);
-      help.printSubcommandHelp(subcommand, opt, cliOptions.cliName);
+    printSubcommandHelp(subCmdName, opt) {
+      const subcommandObj = findSubcommand(subCmdName, subcommandArr);
+      if (!subcommandObj) {
+        console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);
+        return;
+      }
+
+      help.printSubcommandHelp(subcommandObj, opt, cliOptions.cliName);
     },
   };
 
-  /** - Get current subcommand props */
-  const GetSubcommandProps = (cmd = results.subcommand) => {
-    return subcommandArr.find(c => {
-      if (c.name === cmd) return true;
-      if (!cmd) return false;
-      if (!c.aliases?.length) return false;
-      return c.aliases.includes(cmd);
-    });
+  /** - Get current subcommand object */
+  const getSubcommandObj = () => findSubcommand(results.subcommand, subcommandArr);
+
+  /** - Append/create an option to the _info object */
+  const createInfoEntry = (optionName: string, value?: Partial<InfoEntry>) => {
+    if (!results._info) {
+      results._info = {};
+    }
+
+    if (!results._info[optionName]) {
+      results._info[optionName] = Object.create({});
+    }
+
+    if (value) {
+      Object.assign(results._info[optionName], value);
+    }
   };
 
-  const addRawArg = (optionName: string, rawArg: string) => {
-    if (!results._info) results._info = {};
-    if (!results._info[optionName]) results._info[optionName] = Object.create({});
-    results._info[optionName].rawArg = rawArg;
-  };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
 
-  const addRawValue = (optionName: string, rawValue: string) => {
-    if (!results._info) results._info = {};
-    if (!results._info[optionName]) results._info[optionName] = Object.create({});
-    results._info[optionName].rawValue = rawValue;
-  };
-
-  const addSource = (optionName: string, source: "cli" | "default") => {
-    if (!results._info) results._info = {};
-    if (!results._info[optionName]) results._info[optionName] = Object.create({});
-    results._info[optionName].source = source;
-  };
-
-  const fillOption = (optionName: string, value: Option) => {
-    if (!results._info) results._info = {};
-    if (!results._info[optionName]) results._info[optionName] = Object.create({});
-    Object.assign(results._info[optionName], value);
-  };
-
-  for (let i = 0; i < argsv.length; i++) {
-    const arg = argsv[i];
-
-    // * subcommand
+    // * Subcommand check
     if (i === 0) {
       results.subcommand = allSubcommands.has(arg) ? arg : undefined;
 
-      // add positional and arguments array
-      const subcommandProps = GetSubcommandProps();
-      if (subcommandProps?.allowPositional) results.positional = [];
-      if (subcommandProps?.arguments?.length) results.arguments = [];
+      // add positional and arguments arrays
+      const subcommandObj = getSubcommandObj();
+      if (subcommandObj && subcommandObj.allowPositional) {
+        results.positional = [];
+      }
 
+      if (subcommandObj && subcommandObj.arguments?.length) {
+        results.arguments = [];
+      }
+
+      // First argument is a subcommand. Skip to the next argument
       if (results.subcommand) continue;
     }
 
-    // * option
+    // * Option check
+
+    // Check for `--option=value` or `--option value`
     const argAndValue = arg.split("=").filter(Boolean);
     const argWithEquals = arg.includes("=");
     const argument = argAndValue[0];
@@ -112,30 +97,20 @@ export function parse<T extends Subcommand[], U extends Cli>(
         throw new Error(`Flag arguments cannot be assigned using "=": "${arg}"`);
       }
 
-      const subcommandProps = GetSubcommandProps();
-      if (!subcommandProps) throw new Error(`Unknown subcommand: "${results.subcommand}"`);
-
-      if (!subcommandProps.options) {
-        const msg = !results.subcommand
-          ? "options are not allowed here"
-          : `subcommand "${results.subcommand}" does not allow options`;
-        throw new Error(`Error: ${msg}: "${argument}"`);
+      const subcommandObj = getSubcommandObj();
+      if (!subcommandObj) {
+        throw new Error(`Unknown subcommand: "${results.subcommand}"`);
       }
 
-      const optionName = transformArg(argument);
-      const isNegative = argument.startsWith("--no-");
+      if (!subcommandObj.options) {
+        if (!results.subcommand) {
+          throw new Error(`Error: options are not allowed here: "${argument}"`);
+        }
 
-      const option = subcommandProps.options.find(o => {
-        if (o.name === optionName) return true;
-        if (isNegative && negateOption(o.name) === optionName) return true;
+        throw new Error(`Error: subcommand "${results.subcommand}" does not allow options: "${argument}"`);
+      }
 
-        if (!o.aliases) return false;
-        if (o.aliases.includes(optionName)) return true;
-        if (isNegative && o.aliases.map(negateOption).includes(optionName)) return true;
-
-        return false;
-      });
-
+      const option = findOption(argument, subcommandObj.options);
       if (!option) {
         throw new Error(`Unknown option: "${argument}"`);
       }
@@ -145,10 +120,12 @@ export function parse<T extends Subcommand[], U extends Cli>(
       }
 
       const isTypeBoolean = isBooleanSchema(option.type);
-      const nextArg = argsv[i + 1];
+      const isNegative = argument.startsWith("--no-");
+      const nextArg = argv[i + 1];
 
       let optionValue: string | boolean = argWithEquals ? argValue : nextArg;
 
+      // infer value for boolean options
       if (isTypeBoolean) {
         if (argWithEquals) {
           const parsedBoolean = stringToBoolean(argValue);
@@ -172,34 +149,39 @@ export function parse<T extends Subcommand[], U extends Cli>(
       }
 
       results[option.name] = res.data;
-      addRawArg(option.name, argument);
-      const rawVal = argWithEquals ? argValue : isTypeBoolean ? "" : nextArg;
-      addRawValue(option.name, rawVal);
-      fillOption(option.name, option);
+      createInfoEntry(option.name, {
+        rawArg: argument,
+        rawValue: argWithEquals ? argValue : isTypeBoolean ? "" : nextArg,
+        ...option,
+      });
 
-      if (!argWithEquals && !isTypeBoolean) i++;
+      // Skip to the next argument if it is the current option’s value.
+      if (!argWithEquals && !isTypeBoolean) {
+        i++;
+      }
+
       continue;
     }
 
-    const subcommandProps = GetSubcommandProps();
+    const subcommandObj = getSubcommandObj();
 
-    // * arguments
-    if (subcommandProps?.arguments?.length) {
-      if (!results.arguments) results.arguments = [];
+    // * Arguments check
+    if (subcommandObj?.arguments?.length) {
+      if (!results.arguments) {
+        results.arguments = [];
+      }
 
       const currentArgCount = results.arguments.length;
 
-      if (currentArgCount < subcommandProps.arguments.length) {
-        const argType = subcommandProps.arguments[currentArgCount].type;
-
-        let argValue: string | boolean = arg;
-        const isTypeBoolean = isBooleanSchema(argType);
-        if (isTypeBoolean) argValue = stringToBoolean(argValue);
+      // Any extra arguments are possibly positional
+      if (currentArgCount < subcommandObj.arguments.length) {
+        const argType = subcommandObj.arguments[currentArgCount].type;
+        const argValue: string | boolean = isBooleanSchema(argType) ? stringToBoolean(arg) : arg;
 
         const res = safeParseSchema(argType, argValue);
         if (!res.success) {
           throw new Error(
-            `The ${getOrdinalPlacement(currentArgCount)} argument "${arg}" is invalid: ${z.prettifyError(res.error)}`,
+            `The ${generateOrdinalSuffix(currentArgCount)} argument "${arg}" is invalid: ${z.prettifyError(res.error)}`,
           );
         }
 
@@ -208,33 +190,43 @@ export function parse<T extends Subcommand[], U extends Cli>(
       }
     }
 
-    // * positional
-    if (subcommandProps?.allowPositional) {
-      if (!results.positional) results.positional = [];
+    // * Positional check
+    if (subcommandObj?.allowPositional) {
+      if (!results.positional) {
+        results.positional = [];
+      }
+
       results.positional.push(arg);
       continue;
     }
 
-    const msg = !results.subcommand ? "here" : `for subcommand "${results.subcommand}"`;
-    throw new Error(`Unexpected argument "${arg}": positional arguments are not allowed ${msg}`);
+    // * Unexpected
+    if (!results.subcommand) {
+      throw new Error(`Unexpected argument "${arg}": positional arguments are not allowed here`);
+    }
+
+    throw new Error(
+      `Unexpected argument "${arg}": positional arguments are not allowed for subcommand "${results.subcommand}"`,
+    );
   }
 
-  // check for missing options - set defaults - add _source
-  const subcommandProps = GetSubcommandProps();
-  if (subcommandProps?.options?.length) {
-    for (const option of subcommandProps.options) {
+  // * Check for missing options - set defaults - add `source`
+  const subcommandObj = getSubcommandObj();
+
+  // Options
+  if (subcommandObj?.options?.length) {
+    for (const option of subcommandObj.options) {
       if (option.name in results) {
-        addSource(option.name, "cli");
-        fillOption(option.name, option);
+        createInfoEntry(option.name, { source: "cli", ...option });
         continue;
       }
 
       if (isOptionalSchema(option.type)) {
         const optionDefaultValue = schemaDefaultValue(option.type);
         if (optionDefaultValue === undefined) continue;
+
         results[option.name] = optionDefaultValue;
-        addSource(option.name, "default");
-        fillOption(option.name, option);
+        createInfoEntry(option.name, { source: "default", ...option });
         continue;
       }
 
@@ -242,30 +234,34 @@ export function parse<T extends Subcommand[], U extends Cli>(
     }
   }
 
-  // check for arguments - set defaults
-  if (subcommandProps?.arguments?.length) {
+  // Arguments
+  if (subcommandObj?.arguments?.length) {
     const currentArgCount = results.arguments?.length ?? 0;
-    const subcommandArgCount = subcommandProps.arguments.length;
+    const subcommandArgCount = subcommandObj.arguments.length;
 
     // missing arguments
     if (currentArgCount < subcommandArgCount) {
       for (let i = currentArgCount; i < subcommandArgCount; i++) {
-        const argumentType = subcommandProps.arguments[i].type;
+        const argumentType = subcommandObj.arguments[i].type;
         const argumentDefaultValue = schemaDefaultValue(argumentType);
+
         if (argumentDefaultValue !== undefined && results.arguments) {
           results.arguments.push(argumentDefaultValue);
           continue;
         }
 
-        if (isOptionalSchema(argumentType)) continue;
+        if (isOptionalSchema(argumentType)) {
+          continue;
+        }
 
-        throw new Error(`the ${getOrdinalPlacement(i)} argument is required: "${subcommandProps.arguments[i].name}"`);
+        throw new Error(`the ${generateOrdinalSuffix(i)} argument is required: "${subcommandObj.arguments[i].name}"`);
       }
     }
   }
 
-  if (subcommandProps?.action) {
-    subcommandProps.action(results);
+  // Fire action
+  if (subcommandObj?.action) {
+    subcommandObj.action(results);
   }
 
   return results as UnSafeParseResult<[...T, NoSubcommand & U]>;

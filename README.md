@@ -22,7 +22,7 @@ npm install zod chalk zod-args-parser
 ## Usage
 
 ```ts
-import { z } from "zod";
+import * as z from "zod";
 import { createCli, createSubcommand, createOptions, safeParse } from "zod-args-parser";
 
 // Share same options between subcommands
@@ -92,8 +92,12 @@ const helpCommandSchema = createSubcommand({
 // Execute this function when the `help` subcommand is run
 helpCommandSchema.setAction(results => {
   const [command] = results.arguments;
-  if (command) results.printSubcommandHelp(command);
-  else results.printCliHelp();
+  if (command) {
+    results.printSubcommandHelp(command);
+    return;
+  }
+
+  results.printCliHelp();
 });
 
 const results = safeParse(
@@ -111,7 +115,7 @@ if (!results.success) {
 }
 ```
 
-## Types Utility
+## Type Utilities
 
 ```ts
 import { createSubcommand } from "zod-args-parser";
@@ -250,10 +254,15 @@ Parses the provided arguments and returns:
 
 ## Extras
 
-- `generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
-- `generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
-- `generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
-- `generateMarkdown(...params: [Cli, ...Subcommand[]]): string`
+- Generates an autocomplete script for `bash`.  
+  `generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+
+- Generates an autocomplete script for `powershell`.  
+  `generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+- Generates an autocomplete script for `zsh`.  
+  `generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+- Generates a markdown documentation for your CLI.  
+  `generateMarkdown(...params: [Cli, ...Subcommand[]]): string`
 
 ## Example
 

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { createArguments, createOptions } from "zod-args-parser";
 
 export const sharedOptions = createOptions([
