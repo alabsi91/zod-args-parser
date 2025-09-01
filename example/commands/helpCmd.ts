@@ -19,3 +19,5 @@ helpCommandSchema.setAction(results => {
   if (command) results.printSubcommandHelp(command);
   else results.printCliHelp();
 });
+
+// helpCommandSchema.setPreValidationHook(ctx => {});

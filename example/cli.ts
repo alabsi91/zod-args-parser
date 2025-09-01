@@ -44,7 +44,11 @@ cliSchema.setAction(results => {
   console.error("Please try `argplay --help`");
 });
 
-export const cliCommands = [
+cliSchema.setPreValidationHook(ctx => {
+  console.log("ctx :", ctx);
+});
+
+export const cliSchemas = [
   cliSchema,
   precessSchema,
   convertSchema,

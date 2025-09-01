@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { generateMarkdown } from "zod-args-parser";
-import { cliCommands } from "./cli.js";
+import { cliSchemas } from "./cli.js";
 
-const markdown = generateMarkdown(...cliCommands);
+const markdown = generateMarkdown(...cliSchemas);
 await writeFile("./CLI.md", markdown, { encoding: "utf-8" });

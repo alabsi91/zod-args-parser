@@ -391,3 +391,69 @@ describe("booleanArg stringArg numberArg", () => {
     if (result.success) assert.fail("Should have failed");
   });
 });
+
+describe("stringArg numberArg booleanOptionalArg", () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    arguments: [
+      { name: "stringArg", type: z.string() },
+      { name: "numberArg", type: z.coerce.number() },
+      { name: "booleanOptionalArg", type: z.boolean().optional() },
+    ],
+  });
+
+  const indent = 26;
+
+  it('"hello world" 123'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["hello world", "123"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [stringArg, numberArg, booleanOptionalArg] = result.data.arguments;
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+    assert.equal(booleanOptionalArg, undefined);
+  });
+
+  it('"hello world" 123 true'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["hello world", "123", "true"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [stringArg, numberArg, booleanOptionalArg] = result.data.arguments;
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+    assert.equal(booleanOptionalArg, true);
+  });
+});
+
+describe("stringArg numberArg booleanDefaultArg", () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    arguments: [
+      { name: "stringArg", type: z.string() },
+      { name: "numberArg", type: z.coerce.number() },
+      { name: "booleanDefaultArg", type: z.boolean().default(true) },
+    ],
+  });
+
+  const indent = 26;
+
+  it('"hello world" 123'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["hello world", "123"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [stringArg, numberArg, booleanDefaultArg] = result.data.arguments;
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+    assert.equal(booleanDefaultArg, true);
+  });
+
+  it('"hello world" 123 true'.padEnd(indent) + expectsSuccess, () => {
+    const args = ["hello world", "123", "false"];
+    const result = safeParse(args, cli);
+    if (!result.success) assert.fail(result.error.message);
+    const [stringArg, numberArg, booleanDefaultArg] = result.data.arguments;
+    assert.equal(stringArg, "hello world");
+    assert.equal(numberArg, 123);
+    assert.equal(booleanDefaultArg, false);
+  });
+});

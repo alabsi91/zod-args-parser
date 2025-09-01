@@ -1,6 +1,7 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.js";
 
-import type { ArgumentMetadata, Cli, OptionMetadata, Subcommand, SubcommandMetadata } from "../types.js";
+import type { ArgumentMetadata, OptionMetadata, SubcommandMetadata } from "../metadata/metadata-types.js";
+import type { Cli, Subcommand } from "../types.js";
 
 export function generateMarkdown(...params: [Cli, ...Subcommand[]]): string {
   const metadata = getCliMetadata(params);

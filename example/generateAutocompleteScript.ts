@@ -5,7 +5,7 @@ import {
   generateZshAutocompleteScript,
 } from "zod-args-parser";
 
-import { cliCommands } from "./cli.js";
+import { cliSchemas } from "./cli.js";
 
 /*
 - Generate bash autocomplete script for `argplay`.
@@ -14,7 +14,7 @@ import { cliCommands } from "./cli.js";
   - Add the following line: `source <path to argplay-autocomplete.sh>`
   - Save and reopen bash to take effect
 */
-const bashScript = generateBashAutocompleteScript(...cliCommands);
+const bashScript = generateBashAutocompleteScript(...cliSchemas);
 await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf-8" });
 
 /*
@@ -26,7 +26,7 @@ await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf-8" });
     - Add the following line: `. "<path to argplay-autocomplete.ps1>"`
     - Save and reopen powershell to take effect
 */
-const powershellScript = generatePowerShellAutocompleteScript(...cliCommands);
+const powershellScript = generatePowerShellAutocompleteScript(...cliSchemas);
 await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf-8" });
 
 /**
@@ -37,5 +37,5 @@ await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-const zshScript = generateZshAutocompleteScript(...cliCommands);
+const zshScript = generateZshAutocompleteScript(...cliSchemas);
 await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf-8" });

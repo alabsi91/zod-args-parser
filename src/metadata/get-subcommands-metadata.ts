@@ -1,7 +1,8 @@
 import { getArgumentsMetadata } from "./get-arguments-metadata.js";
 import { getOptionsMetadata } from "./get-options-metadata.js";
 
-import type { Subcommand, SubcommandMetadata } from "../types.js";
+import type { Subcommand } from "../types.js";
+import type { SubcommandMetadata } from "./metadata-types.js";
 
 export function getSubcommandsMetadata(subcommands: Subcommand[]): SubcommandMetadata[] {
   const outputMetadata: SubcommandMetadata[] = [];

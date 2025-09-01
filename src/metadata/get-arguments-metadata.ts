@@ -1,6 +1,7 @@
-import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zodUtils.js";
+import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utils.js";
 
-import type { Argument, ArgumentMetadata } from "../types.js";
+import type { Argument } from "../types.js";
+import type { ArgumentMetadata } from "./metadata-types.js";
 
 export function getArgumentsMetadata(args: Argument[]): ArgumentMetadata[] {
   const outputMetadata: ArgumentMetadata[] = [];

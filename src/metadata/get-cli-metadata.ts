@@ -1,8 +1,9 @@
-import { getOptionsMetadata } from "./get-options-metadata.js";
 import { getArgumentsMetadata } from "./get-arguments-metadata.js";
+import { getOptionsMetadata } from "./get-options-metadata.js";
 import { getSubcommandsMetadata } from "./get-subcommands-metadata.js";
 
-import type { Cli, CliMetadata, Subcommand } from "../types.js";
+import type { Cli, Subcommand } from "../types.js";
+import type { CliMetadata } from "./metadata-types.js";
 
 export function getCliMetadata(inputData: [Cli, ...Subcommand[]]): CliMetadata {
   const [cli, ...subcommands] = inputData;
@@ -10,7 +11,6 @@ export function getCliMetadata(inputData: [Cli, ...Subcommand[]]): CliMetadata {
   const outputMetadata: CliMetadata = {
     name: cli.cliName,
     description: cli.description ?? "",
-    placeholder: cli.placeholder ?? "",
     usage: cli.usage ?? "",
     example: cli.example ?? "",
     allowPositional: cli.allowPositional ?? false,

@@ -1,7 +1,8 @@
-import { transformOptionToArg } from "../utils.js";
-import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zodUtils.js";
+import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
+import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utils.js";
 
-import type { Option, OptionMetadata } from "../types.js";
+import type { Option } from "../types.js";
+import type { OptionMetadata } from "./metadata-types.js";
 
 export function getOptionsMetadata(options: Option[]): OptionMetadata[] {
   const outputMetadata: OptionMetadata[] = [];

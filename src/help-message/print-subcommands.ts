@@ -1,6 +1,6 @@
 import { indent, print, println } from "./utils.js";
 
-import type { SubcommandMetadata } from "src/types.js";
+import type { SubcommandMetadata } from "../metadata/metadata-types.js";
 import type { PrintHelpColors } from "./colors.js";
 
 export function printSubcommands(subcommandsMetadata: SubcommandMetadata[], c: PrintHelpColors, longest: number) {

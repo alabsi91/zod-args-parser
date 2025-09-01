@@ -1,6 +1,29 @@
 # zod-args-parser
 
-A strictly typed command-line arguments parser powered by Zod.
+[![npm](https://img.shields.io/npm/v/zod-args-parser?style=for-the-badge)](https://www.npmjs.com/package/zod-args-parser)
+[![GitHub](https://img.shields.io/github/license/alabsi91/zod-args-parser?style=for-the-badge)](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/alabsi91/zod-args-parser?style=for-the-badge)](https://github.com/alabsi91/zod-args-parser/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+
+A strictly typed command-line arguments parser powered by [Zod](https://github.com/colinhacks/zod).
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+  - [Subcommands](#subcommands)
+  - [Zod Type Schemas](#zod-type-schemas)
+  - [Options](#options)
+  - [Arguments](#arguments)
+  - [Positionals](#positionals)
+  - [Pre-Validation Hook](#pre-validation-hook)
+  - [Help Message](#help-message)
+  - [Zod Utilities](#zod-utilities)
+  - [Type Utilities](#type-utilities)
+- [API Reference](#api-reference)
+- [Example](#example)
+- [License](#license)
 
 ## Features
 
@@ -9,6 +32,8 @@ A strictly typed command-line arguments parser powered by Zod.
 - **Negative flag support**: e.g., `--no-verbose` to negate `--verbose`.
 - **Flexible option value formatting**: Supports both `--input-dir path` and `--input-dir=path` styles.
 - **Help message generation**: Built-in methods to generate help text for the CLI and each subcommand.
+- **Auto completion**: Generate shell (bash, zsh, powershell) completion scripts for your CLI.
+- **Documentation**: Generate a markdown documentation for your CLI.
 
 ## Installation
 
@@ -21,11 +46,13 @@ npm install zod chalk zod-args-parser
 
 ## Usage
 
+### Basic Usage
+
 ```ts
 import * as z from "zod";
 import { createCli, createSubcommand, createOptions, safeParse } from "zod-args-parser";
 
-// Share same options between subcommands
+// Share options between subcommands
 const sharedOptions = createOptions([
   {
     name: "verbose",
@@ -34,8 +61,8 @@ const sharedOptions = createOptions([
   },
 ]);
 
-// Create a CLI schema
-// This will be used when no subcommands are provided
+// Create the CLI schema
+// This will be used when no subcommands are run
 const cliSchema = createCli({
   cliName: "my-cli",
   description: "A description for my CLI",
@@ -100,12 +127,9 @@ helpCommandSchema.setAction(results => {
   results.printCliHelp();
 });
 
-const results = safeParse(
-  process.argv.slice(2),
-  cliSchema,
-  helpCommandSchema,
-  // Add more subcommands
-);
+export const cliSchemas = [cliSchema, helpCommandSchema /* Add more subcommands */] as const;
+
+const results = safeParse(process.argv.slice(2), ...cliSchemas);
 
 // ! Error
 if (!results.success) {
@@ -115,7 +139,332 @@ if (!results.success) {
 }
 ```
 
-## Type Utilities
+### Subcommands
+
+- Subcommands are defined using the `createSubcommand` function.
+- The `createSubcommand` function accepts an object with the type [`Subcommand`](#subcommand-type).
+- The following properties are optional and used only for **metadata** such as help messages and documentation:
+  - `description`
+  - `usage`
+  - `example`
+  - `placeholder`
+- Do not reuse the same subcommand name within the same CLI. TypeScript will throw a type error if duplicate exist.
+
+```ts
+import { createSubcommand } from "zod-args-parser";
+
+const subcommand = createSubcommand({
+  name: "subcommand",
+  description: "Description for the subcommand",
+  usage: "my-cli subcommand [options] [arguments]",
+  example: "subcommand --help",
+  placeholder: "[options] [arguments]",
+  allowPositional: false, // default: false
+  options: [
+    /* options */
+  ],
+  arguments: [
+    /* arguments */
+  ],
+});
+
+// Executed when the subcommand is run after parsing before validation
+subcommand.setPreValidationHook(ctx => {
+  // ...
+});
+
+// Executed when the subcommand is run
+subcommand.setAction(results => {
+  // ...
+});
+```
+
+### Zod Type Schemas
+
+- `zod-args-parser` uses [Zod](https://github.com/colinhacks/zod) for schema validation.
+- Supported Zod versions: `>= 3.25.0` (including `4.0.0`).
+- A schema with `.optional()` or `.default(<value>)` is treated as **optional**; all others are **required**.
+- Descriptions can be added either via the Zod schema’s `describe` method or the `description` property.
+- ⚠️ **Important:** All values from the terminal are passed as **strings**, except booleans, which are automatically parsed as `true` or `false`.
+
+<!-- prettier-ignore -->
+```ts
+import * as z from "zod";
+
+// String examples
+z.string();                    // required string -> type: string
+z.string().optional();         // optional string -> type: string | undefined
+z.string().default("hello");   // optional with default -> type: string
+
+// Boolean examples (booleans are inferred automatically)
+z.boolean();                   // required boolean -> type: boolean
+z.boolean().optional();        // optional boolean -> type: boolean | undefined
+z.boolean().default(true);     // optional with default -> type: boolean
+
+// Number examples (need coercion because terminal inputs are strings)
+z.number();                    // 🚫 invalid: will always throw
+z.coerce.number();             // ✅ converts string input -> number
+
+// Enum example
+z.enum(["a", "b", "c"]);       // type: "a" | "b" | "c"
+
+// Array parsing example (custom preprocessing)
+z.preprocess(parseArr, z.array(z.string()));
+
+// converts comma-separated string -> string[]
+function parseArr(val: unknown) {
+  if (typeof val === "string") {
+    return val
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+  return val;
+}
+```
+
+### Options
+
+- Option names and aliases must use **camelCase**.
+  - Example: use `inputDir` instead of `input-dir`.
+  - In the terminal, this becomes `--input-dir`.
+  - For single-letter flag (e.g., `i`), they become `-i`.
+- Do not reuse the same option name or alias within the same CLI/subcommand. TypeScript will throw a type error if duplicates exist.
+- The following properties are optional and used only for **metadata** such as help messages and documentation:
+  - `description`
+  - `example`
+  - `placeholder`
+
+See the [Option](#option-type) type for more details.
+
+```ts
+import * as z from "zod";
+import { createCli } from "zod-args-parser";
+
+// Define the CLI schema
+const cliSchema = createCli({
+  cliName: "my-cli",
+  options: [
+    {
+      name: "inputDir", // camelCase option name becomes `--input-dir`
+      aliases: ["i"], // single-letter alias becomes `-i`
+      type: z.boolean().default(false), // optional because of default
+      description: "Input directory",
+      placeholder: "<dir>",
+      example: "-i /path/to/dir",
+    },
+    {
+      name: "verbose", // another option
+      aliases: ["v"], // alias `-v`
+      type: z.boolean().optional().describe("Enable verbose mode"), // using describe() instead of description
+    },
+  ],
+});
+
+// Define the CLI action
+cliSchema.setAction(results => {
+  const { inputDir, verbose } = results.options;
+
+  // inputDir: boolean (optional, with default = false)
+  // verbose: boolean | undefined (optional, no default)
+});
+```
+
+### Arguments
+
+- Arguments are strictly typed **positional values**, defined as a tuple: `[arg1, arg2, arg3]`.
+- Each argument must have a **name**, which is used for help messages and documentation. TypeScript will throw a type error if duplicates name exist within the same CLI/subcommand.
+- The following properties are optional and used only for **metadata**:
+  - `description`
+  - `example`
+- ⚠️ **Important:** Arguments are parsed strictly **in order**.
+  - Only the **last argument** may be optional (when `allowPositional` is disabled).
+  - Mixing required and optional arguments (e.g., required → optional → required) will cause parsing errors because the parser cannot determine which value belongs to which argument.
+  - This means you **cannot have any optional arguments** if `allowPositional` is enabled.
+  - TypeScript will throw a type error if required and optional arguments are mixed, or when using `allowPositional: true` with optional arguments.
+
+See the [Argument](#argument-type) type for more details.
+
+```ts
+import * as z from "zod";
+import { createCli } from "zod-args-parser";
+
+// Define the CLI schema
+const cliSchema = createCli({
+  cliName: "my-cli",
+  arguments: [
+    {
+      name: "inputFile", // argument name (camelCase for consistency)
+      type: z.string(), // required
+      description: "Input file",
+      example: "input.txt",
+    },
+    {
+      name: "outputFile", // second argument
+      type: z.string().optional(), // optional (only allowed as the last arg)
+      description: "Output file",
+      example: "output.txt",
+    },
+  ],
+});
+
+// Define the CLI action
+cliSchema.setAction(results => {
+  const [inputFile, outputFile] = results.arguments;
+
+  // inputFile: string (required)
+  // outputFile: string | undefined (optional, no default)
+});
+```
+
+### Positionals
+
+- Positionals are untyped **positional values**, always parsed as `string[]` of any length.
+- By default, positionals are **not allowed**. Enable them using the `allowPositional` option.
+- ⚠️ **Important:** If both typed arguments and positionals are used in the same CLI/subcommand, the **typed arguments are parsed first**, and only then are the remaining values collected as positionals.
+
+```ts
+import { createSubcommand } from "zod-args-parser";
+
+// Define the subcommand schema
+export const countSchema = createSubcommand({
+  name: "count",
+  aliases: ["list"],
+  description: "Print a list of items provided by the user",
+  allowPositional: true, // enable positionals
+});
+
+// Define the subcommand action
+countSchema.setAction(results => {
+  const items = results.positional; // string[]
+
+  if (items.length === 0) {
+    console.log("No items provided");
+    return;
+  }
+
+  console.log("-- List of items --\n -", items.join("\n - "));
+});
+```
+
+### Pre-Validation Hook
+
+- The `preValidationHook` is called after parsing but before validation.
+- The provided context object can be modified before validation for advanced use cases.
+- When using **async** hooks, make sure to call [`parseAsync`](#parseasyncargs-string-cli-cli-subcommands-subcommand-promiseunsafeparseresult) or [`safeParseAsync`](#parseasyncargs-string-cli-cli-subcommands-subcommand-promiseunsafeparseresult).
+
+See the [Context](#context-type) type for more details.
+
+```ts
+import * as z from "zod";
+import { createCli } from "zod-args-parser";
+
+// Define the CLI schema
+const cliSchema = createCli({
+  cliName: "my-cli",
+  options: [
+    { name: "inputDir", type: z.string() },
+    { name: "verbose", type: z.boolean().default(false) },
+  ],
+  arguments: [
+    { name: "first-argument", type: z.string() },
+    { name: "second-argument", type: z.string().optional() },
+  ],
+});
+
+// Define the pre-validation hook
+cliSchema.setPreValidationHook(ctx => {
+  if (ctx.options.verbose.source === "default") {
+    ctx.options.verbose.rawValue = "true";
+  }
+
+  if (ctx.arguments[0].source === "cli") {
+    console.log("first-argument:", ctx.arguments[0].rawValue);
+  }
+});
+
+// Define the CLI action
+cliSchema.setAction(results => {
+  // can access `ctx` here
+  console.log(results.ctx.options.verbose);
+});
+```
+
+### Help Message
+
+There are two ways to print the help message:
+
+1. `printCliHelp(options?: PrintHelpOpt)`  
+   Print the help message for the CLI.
+
+2. `printSubcommandHelp(subcommandName: string, options?: PrintHelpOpt)`  
+   Print the help message for a specific subcommand.
+
+```ts
+import chalk from "chalk";
+
+subcommandSchema.setAction(results => {
+  // print help for CLI (without colors)
+  results.printCliHelp({ colors: false });
+
+  // print help for subcommand (with custom title color)
+  results.printSubcommandHelp("build", { title: chalk.red });
+});
+
+// print help functions also accessible here
+const results = safeParse(args, cli, subcommandSchema);
+if (!results.success) {
+  console.log(results.error.message);
+  results.printCliHelp();
+  process.exit(1);
+}
+```
+
+### Zod Utilities
+
+- `isOptionalSchema(schema: ZodTypeAny): boolean`  
+  Check if a schema is optional or has a default value.
+
+- `isBooleanSchema(schema: ZodTypeAny): boolean`  
+  Check if a schema is of type `boolean`.
+
+- `schemaDefaultValue(schema: ZodTypeAny): unknown | undefined`  
+  Get the default value of a schema if it has one.
+
+```ts
+import * as z from "zod";
+import { createCli, isOptionalSchema, isBooleanSchema, schemaDefaultValue } from "zod-args-parser";
+
+const cliSchema = createCli({
+  cliName: "my-cli",
+  options: [
+    {
+      name: "verbose",
+      aliases: ["v"],
+      description: "Verbose mode",
+      type: z.boolean().default(false),
+    },
+  ],
+});
+
+cliSchema.setAction(results => {
+  const ctxOptions = results.ctx.options;
+
+  console.log(isOptionalSchema(ctxOptions.verbose.schema)); // true
+
+  console.log(isBooleanSchema(ctxOptions.verbose.schema)); // true
+
+  console.log(schemaDefaultValue(ctxOptions.verbose.schema)); // false
+});
+```
+
+### Type Utilities
+
+- `InferOptionsType<Cli | Subcommand>`  
+  Infer the options type from the Cli or subcommand.
+
+- `InferArgumentsType<Cli | Subcommand>`  
+  Infer the arguments type from the Cli or subcommand.
 
 ```ts
 import { createSubcommand } from "zod-args-parser";
@@ -143,127 +492,166 @@ type Arguments = InferArgumentsType<typeof subcommand>;
 // [string, number, boolean]
 ```
 
-## API
+## API Reference
 
-### `Subcommand`
+### `createCli(schema: Cli)`
 
-- `name: string`  
-  The name of the subcommand.
+Creates a CLI schema. See [Cli](#cli-type)
 
-- `aliases?: string[]`  
-  An array of aliases for the subcommand.
+### `createSubcommand(schema: Subcommand)`
 
-- `description?: string`  
-  A description of the subcommand for the help message.
+Creates a subcommand schema. See [Subcommand](#subcommand-type)
 
-- `usage?: string`  
-  The usage of the subcommand for the help message.
+### `createOptions(schema: Option[])`
 
-- `placeholder?: string`  
-  A placeholder displayed in the help message alongside the subcommand name.
+Creates an array of option schemas for option sharing. See [Option](#option-type)
 
-- `example?: string`  
-  An example of subcommand usage for the help message.
+### `createArguments(schema: Argument[])`
 
-- `allowPositional?: boolean`  
-  Allows positional arguments for this subcommand.  
-  Positional arguments are untyped (`string[]`) when enabled with the typed `arguments` any extra arguments, beyond the typed `arguments`, are parsed as positional and stored in the `positional` property.
+Creates an array of argument schemas for argument sharing. See [Argument](#argument-type)
 
-- `options?: Option[]`  
-  An array of options for the subcommand.
+### `parse(args: string[], cli: Cli, ...subcommands: Subcommand[]): UnsafeParseResult`
 
-  - `name: string`  
-    The name of the option. camelCase is recommended. E.g. `inputDir` -> `--input-dir`
-
-  - `aliases?: string[]`  
-    An array of aliases for the option.
-
-  - `type: ZodType`  
-    Specifies the type of the option using Zod.
-
-    **Examples:**
-
-    - `type: z.boolean().default(false);`
-    - `type: z.coerce.number(); // coerces value to a number`
-    - `type: z.preprocess(parseStringToArrFn, z.array(z.coerce.number())); // array of numbers`
-
-  - `description?: string`  
-    A description of the option for the help message.
-
-  - `placeholder?: string`  
-    Placeholder text for the option in the help message.
-
-  - `example?: string`  
-    An example of option usage for the help message.
-
-- `arguments?: Argument[]`  
-  An array of arguments for the subcommand.
-
-  - `name: string`  
-    The name of the argument for display in the help message.
-
-  - `type: ZodType`  
-    Specifies the type of the argument using Zod.
-
-    **Examples:**
-
-    - `type: z.boolean();`
-    - `type: z.coerce.number(); // coerces value to a number`
-
-  - `description?: string`  
-    A description of the argument for the help message.
-
-  - `example?: string`  
-    An example of argument usage for the help message.
-
-### Results
-
-- `subcommand: string | undefined`  
-  The name of the executed subcommand.  
-  If no subcommand is executed, this will be `undefined`.
-
-- `arguments?: any[]`  
-  An array representing defined arguments for the subcommand, e.g., `[string, number]`.  
-  Only defined if the subcommand has specified `arguments`.
-
-- `positional?: string[]`  
-  Contains positional arguments as `string[]` if `allowPositional` is enabled for the subcommand.
-
-- `printCliHelp(options?: PrintHelpOpt): void`  
-  Prints the CLI help message.  
-  Accepts an optional `options` object to disable colors or customize colors.
-
-- `printSubcommandHelp(subcommand: string, options?: PrintHelpOpt): void`  
-  Prints the help message for a specified subcommand.
-
-- `[key: optionName]: optionType`  
-   Represents options specified in the CLI or subcommand with their respective types.
-
-### `parse(args: string[], cli: Cli, ...subcommands: Subcommand[]): UnSafeParseResult`
-
-Parses the provided arguments and returns a `Results` object.  
+Parses and validates the provided arguments, returns a [Results](#results-type) object.  
 Throws an error if parsing fails.
+
+### `parseAsync(args: string[], cli: Cli, ...subcommands: Subcommand[]): Promise<UnsafeParseResult>`
+
+Same as `parse`, but returns a promise.  
+Use this when you have async actions or hooks.
+
+See [Cli](#cli-type), [Subcommand](#subcommand-type), and [Results](#results-type)
 
 ### `safeParse(args: string[], cli: Cli, ...subcommands: Subcommand[]): SafeParseResult`
 
-Parses the provided arguments and returns:
+Parses and validates the provided arguments, returns:
 
 ```ts
-{ success: false, error: Error } | { success: true, data: ResultObj }
+{ success: false, error: Error } | { success: true, data: Result }
 ```
 
-## Extras
+See [Cli](#cli-type), [Subcommand](#subcommand-type), and [Results](#results-type)
 
-- Generates an autocomplete script for `bash`.  
-  `generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+### `safeParseAsync(args: string[], cli: Cli, ...subcommands: Subcommand[]): Promise<SafeParseResult>`
 
-- Generates an autocomplete script for `powershell`.  
-  `generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
-- Generates an autocomplete script for `zsh`.  
-  `generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
-- Generates a markdown documentation for your CLI.  
-  `generateMarkdown(...params: [Cli, ...Subcommand[]]): string`
+Same as `safeParse`, but returns a promise.  
+Use this when you have async actions or hooks.
+
+See [Cli](#cli-type), [Subcommand](#subcommand-type), and [Results](#results-type)
+
+### `generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+
+Generates an autocomplete script for `bash`. See [Cli](#cli-type) and [Subcommand](#subcommand-type)
+
+### `generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+
+Generates an autocomplete script for `powershell`. See [Cli](#cli-type) and [Subcommand](#subcommand-type)
+
+### `generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string`
+
+Generates an autocomplete script for `zsh`. See [Cli](#cli-type) and [Subcommand](#subcommand-type)
+
+### `generateMarkdown(...params: [Cli, ...Subcommand[]]): string`
+
+Generates a markdown documentation for your CLI. See [Cli](#cli-type) and [Subcommand](#subcommand-type)
+
+### `Cli (Type)`
+
+| Name            | Type                            | Description                                    | Example                        |
+| --------------- | ------------------------------- | ---------------------------------------------- | ------------------------------ |
+| cliName         | `string`                        | The name of the CLI program.                   | `"my-cli"`                     |
+| description     | `string?`                       | A description of the CLI for the help message. | `"Build the project"`          |
+| usage           | `string?`                       | The usage of the CLI for the help message.     | `"my-cli build"`               |
+| example         | `string?`                       | An example of CLI usage for the help message.  | `"my-cli <command> [options]"` |
+| options         | [`Option[]?`](#option-type)     | An array of options for the CLI.               |                                |
+| arguments       | [`Argument[]?`](#argument-type) | An array of arguments for the CLI.             |                                |
+| allowPositional | `boolean?`                      | Allows positional arguments for the CLI.       |                                |
+
+### `Subcommand (Type)`
+
+| Name            | Type                            | Description                                           | Example                    |
+| --------------- | ------------------------------- | ----------------------------------------------------- | -------------------------- |
+| name            | `string`                        | The name of the subcommand.                           | `"build"`                  |
+| aliases         | `string[]?`                     | An array of aliases for the subcommand.               | `["b", "build"]`           |
+| description     | `string?`                       | A description of the subcommand for the help message. | `"Build the project"`      |
+| usage           | `string?`                       | The usage of the subcommand for the help message.     | `"my-cli build"`           |
+| placeholder     | `string?`                       | A placeholder displayed in the help message.          | `"[options]"`              |
+| example         | `string?`                       | An example of subcommand usage for the help message.  | `"my-cli build [options]"` |
+| options         | [`Option[]?`](#option-type)     | An array of options for the subcommand.               |                            |
+| arguments       | [`Argument[]?`](#argument-type) | An array of arguments for the subcommand.             |                            |
+| allowPositional | `boolean?`                      | Allows positional arguments for this subcommand.      |                            |
+
+### `Option (Type)`
+
+| Name        | Type        | Description                                          | Example                         |
+| ----------- | ----------- | ---------------------------------------------------- | ------------------------------- |
+| name        | `string`    | The name of the option. camelCase is recommended.    | `"inputDir"` -> `--input-dir`   |
+| type        | `ZodType`   | Specifies the type of the option using Zod schema.   | `z.boolean().default(false)`    |
+| aliases     | `string[]?` | An array of aliases for the option.                  | `["i", "dir"]` -> `-i`, `--dir` |
+| description | `string?`   | A description of the option for the help message.    | `"Input directory"`             |
+| placeholder | `string?`   | Placeholder text for the option in the help message. | `"<dir>"` or `"<path>"`         |
+| example     | `string?`   | An example of option usage for the help message.     | `"-i /path/to/dir"`             |
+
+### `Argument (Type)`
+
+| Name        | Type      | Description                                          | Example                             |
+| ----------- | --------- | ---------------------------------------------------- | ----------------------------------- |
+| name        | `string`  | The name of the argument for the help message.       | `"command-name"`                    |
+| type        | `ZodType` | Specifies the type of the argument using Zod schema. | `z.enum(["build", "help", "init"])` |
+| description | `string?` | A description of the argument for the help message.  | `"Command to print help for"`       |
+| example     | `string?` | An example of argument usage for the help message.   | `"help build"`                      |
+
+### `Context (Type)`
+
+The context object is generated after parsing the CLI arguments and before validation.
+
+| Name       | Type                            | Description                                                      |
+| ---------- | ------------------------------- | ---------------------------------------------------------------- |
+| subcommand | `string \| undefined`           | The name of the executed subcommand.                             |
+| options    | `Record<string, ParsedOption> ` | A map of parsed options for the CLI/subcommand.                  |
+| arguments  | `ParsedArgument[] \| undefined` | An array of parsed arguments for the CLI/subcommand.             |
+| positional | `string[] \| undefined`         | Contains positional arguments when `allowPositional` is enabled. |
+
+**`ParsedOption`**
+
+| Name     | Type                  | Description                                                                                    |
+| -------- | --------------------- | ---------------------------------------------------------------------------------------------- |
+| name     | `string`              | The name of the option (e.g. `foo` or `f`).                                                    |
+| flag     | `string \| undefined` | The CLI flag as provided in the terminal (e.g. `--foo` or `-f`).                               |
+| schema   | `ZodTypeAny`          | The schema that validates this option.                                                         |
+| rawValue | `string \| undefined` | The string value as provided in the terminal. boolean flags are inferred into boolean strings. |
+| source   | `"cli" \| "default"`  | `cli`: provided explicitly in the CLI, `default`: not provided, and the schema has a default.  |
+
+**`ParsedArgument`**
+
+| Name     | Type                  | Description                                                                                   |
+| -------- | --------------------- | --------------------------------------------------------------------------------------------- |
+| schema   | `ZodTypeAny`          | The schema that validates this argument.                                                      |
+| rawValue | `string \| undefined` | The raw string value supplied for this argument from the CLI.                                 |
+| source   | `"cli" \| "default"`  | `cli`: provided explicitly in the CLI, `default`: not provided, and the schema has a default. |
+
+### `Results (Type)`
+
+| Name                | Type                                                   | Description                                         |
+| ------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| subcommand          | `string \| undefined`                                  | The name of the executed subcommand.                |
+| `[key: optionName]` | `unknown`                                              | Validated options for the CLI/subcommand.           |
+| arguments           | `unknown[] \| undefined`                               | Validated arguments for the CLI/subcommand.         |
+| positional          | `string[] \| undefined`                                | Positional array for the CLI/subcommand.            |
+| printCliHelp        | `(options?: PrintHelpOpt) => void`                     | Prints the CLI help message.                        |
+| printSubcommandHelp | `(subcommand: string, options?: PrintHelpOpt) => void` | Prints the help message for a specified subcommand. |
+
+**`PrintHelpOpt`**
+
+| Name         | Type                                                                                                                                                                                                                                                                                           | Description                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| colors       | `boolean?`                                                                                                                                                                                                                                                                                     | Whether to use colors in the help message. default: `true`             |
+| customColors | `Record<`<br>`\| "title"` <br>`\| "description"` <br>`\| "default" ` <br>`\| "optional" ` <br>`\| "exampleTitle" ` <br>`\| "example" ` <br>`\| "command" ` <br>`\| "option" ` <br>`\| "argument" ` <br>`\| "placeholder" ` <br>`\| "punctuation",`<br>`(...text: unknown[]) => string`<br>`>?` | The colors to use for the help message. <br>E.g `{ title: chalk.red }` |
 
 ## Example
 
 - [Example code](https://github.com/alabsi91/zod-args-parser/tree/main/example)
+
+## License
+
+zod-args-parser library is licensed under [**The MIT License.**](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)

@@ -1,7 +1,7 @@
 import { indent, print, println } from "./utils.js";
 
+import type { OptionMetadata } from "../metadata/metadata-types.js";
 import type { PrintHelpColors } from "./colors.js";
-import type { OptionMetadata } from "../types.js";
 
 export function printOptions(optionsMetadata: OptionMetadata[], c: PrintHelpColors, longest: number) {
   if (!optionsMetadata.length) return;

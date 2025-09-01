@@ -1,6 +1,6 @@
 import { indent, print, println } from "./utils.js";
 
-import type { ArgumentMetadata } from "../types.js";
+import type { ArgumentMetadata } from "../metadata/metadata-types.js";
 import type { PrintHelpColors } from "./colors.js";
 
 export function printPreparedArguments(argsMetadata: ArgumentMetadata[], c: PrintHelpColors, longest: number) {

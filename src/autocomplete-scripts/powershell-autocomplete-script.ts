@@ -1,4 +1,4 @@
-import { transformOptionToArg } from "../utils.js";
+import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
 
 import type { Cli, Subcommand } from "../types.js";
 

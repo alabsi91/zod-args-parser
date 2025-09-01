@@ -1,63 +1,56 @@
 import type {
-  ActionFn,
+  ActionsFn,
   Argument,
+  CheckArgumentsOptional,
+  CheckDuplicatedArguments,
   CheckDuplicatedOptions,
   Cli,
   Option,
   Prettify,
   Subcommand,
-  UnSafeParseResult,
 } from "./types.js";
 
 /**
- * - Insures that there is no extra keys in `obj` compared to `shape`
- * - Also checks objects in arrays useful for the keys `options` and `arguments`
- */
-type Exact<Obj extends object, Shape extends object> = {
-  [K in keyof Obj]: K extends keyof Shape
-    ? Obj[K] extends infer ObjArr extends object[]
-      ? Required<Shape>[K] extends infer ShapeArr extends object[]
-        ? ExactObjArr<ObjArr, ShapeArr[number]>
-        : Obj[K]
-      : Obj[K]
-    : never;
-};
-
-/** - Insures that there is no extra keys in `obj` compared to `shape` */
-type ExactKeys<T extends object, U extends object> = { [K in keyof T]: K extends keyof U ? T[K] : never };
-
-/** - Insures that there is no extra keys in the objects in an array compared to `shape` */
-type ExactObjArr<ObjArr extends object[], ShapeObj extends object> = {
-  [K in keyof ObjArr]: ExactKeys<ObjArr[K], ShapeObj>;
-};
-
-/**
  * - Insures that there are no duplicated options
- * - Disallow extra keys
+ * - Insures that there are no duplicated arguments
+ * - Insures that only the last argument is optional
+ * - Insures no optional arguments are allowed when `allowPositional` is enabled
  */
-type CliInput<T extends Cli> = CheckDuplicatedOptions<T> extends T ? Exact<T, Cli> : CheckDuplicatedOptions<T>;
+type CheckCliSubcommandInput<T extends Cli | Subcommand> =
+  CheckDuplicatedOptions<T> extends infer Err extends string
+    ? Err
+    : CheckDuplicatedArguments<T> extends infer Err extends string
+      ? Err
+      : CheckArgumentsOptional<T> extends infer Err extends string
+        ? Err
+        : T;
 
-export function createCli<const T extends Cli>(input: CliInput<T>) {
-  const setAction = (action: (res: UnSafeParseResult<[T]>) => void) => {
+export function createCli<const T extends Cli>(input: CheckCliSubcommandInput<T>) {
+  const setAction = (action: (res: any) => any) => {
+    if (typeof input === "string") return;
     input.action = action;
   };
 
-  return Object.assign(input, { setAction }) as Prettify<CliInput<T> & ActionFn<T>>;
+  const setPreValidationHook = (hook: (ctx: any) => any) => {
+    if (typeof input === "string") return;
+    input.preValidation = hook;
+  };
+
+  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFn<T>>;
 }
 
-/**
- * - Insures that there are no duplicated options
- * - Disallow extra keys
- */
-type SubcommandInput<T extends Subcommand> =
-  CheckDuplicatedOptions<T> extends T ? Exact<T, Subcommand> : CheckDuplicatedOptions<T>;
-
-export function createSubcommand<const T extends Subcommand>(input: SubcommandInput<T>) {
-  const setAction = (action: (res: UnSafeParseResult<[T]>) => void) => {
-    input.action = action;
+export function createSubcommand<const T extends Subcommand>(input: CheckCliSubcommandInput<T>) {
+  const setAction = (action: (res: any) => any) => {
+    if (typeof input === "string") return;
+    input.action = action as T["action"];
   };
 
-  return Object.assign(input, { setAction }) as Prettify<SubcommandInput<T> & ActionFn<T>>;
+  const setPreValidationHook = (hook: (ctx: any) => any) => {
+    if (typeof input === "string") return;
+    input.preValidation = hook;
+  };
+
+  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFn<T>>;
 }
 
 /** - Insures that there are no duplicated options */
@@ -68,14 +61,20 @@ export function createOptions<const T extends [Option, ...Option[]]>(options: Ch
   return options;
 }
 
-export function createArguments<const T extends [Argument, ...Argument[]]>(args: T) {
+/** - Insures that only the last argument is optional */
+type CheckArgumentsInput<T extends Argument[]> =
+  CheckArgumentsOptional<{ arguments: T }> extends infer Err extends string ? Err : T;
+
+export function createArguments<const T extends [Argument, ...Argument[]]>(args: CheckArgumentsInput<T>) {
   return args;
 }
 
 export { printCliHelp, printSubcommandHelp } from "./help-message/print-help-message.js";
 
-export { parse } from "./parser/parse.js";
-export { safeParse } from "./parser/safe-parse.js";
+export { unsafeParse as parse, unsafeParseAsync as parseAsync } from "./parser/unsafe-parse.js";
+export { safeParse, safeParseAsync } from "./parser/safe-parse.js";
+
+export { isOptionalSchema, schemaDefaultValue, isBooleanSchema } from "./zod-utils.js";
 
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.js";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.js";
@@ -89,3 +88,4 @@ export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.js";
 export { generateMarkdown } from "./markdown/generate-markdown.js";
 
 export type * from "./types.js";
+export type * from "./metadata/metadata-types.js";
