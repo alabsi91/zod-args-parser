@@ -27,19 +27,4 @@ configureSchema.setAction(results => {
   console.log(`  Logging: ${results.enableLogging}`);
   console.log(`  Mode: ${results.mode}`);
   console.log(results.ctx.options.enableLogging.flag);
-
-  const ctx = results.ctx;
-  for (const option of Object.values(ctx.options)) {
-    if (option.name === "enableLogging" && option.source !== "default") {
-      option.rawValue = "false";
-    }
-  }
-});
-
-configureSchema.setPreValidationHook(ctx => {
-  for (const option of Object.values(ctx.options)) {
-    if (option.name === "enableLogging" && option.source !== "default") {
-      option.rawValue = "false";
-    }
-  }
 });

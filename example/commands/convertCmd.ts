@@ -46,13 +46,3 @@ convertSchema.setAction(results => {
   if (overwrite) console.log("Overwrite enabled.");
   if (verbose) console.log("Verbose mode enabled.");
 });
-
-convertSchema.setPreValidationHook(ctx => {
-  if (ctx.options.verbose.source === "default") {
-    ctx.options.verbose.rawValue = "true";
-  }
-
-  if (ctx.arguments[0].source === "cli") {
-    console.log("Input directory:", ctx.arguments[0].rawValue);
-  }
-});
