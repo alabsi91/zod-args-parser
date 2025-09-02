@@ -185,7 +185,9 @@ subcommand.setAction(results => {
 - Supported Zod versions: `>= 3.25.0` (including `4.0.0`).
 - A schema with `.optional()` or `.default(<value>)` is treated as **optional**; all others are **required**.
 - Descriptions can be added either via the Zod schema’s `describe` method or the `description` property.
-- ⚠️ **Important:** All values from the terminal are passed as **strings**, so **coercion** is required except for simple booleans types which are inferred automatically.
+
+> [!IMPORTANT]  
+>  All values from the terminal are passed as **strings**, so **coercion** is required except for simple booleans types which are inferred automatically.
 
 ```ts
 import * as z from "zod";
@@ -286,11 +288,14 @@ cliSchema.setAction(results => {
 - The following properties are optional and used only for **metadata**:
   - `description`
   - `example`
-- ⚠️ **Important:** Arguments are parsed strictly **in order**.
-  - Only the **last argument** may be optional (when `allowPositional` is disabled).
-  - Mixing required and optional arguments (e.g., required → optional → required) will cause parsing errors because the parser cannot determine which value belongs to which argument.
-  - This means you **cannot have any optional arguments** if `allowPositional` is enabled.
-  - TypeScript will throw a type error if required and optional arguments are mixed, or when using `allowPositional: true` with optional arguments.
+
+> [!IMPORTANT]  
+>  Arguments are parsed strictly **in order**.
+>
+> - Only the **last argument** may be optional (when `allowPositional` is disabled).
+> - Mixing required and optional arguments (e.g., required → optional → required) will cause parsing errors because the parser cannot determine which value belongs to which argument.
+> - This means you **cannot have any optional arguments** if `allowPositional` is enabled.
+> - TypeScript will throw a type error if required and optional arguments are mixed, or when using `allowPositional: true` with optional arguments.
 
 See the [Argument](#argument-type) type for more details.
 
@@ -330,7 +335,9 @@ cliSchema.setAction(results => {
 
 - Positionals are untyped **positional values**, always parsed as `string[]` of any length.
 - By default, positionals are **not allowed**. Enable them using the `allowPositional` option.
-- ⚠️ **Important:** If both typed arguments and positionals are used in the same CLI/subcommand, the **typed arguments are parsed first**, and only then are the remaining values collected as positionals.
+
+> [!IMPORTANT]  
+>  If both typed arguments and positionals are used in the same CLI/subcommand, the **typed arguments are parsed first**, and only then are the remaining values collected as positionals.
 
 ```ts
 import { createSubcommand } from "zod-args-parser";
