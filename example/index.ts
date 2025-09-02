@@ -11,7 +11,7 @@ const args: string[] = ["-h"];
 // const args: string[] = ["help", "configure"];
 // const args: string[] = ["help", "count"];
 
-// const args: string[] = ["process", "--name", "test", "-c", "5", "--tags", "tag1,tag2,tag3", "-v"];
+// const args: string[] = ["process", "--name", "test", "-c", "5", "--tags", "tag1;tag2;tag3", "-v"];
 // const args: string[] = ["convert", "input.txt", "output.json", "--format", "json", "--overwrite", "--verbose"];
 // const args: string[] = ["configure", "--enable-logging=false", "--mode", "production"];
 // const args: string[] = ["list", "item1", "item2", "item3"];

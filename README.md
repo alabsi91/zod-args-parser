@@ -185,42 +185,51 @@ subcommand.setAction(results => {
 - Supported Zod versions: `>= 3.25.0` (including `4.0.0`).
 - A schema with `.optional()` or `.default(<value>)` is treated as **optional**; all others are **required**.
 - Descriptions can be added either via the Zod schema’s `describe` method or the `description` property.
-- ⚠️ **Important:** All values from the terminal are passed as **strings**, except booleans, which are automatically parsed as `true` or `false`.
+- ⚠️ **Important:** All values from the terminal are passed as **strings**, so **coercion** is required except for simple booleans types which are inferred automatically.
 
-<!-- prettier-ignore -->
 ```ts
 import * as z from "zod";
 
 // String examples
-z.string();                    // required string -> type: string
-z.string().optional();         // optional string -> type: string | undefined
-z.string().default("hello");   // optional with default -> type: string
+z.string(); // required string -> type: string
+z.string().optional(); // optional string -> type: string | undefined
+z.string().default("hello"); // optional with default -> type: string
 
-// Boolean examples (booleans are inferred automatically)
-z.boolean();                   // required boolean -> type: boolean
-z.boolean().optional();        // optional boolean -> type: boolean | undefined
-z.boolean().default(true);     // optional with default -> type: boolean
+// Boolean examples (simple booleans are inferred automatically no need to use coerce)
+z.boolean(); // required boolean -> type: boolean
+z.boolean().optional(); // optional boolean -> type: boolean | undefined
+z.boolean().default(true); // optional with default -> type: boolean
 
 // Number examples (need coercion because terminal inputs are strings)
-z.number();                    // 🚫 invalid: will always throw
-z.coerce.number();             // ✅ converts string input -> number
+z.number(); // 🚫 invalid: will always throw
+z.coerce.number(); // ✅ converts string input -> number
 
-// Enum example
-z.enum(["a", "b", "c"]);       // type: "a" | "b" | "c"
+// String boolean (zod v4) -> boolean
+z.stringbool({
+  truthy: ["true", "1", "yes", "on", "y", "enabled"],
+  falsy: ["false", "0", "no", "off", "n", "disabled"],
+});
 
-// Array parsing example (custom preprocessing)
-z.preprocess(parseArr, z.array(z.string()));
+// Enum example -> "a" | "b" | "c"
+z.enum(["a", "b", "c"]);
 
-// converts comma-separated string -> string[]
-function parseArr(val: unknown) {
-  if (typeof val === "string") {
-    return val
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
-  return val;
-}
+// Union example -> number | "development"
+z.union([z.coerce.number(), z.literal("development")]);
+
+// Custom preprocessing:
+import { stringToArray, stringToSet } from "zod-args-parser";
+
+// Array of strings -> string[]
+z.preprocess(val => stringToArray(val), z.string().array());
+
+// Tuple Example -> [string, number, boolean]
+z.preprocess(
+  val => stringToArray(val, ";"), // second arg is the separator (default: ",")
+  z.tuple([z.string(), z.coerce.number(), z.coerce.boolean()]),
+);
+
+// Set of strings -> Set<string>
+z.preprocess(val => stringToSet(val), z.set(z.string()));
 ```
 
 ### Options
@@ -392,6 +401,26 @@ cliSchema.setAction(results => {
 
 ### Help Message
 
+<!-- terminal view start -->
+<div style="border-radius:5px;background-color:#1e1e2e;color:#cdd6f4;font-family:monospace;padding:20px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;"><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">USAGE</span>
+  <span style="color:#6c7086;">$</span> argplay [<span style="color:#89dceb;">command</span>] [<span style="color:#89dceb;">options</span>]
+<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">DESCRIPTION</span>
+  A CLI to test argument parsing
+<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">OPTIONS</span>
+  <span style="color:#17c680;">-h<span style="color:#6c7086;">,</span> --help</span>                      Show this help message <span style="color:#6c7086;font-style:italic;">(optional)</span>
+  <span style="color:#17c680;">-v<span style="color:#6c7086;">,</span> --version</span>                   Show version <span style="color:#6c7086;font-style:italic;">(optional)</span>
+<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">COMMANDS</span>
+  <span style="color:#f9e2af;">process</span> <span style="color:#ff9518;">[options]</span>               Simulate processing data
+  <span style="color:#f9e2af;">convert</span> <span style="color:#ff9518;">&lt;source&gt; &lt;destination&gt;</span>  Simulate file conversion
+  <span style="color:#f9e2af;">configure</span> <span style="color:#ff9518;">[options]</span>             Simulate configuring the system
+  <span style="color:#f9e2af;">list<span style="color:#6c7086;">,</span> count</span> <span style="color:#ff9518;">&lt;args&gt;</span>              Print a list of items provided by the user
+  <span style="color:#f9e2af;">help</span> <span style="color:#ff9518;">&lt;command&gt;</span>                  Print help message for command
+<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">EXAMPLE</span><span style="color:#6c7086;">
+  example of how to use argplay
+  argplay --help</span>
+</div><br>
+<!-- terminal view end -->
+
 There are two ways to print the help message:
 
 1. `printCliHelp(options?: PrintHelpOpt)`  
@@ -431,13 +460,27 @@ if (!results.success) {
 - `schemaDefaultValue(schema: ZodTypeAny): unknown | undefined`  
   Get the default value of a schema if it has one.
 
+- `stringToArray(value: unknown, separator?: string = ","): unknown`  
+  A preprocessing handle to convert a string to an array.
+
+- `stringToSet(value: unknown, separator?: string = ","): unknown`  
+  A preprocessing handle to convert a string to a set.
+
 ```ts
 import * as z from "zod";
-import { createCli, isOptionalSchema, isBooleanSchema, schemaDefaultValue } from "zod-args-parser";
+import { createCli, isOptionalSchema, isBooleanSchema, schemaDefaultValue, stringToArray } from "zod-args-parser";
 
 const cliSchema = createCli({
   cliName: "my-cli",
   options: [
+    {
+      name: "tags",
+      aliases: ["t"],
+      placeholder: "<list>",
+      description: "tags separated by semicolon (;)",
+      example: "--tags tag1;tag2;tag3",
+      type: z.preprocess(val => stringToArray(val, ";"), z.array(z.string())),
+    },
     {
       name: "verbose",
       aliases: ["v"],

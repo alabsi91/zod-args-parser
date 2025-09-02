@@ -1,5 +1,3 @@
-import assert from "node:assert";
-
 import type { Option, Subcommand } from "../../types.js";
 
 /**
@@ -94,7 +92,9 @@ export function decoupleFlags(args: string[]): string[] {
  * @returns - The transformed name E.g. `--input-dir` -> `InputDir` or `-i` -> `i`
  */
 export function parseArgOptionName(name: string): string {
-  assert(name.startsWith("-"), `[parseArgOptionName] Invalid arg name: ${name}`);
+  if (!name.startsWith("-")) {
+    throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`);
+  }
 
   name = name.startsWith("--") ? name.substring(2) : name.substring(1);
 

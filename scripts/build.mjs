@@ -95,7 +95,7 @@ for (const filePath of tsFiles) {
   const fileContent = await fs.readFile(filePath, "utf8");
 
   // Ignore
-  if (["types.ts"].includes(fileName)) {
+  if (fileName.endsWith("types.ts")) {
     continue;
   }
 

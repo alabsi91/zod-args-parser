@@ -1,16 +1,6 @@
 import * as z from "zod";
-import { createSubcommand } from "zod-args-parser";
+import { createSubcommand, stringToArray } from "zod-args-parser";
 import { sharedOptions } from "../shared.js";
-
-const parseArr = (val: unknown) => {
-  if (typeof val === "string") {
-    return val
-      .split(",")
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
-  return val;
-};
 
 export const precessSchema = createSubcommand({
   name: "process",
@@ -36,14 +26,15 @@ export const precessSchema = createSubcommand({
       name: "tags",
       aliases: ["t"],
       placeholder: "<list>",
-      description: "Comma-separated tags",
-      type: z.preprocess(parseArr, z.array(z.string())),
+      description: "tags separated by semicolon (;)",
+      example: "--tags tag1;tag2;tag3",
+      type: z.preprocess(val => stringToArray(val, ";"), z.array(z.string())),
     },
     ...sharedOptions,
   ],
 });
 
 precessSchema.setAction(results => {
-  console.log(`Processing "${results.name}" ${results.count} times with tags: ${results.tags}`);
+  console.log(`Processing "${results.name}" ${results.count} times with tags:`, results.tags);
   if (results.verbose) console.log("Verbose mode ON.");
 });

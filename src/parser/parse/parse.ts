@@ -91,8 +91,7 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
       // infer value for boolean options
       if (isTypeBoolean) {
         if (argWithEquals) {
-          const parsedBoolean = stringToBoolean(argValue);
-          optionValue = isNegative ? !parsedBoolean : parsedBoolean;
+          optionValue = isNegative ? !stringToBoolean(argValue) : stringToBoolean(argValue);
         } else {
           optionValue = !isNegative;
         }

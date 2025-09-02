@@ -37,6 +37,10 @@ function isBooleanV4Schema(schema: SchemaV4): boolean {
       return def.values.includes(true) || def.values.includes(false);
     }
 
+    if (isV4DefPipe(def)) {
+      return isBooleanV4Schema(def.out);
+    }
+
     if (!isV4DefWithInnerType(def)) {
       return false;
     }
@@ -58,6 +62,10 @@ function isBooleanV3Schema(schema: SchemaV3): boolean {
       return type.value === true || type.value === false;
     }
 
+    if (type instanceof Z3.ZodEffects) {
+      return isBooleanV3Schema(type._def.schema);
+    }
+
     type = type._def.innerType;
   }
 
@@ -77,8 +85,18 @@ function schemaV4DefaultValue(schema: SchemaV4): unknown | undefined {
   let def = schema._zod.def;
 
   while (def) {
-    if (isDefaultV4Def(def)) return def.defaultValue;
-    if (!isV4DefWithInnerType(def)) return undefined;
+    if (isDefaultV4Def(def)) {
+      return def.defaultValue;
+    }
+
+    if (isV4DefPipe(def)) {
+      return schemaV4DefaultValue(def.out);
+    }
+
+    if (!isV4DefWithInnerType(def)) {
+      return undefined;
+    }
+
     def = def.innerType._zod.def;
   }
 
@@ -89,8 +107,11 @@ function schemaV3DefaultValue(schema: SchemaV3): unknown | undefined {
   let type = schema;
   while (type) {
     if (type instanceof Z3.ZodDefault) {
-      const defaultValue = type._def.defaultValue();
-      return defaultValue;
+      return type._def.defaultValue();
+    }
+
+    if (type instanceof Z3.ZodEffects) {
+      return schemaV3DefaultValue(type._def.schema);
     }
 
     type = type._def.innerType;
@@ -148,4 +169,41 @@ function isV4DefWithInnerType(def: Z4.$ZodTypeDef): def is SchemaWithInnerType {
     "readonly",
     "promise",
   ]).has(def.type);
+}
+
+function isV4DefPipe(def: Z4.$ZodTypeDef): def is Z4.$ZodPipeDef {
+  return def.type === "pipe";
+}
+
+/**
+ * A preprocessing function for Zod that converts a string to an array of strings.
+ *
+ * @param val - The value given by zod.
+ * @param sep - The separator to use when splitting the string. Defaults to ",".
+ */
+export function stringToArray(val: unknown, sep: string = ",") {
+  if (typeof val === "string") {
+    return val
+      .split(sep)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  return val;
+}
+
+/**
+ * A preprocessing function for Zod that converts a string to a `Set` of strings.
+ *
+ * @param val - The value given by zod.
+ * @param sep - The separator to use when splitting the string. Defaults to ",".
+ */
+export function stringToSet(val: unknown, sep: string = ",") {
+  const maybeArray = stringToArray(val, sep);
+
+  if (Array.isArray(maybeArray)) {
+    return new Set(maybeArray);
+  }
+
+  return val;
 }
