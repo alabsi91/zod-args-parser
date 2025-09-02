@@ -401,25 +401,7 @@ cliSchema.setAction(results => {
 
 ### Help Message
 
-<!-- terminal view start -->
-<div style="border-radius:5px;background-color:#1e1e2e;color:#cdd6f4;font-family:monospace;padding:20px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;"><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">USAGE</span>
-  <span style="color:#6c7086;">$</span> argplay [<span style="color:#89dceb;">command</span>] [<span style="color:#89dceb;">options</span>]
-<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">DESCRIPTION</span>
-  A CLI to test argument parsing
-<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">OPTIONS</span>
-  <span style="color:#17c680;">-h<span style="color:#6c7086;">,</span> --help</span>                      Show this help message <span style="color:#6c7086;font-style:italic;">(optional)</span>
-  <span style="color:#17c680;">-v<span style="color:#6c7086;">,</span> --version</span>                   Show version <span style="color:#6c7086;font-style:italic;">(optional)</span>
-<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">COMMANDS</span>
-  <span style="color:#f9e2af;">process</span> <span style="color:#ff9518;">[options]</span>               Simulate processing data
-  <span style="color:#f9e2af;">convert</span> <span style="color:#ff9518;">&lt;source&gt; &lt;destination&gt;</span>  Simulate file conversion
-  <span style="color:#f9e2af;">configure</span> <span style="color:#ff9518;">[options]</span>             Simulate configuring the system
-  <span style="color:#f9e2af;">list<span style="color:#6c7086;">,</span> count</span> <span style="color:#ff9518;">&lt;args&gt;</span>              Print a list of items provided by the user
-  <span style="color:#f9e2af;">help</span> <span style="color:#ff9518;">&lt;command&gt;</span>                  Print help message for command
-<br><span style="color:#89dceb;font-weight:bold;text-transform:uppercase;">EXAMPLE</span><span style="color:#6c7086;">
-  example of how to use argplay
-  argplay --help</span>
-</div><br>
-<!-- terminal view end -->
+<img width="771" height="541" alt="image" src="https://github.com/user-attachments/assets/77396b13-58c1-4511-a952-57b2e658be39" /><br>
 
 There are two ways to print the help message:
 
