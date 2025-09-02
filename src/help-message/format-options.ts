@@ -1,4 +1,4 @@
-import { indent, ln, withNewLine } from "./utils.js";
+import { concat, indent, ln } from "./utils.js";
 
 import type { OptionMetadata } from "../metadata/metadata-types.js";
 import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
@@ -6,9 +6,7 @@ import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
 export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpMsgStyle, longest: number): string {
   if (!optionsMetadata.length) return "";
 
-  let msg = c.title(" OPTIONS ");
-
-  msg += withNewLine();
+  let msg = c.title(" OPTIONS") + ln(1);
 
   for (const metadata of optionsMetadata) {
     const names = metadata.aliasesAsArgs.concat([metadata.nameAsArg]);
@@ -21,21 +19,19 @@ export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpM
 
     const coloredNames = names.map(name => c.option(name)).join(c.punctuation(", "));
 
-    msg += withNewLine(
-      indent(2),
-      coloredNames,
+    msg += concat(
+      indent(2) + coloredNames,
       c.placeholder(metadata.placeholder),
       indent(spacing),
       c.description(normalizeDesc),
-      defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "",
+      (defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "") + ln(1),
     );
 
     if (metadata.example) {
       const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(longest + 17));
-      msg += withNewLine(
-        indent(longest + 6),
-        c.punctuation("└") + c.exampleTitle("Example:"),
-        c.example(normalizeExample),
+      msg += concat(
+        indent(longest + 6) + c.punctuation("└") + c.exampleTitle("Example:"),
+        c.example(normalizeExample) + ln(1),
       );
     }
   }

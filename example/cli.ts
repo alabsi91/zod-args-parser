@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { createCli } from "zod-args-parser";
+import { createCli, helpMsgStyles } from "zod-args-parser";
 
 import { configureSchema } from "./commands/configureCmd.js";
 import { convertSchema } from "./commands/convertCmd.js";
@@ -32,7 +32,7 @@ cliSchema.setAction(results => {
   const { help, version } = results;
 
   if (help) {
-    results.printCliHelp();
+    results.printCliHelp(helpMsgStyles.default);
     return;
   }
 

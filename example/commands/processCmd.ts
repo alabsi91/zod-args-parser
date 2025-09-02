@@ -6,7 +6,7 @@ export const precessSchema = createSubcommand({
   name: "process",
   placeholder: "[options]",
   description: "Simulate processing data",
-  example: 'argplay process --name "test" --count 5 --tags tag1,tag2,tag3 --verbose',
+  example: 'argplay process --name "test" --count 5 --tags tag1;tag2;tag3 --verbose',
   options: [
     {
       name: "name",

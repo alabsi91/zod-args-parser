@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { createSubcommand } from "zod-args-parser";
+import { createSubcommand, helpMsgStyles } from "zod-args-parser";
 
 export const helpCommandSchema = createSubcommand({
   name: "help",
@@ -16,6 +16,11 @@ export const helpCommandSchema = createSubcommand({
 
 helpCommandSchema.setAction(results => {
   const [command] = results.arguments;
-  if (command) results.printSubcommandHelp(command);
-  else results.printCliHelp();
+
+  if (command) {
+    results.printSubcommandHelp(command, helpMsgStyles.default);
+    return;
+  }
+
+  results.printCliHelp(helpMsgStyles.default);
 });
