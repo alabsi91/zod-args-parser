@@ -1,47 +1,42 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.js";
-import { noColors, printColors } from "./colors.js";
-import { printPreparedArguments } from "./print-arguments.js";
-import { printOptions } from "./print-options.js";
-import { printSubcommands } from "./print-subcommands.js";
-import { concat, indent, ln, print, println } from "./utils.js";
+import { helpMsgStyles } from "./styles.js";
+import { formatHelpMsgArguments } from "./format-arguments.js";
+import { formatHelpMsgOptions } from "./format-options.js";
+import { formatHelpMsgCommands } from "./format-subcommands.js";
+import { concat, indent, ln, print, withNewLine } from "./utils.js";
 
-import type { Cli, PrintHelpOpt, Subcommand } from "../types.js";
+import type { Cli, HelpMsgStyle, Subcommand } from "../types.js";
 
-export function printCliHelp(params: [Cli, ...Subcommand[]], printConfig: PrintHelpOpt = {}) {
-  printConfig.colors ??= true;
-
-  const c = printConfig.colors ? printColors : noColors;
+export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?: HelpMsgStyle): string {
+  const c = helpMsgStyles.default;
+  if (style) Object.assign(c, style);
 
   const metadata = getCliMetadata(params);
 
-  if (printConfig.customColors) {
-    Object.assign(c, printConfig.customColors);
-  }
-
   /** Print a styled title */
-  const printTitle = (title: string) => {
-    print(c.title(` ${title.toUpperCase()} `));
-  };
+  const formatTitle = (title: string) => c.title(` ${title.toUpperCase()} `);
+
+  let msg = "";
 
   // Print CLI usage
   const usage =
     metadata.usage ||
     concat(
       c.punctuation("$"),
-      metadata.name,
+      c.description(metadata.name),
       metadata.subcommands.length ? c.command("[command]") : "",
       metadata.options.length ? c.option("[options]") : "",
       metadata.arguments.length || metadata.allowPositional ? c.argument("<arguments>") : "",
     );
-  printTitle("Usage");
-  println();
-  println(indent(2), usage, ln(1));
+  msg += formatTitle("Usage");
+  msg += ln(1);
+  msg += withNewLine(indent(2), usage, ln(1));
 
   // Print CLI description
   if (metadata.description) {
-    printTitle("Description");
-    println();
-    println(indent(2), c.description(metadata.description), ln(1));
+    msg += formatTitle("Description");
+    msg += ln(1);
+    msg += withNewLine(indent(2), c.description(metadata.description), ln(1));
   }
 
   let longest = 0;
@@ -84,27 +79,28 @@ export function printCliHelp(params: [Cli, ...Subcommand[]], printConfig: PrintH
   }
 
   // Print CLI options
-  printOptions(optionsMetadata, c, longest);
+  msg += formatHelpMsgOptions(optionsMetadata, c, longest);
 
   // Print CLI commands
-  printSubcommands(subcommandsMetadata, c, longest);
+  msg += formatHelpMsgCommands(subcommandsMetadata, c, longest);
 
   // Print CLI arguments
-  printPreparedArguments(argsMetadata, c, longest);
+  msg += formatHelpMsgArguments(argsMetadata, c, longest);
 
   // Print CLI example
   if (metadata.example) {
-    printTitle("Example");
-    println();
+    msg += formatTitle("Example");
+    msg += ln(1);
     const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(3));
-    println(indent(2), c.example(normalizeExample), ln(1));
+    msg += withNewLine(indent(2), c.example(normalizeExample), ln(1));
   }
+
+  return msg;
 }
 
-export function printSubcommandHelp(subcommand: Subcommand, printConfig: PrintHelpOpt = {}, cliName = "") {
-  printConfig.colors ??= true;
-
-  const c = printConfig.colors ? printColors : noColors;
+export function formatSubcommandHelpMsg(subcommand: Subcommand, printStyle?: HelpMsgStyle, cliName = "") {
+  const c = helpMsgStyles.default;
+  if (printStyle) Object.assign(c, printStyle);
 
   const usage =
     subcommand.usage ||
@@ -122,5 +118,13 @@ export function printSubcommandHelp(subcommand: Subcommand, printConfig: PrintHe
     ...subcommand,
   };
 
-  printCliHelp([asCli], printConfig);
+  return formatCliHelpMsg([asCli], c);
+}
+
+export function printCliHelp(params: readonly [Cli, ...Subcommand[]], style?: HelpMsgStyle) {
+  print(formatCliHelpMsg(params, style));
+}
+
+export function printSubcommandHelp(subcommand: Subcommand, style?: HelpMsgStyle, cliName = "") {
+  print(formatSubcommandHelpMsg(subcommand, style, cliName));
 }

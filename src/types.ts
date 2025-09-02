@@ -168,31 +168,19 @@ export type Argument = {
 
 export type ColorFnType = (...text: unknown[]) => string;
 
-export type PrintHelpOpt = {
-  /**
-   * - **Optional** `boolean`
-   * - Whether to print colors or not.
-   * - Default: `true`
-   */
-  colors?: boolean;
-
-  /**
-   * - **Optional** `object`
-   * - The colors to use for the help message.
-   */
-  customColors?: {
-    title?: ColorFnType;
-    description?: ColorFnType;
-    default?: ColorFnType;
-    optional?: ColorFnType;
-    exampleTitle?: ColorFnType;
-    example?: ColorFnType;
-    command?: ColorFnType;
-    option?: ColorFnType;
-    argument?: ColorFnType;
-    placeholder?: ColorFnType;
-    punctuation?: ColorFnType;
-  };
+/** - The colors to use for the help message. */
+export type HelpMsgStyle = {
+  title?: ColorFnType;
+  description?: ColorFnType;
+  default?: ColorFnType;
+  optional?: ColorFnType;
+  exampleTitle?: ColorFnType;
+  example?: ColorFnType;
+  command?: ColorFnType;
+  option?: ColorFnType;
+  argument?: ColorFnType;
+  placeholder?: ColorFnType;
+  punctuation?: ColorFnType;
 };
 
 /**
@@ -234,8 +222,8 @@ export type ToOptional<T> = Prettify<
 export type NoSubcommand = { name: undefined };
 
 export type PrintMethods<N extends Subcommand["name"]> = {
-  printCliHelp: (options?: PrintHelpOpt) => void;
-  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, options?: PrintHelpOpt) => void;
+  printCliHelp: (style?: HelpMsgStyle) => void;
+  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, style?: HelpMsgStyle) => void;
 };
 
 export type UnsafeParseResult<S extends Partial<Subcommand>[]> =

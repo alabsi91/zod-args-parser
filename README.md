@@ -405,30 +405,49 @@ cliSchema.setAction(results => {
 
 There are two ways to print the help message:
 
-1. `printCliHelp(options?: PrintHelpOpt)`  
+1. `printCliHelp(style?: HelpMsgStyle)`  
    Print the help message for the CLI.
 
-2. `printSubcommandHelp(subcommandName: string, options?: PrintHelpOpt)`  
+2. `printSubcommandHelp(subcommandName: string, style?: HelpMsgStyle)`  
    Print the help message for a specific subcommand.
+
+See the [HelpMsgStyle](#helpmsgstyle-type) type for more details.
 
 ```ts
 import chalk from "chalk";
+import { formatCliHelpMsg, formatSubcommandHelpMsg, helpMsgStyles } from "zod-args-parser";
+
+// Define the CLI schema
+const cliSchema = createCli(/* ... */);
+
+// Define the subcommand schema
+const subcommandSchema = createSubcommand(/* ... */);
 
 subcommandSchema.setAction(results => {
   // print help for CLI (without colors)
-  results.printCliHelp({ colors: false });
+  results.printCliHelp(helpMsgStyles.noColors);
+
+  // choose a style
+  results.printCliHelp(helpMsgStyles.dracula);
 
   // print help for subcommand (with custom title color)
   results.printSubcommandHelp("build", { title: chalk.red });
 });
 
+const schemas = [cliSchema, subcommandSchema] as const;
+
 // print help functions also accessible here
-const results = safeParse(args, cli, subcommandSchema);
-if (!results.success) {
-  console.log(results.error.message);
+const results = safeParse(args, ...schemas);
+if (results.success) {
   results.printCliHelp();
-  process.exit(1);
 }
+
+// get the string without printing to console
+const cliHelp = formatCliHelpMsg(schemas, helpMsgStyles.html);
+console.log(`<pre style="background-color: #1e1e2e">${cliHelp}</pre>`);
+
+const subcommandHelp = formatSubcommandHelpMsg(subcommandSchema, helpMsgStyles.html, cliSchema.cliName);
+console.log(`<pre style="background-color: #1e1e2e">${subcommandHelp}</pre>`);
 ```
 
 ### Zod Utilities
@@ -657,21 +676,30 @@ The context object is generated after parsing the CLI arguments and before valid
 
 ### `Results (Type)`
 
-| Name                | Type                                                   | Description                                         |
-| ------------------- | ------------------------------------------------------ | --------------------------------------------------- |
-| subcommand          | `string \| undefined`                                  | The name of the executed subcommand.                |
-| `[key: optionName]` | `unknown`                                              | Validated options for the CLI/subcommand.           |
-| arguments           | `unknown[] \| undefined`                               | Validated arguments for the CLI/subcommand.         |
-| positional          | `string[] \| undefined`                                | Positional array for the CLI/subcommand.            |
-| printCliHelp        | `(options?: PrintHelpOpt) => void`                     | Prints the CLI help message.                        |
-| printSubcommandHelp | `(subcommand: string, options?: PrintHelpOpt) => void` | Prints the help message for a specified subcommand. |
+| Name                | Type                                                 | Description                                         |
+| ------------------- | ---------------------------------------------------- | --------------------------------------------------- |
+| subcommand          | `string \| undefined`                                | The name of the executed subcommand.                |
+| `[key: optionName]` | `unknown`                                            | Validated options for the CLI/subcommand.           |
+| arguments           | `unknown[] \| undefined`                             | Validated arguments for the CLI/subcommand.         |
+| positional          | `string[] \| undefined`                              | Positional array for the CLI/subcommand.            |
+| printCliHelp        | `(style?: HelpMsgStyle) => void`                     | Prints the CLI help message.                        |
+| printSubcommandHelp | `(subcommand: string, style?: HelpMsgStyle) => void` | Prints the help message for a specified subcommand. |
 
-**`PrintHelpOpt`**
+### `HelpMsgStyle (Type)`
 
-| Name         | Type                                                                                                                                                                                                                                                                                           | Description                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| colors       | `boolean?`                                                                                                                                                                                                                                                                                     | Whether to use colors in the help message. default: `true`             |
-| customColors | `Record<`<br>`\| "title"` <br>`\| "description"` <br>`\| "default" ` <br>`\| "optional" ` <br>`\| "exampleTitle" ` <br>`\| "example" ` <br>`\| "command" ` <br>`\| "option" ` <br>`\| "argument" ` <br>`\| "placeholder" ` <br>`\| "punctuation",`<br>`(...text: unknown[]) => string`<br>`>?` | The colors to use for the help message. <br>E.g `{ title: chalk.red }` |
+| Key          | Type                             | Default                |
+| ------------ | -------------------------------- | ---------------------- |
+| title        | `(...text: unknown[]) => string` | `chalk.bold.blue`      |
+| description  | `(...text: unknown[]) => string` | `chalk.white`          |
+| default      | `(...text: unknown[]) => string` | `chalk.dim.italic`     |
+| optional     | `(...text: unknown[]) => string` | `chalk.dim.italic`     |
+| exampleTitle | `(...text: unknown[]) => string` | `chalk.yellow`         |
+| example      | `(...text: unknown[]) => string` | `chalk.dim`            |
+| command      | `(...text: unknown[]) => string` | `chalk.yellow`         |
+| option       | `(...text: unknown[]) => string` | `chalk.cyan`           |
+| argument     | `(...text: unknown[]) => string` | `chalk.green`          |
+| placeholder  | `(...text: unknown[]) => string` | `chalk.hex("#FF9800")` |
+| punctuation  | `(...text: unknown[]) => string` | `chalk.white.dim`      |
 
 ## Example
 

@@ -1,14 +1,14 @@
-import { indent, print, println } from "./utils.js";
+import { indent, ln, withNewLine } from "./utils.js";
 
 import type { OptionMetadata } from "../metadata/metadata-types.js";
-import type { PrintHelpColors } from "./colors.js";
+import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
 
-export function printOptions(optionsMetadata: OptionMetadata[], c: PrintHelpColors, longest: number) {
-  if (!optionsMetadata.length) return;
+export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpMsgStyle, longest: number): string {
+  if (!optionsMetadata.length) return "";
 
-  print(c.title(" OPTIONS "));
+  let msg = c.title(" OPTIONS ");
 
-  println();
+  msg += withNewLine();
 
   for (const metadata of optionsMetadata) {
     const names = metadata.aliasesAsArgs.concat([metadata.nameAsArg]);
@@ -21,7 +21,7 @@ export function printOptions(optionsMetadata: OptionMetadata[], c: PrintHelpColo
 
     const coloredNames = names.map(name => c.option(name)).join(c.punctuation(", "));
 
-    println(
+    msg += withNewLine(
       indent(2),
       coloredNames,
       c.placeholder(metadata.placeholder),
@@ -32,9 +32,15 @@ export function printOptions(optionsMetadata: OptionMetadata[], c: PrintHelpColo
 
     if (metadata.example) {
       const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(longest + 17));
-      println(indent(longest + 6), c.punctuation("└") + c.exampleTitle("Example:"), c.example(normalizeExample));
+      msg += withNewLine(
+        indent(longest + 6),
+        c.punctuation("└") + c.exampleTitle("Example:"),
+        c.example(normalizeExample),
+      );
     }
   }
 
-  println();
+  msg += ln(1);
+
+  return msg;
 }

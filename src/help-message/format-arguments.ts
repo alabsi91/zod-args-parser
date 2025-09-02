@@ -1,14 +1,14 @@
-import { indent, print, println } from "./utils.js";
+import { indent, withNewLine } from "./utils.js";
 
 import type { ArgumentMetadata } from "../metadata/metadata-types.js";
-import type { PrintHelpColors } from "./colors.js";
+import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
 
-export function printPreparedArguments(argsMetadata: ArgumentMetadata[], c: PrintHelpColors, longest: number) {
-  if (!argsMetadata.length) return;
+export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: HelpMsgStyle, longest: number): string {
+  if (!argsMetadata.length) return "";
 
-  print(c.title(" ARGUMENTS "));
+  let msg = c.title(" ARGUMENTS ");
 
-  println();
+  msg += withNewLine();
 
   for (const metadata of argsMetadata) {
     const defaultStr =
@@ -17,7 +17,7 @@ export function printPreparedArguments(argsMetadata: ArgumentMetadata[], c: Prin
     const spacing = longest + 2 - metadata.name.length;
     const normalizeDesc = metadata.description.replace(/\n/g, "\n" + indent(longest + 6) + c.punctuation("└"));
 
-    println(
+    msg += withNewLine(
       indent(2),
       c.argument(metadata.name),
       indent(spacing),
@@ -27,9 +27,15 @@ export function printPreparedArguments(argsMetadata: ArgumentMetadata[], c: Prin
 
     if (metadata.example) {
       const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(longest + 16));
-      println(indent(longest + 5), c.punctuation("└") + c.exampleTitle("Example:"), c.example(normalizeExample));
+      msg += withNewLine(
+        indent(longest + 5),
+        c.punctuation("└") + c.exampleTitle("Example:"),
+        c.example(normalizeExample),
+      );
     }
   }
 
-  println();
+  msg += withNewLine();
+
+  return msg;
 }

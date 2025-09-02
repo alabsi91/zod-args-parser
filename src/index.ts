@@ -69,7 +69,13 @@ export function createArguments<const T extends [Argument, ...Argument[]]>(args:
   return args;
 }
 
-export { printCliHelp, printSubcommandHelp } from "./help-message/print-help-message.js";
+export {
+  formatCliHelpMsg,
+  printCliHelp,
+  formatSubcommandHelpMsg,
+  printSubcommandHelp,
+} from "./help-message/format-cli.js";
+export { helpMsgStyles } from "./help-message/styles.js";
 
 export { unsafeParse as parse, unsafeParseAsync as parseAsync } from "./parser/unsafe-parse.js";
 export { safeParse, safeParseAsync } from "./parser/safe-parse.js";

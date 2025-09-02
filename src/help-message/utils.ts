@@ -4,9 +4,9 @@ export function print(...messages: string[]) {
 }
 
 /** Print line */
-export function println(...messages: string[]) {
+export function withNewLine(...messages: string[]) {
   messages = messages.filter(Boolean);
-  return console.log(...messages);
+  return messages.join(" ") + "\n";
 }
 
 /** New line */

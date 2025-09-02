@@ -1,9 +1,9 @@
-import * as help from "../help-message/print-help-message.js";
+import * as help from "../help-message/format-cli.js";
 import { findSubcommand } from "./parse/parser-helpers.js";
 import { validate } from "./validate/validate.js";
 import { parse } from "./parse/parse.js";
 
-import type { Cli, NoSubcommand, PrintHelpOpt, Subcommand, UnsafeParseResult } from "../types.js";
+import type { Cli, NoSubcommand, HelpMsgStyle, Subcommand, UnsafeParseResult } from "../types.js";
 
 export function unsafeParse<T extends Subcommand[], U extends Cli>(
   argv: string[],
@@ -29,17 +29,17 @@ export function unsafeParse<T extends Subcommand[], U extends Cli>(
   const validateResult = validate(parsedData);
 
   Object.assign(validateResult, {
-    printCliHelp(opt?: PrintHelpOpt) {
-      help.printCliHelp(params, opt);
+    printCliHelp(style?: HelpMsgStyle) {
+      help.printCliHelp(params, style);
     },
-    printSubcommandHelp(subCmdName: string, opt?: PrintHelpOpt) {
+    printSubcommandHelp(subCmdName: string, style?: HelpMsgStyle) {
       const subcommandObj = findSubcommand(subCmdName, subcommandArr);
       if (!subcommandObj) {
         console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);
         return;
       }
 
-      help.printSubcommandHelp(subcommandObj, opt, cliOptions.cliName);
+      help.printSubcommandHelp(subcommandObj, style, cliOptions.cliName);
     },
   });
 
@@ -75,17 +75,17 @@ export async function unsafeParseAsync<T extends Subcommand[], U extends Cli>(
   const validateResult = validate(parsedData);
 
   Object.assign(validateResult, {
-    printCliHelp(opt?: PrintHelpOpt) {
-      help.printCliHelp(params, opt);
+    printCliHelp(style?: HelpMsgStyle) {
+      help.printCliHelp(params, style);
     },
-    printSubcommandHelp(subCmdName: string, opt?: PrintHelpOpt) {
+    printSubcommandHelp(subCmdName: string, style?: HelpMsgStyle) {
       const subcommandObj = findSubcommand(subCmdName, subcommandArr);
       if (!subcommandObj) {
         console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);
         return;
       }
 
-      help.printSubcommandHelp(subcommandObj, opt, cliOptions.cliName);
+      help.printSubcommandHelp(subcommandObj, style, cliOptions.cliName);
     },
   });
 

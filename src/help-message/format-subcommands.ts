@@ -1,14 +1,18 @@
-import { indent, print, println } from "./utils.js";
+import { indent, ln, withNewLine } from "./utils.js";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.js";
-import type { PrintHelpColors } from "./colors.js";
+import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
 
-export function printSubcommands(subcommandsMetadata: SubcommandMetadata[], c: PrintHelpColors, longest: number) {
-  if (!subcommandsMetadata.length) return;
+export function formatHelpMsgCommands(
+  subcommandsMetadata: SubcommandMetadata[],
+  c: HelpMsgStyle,
+  longest: number,
+): string {
+  if (!subcommandsMetadata.length) return "";
 
-  print(c.title(" COMMANDS "));
+  let msg = c.title(" COMMANDS ");
 
-  println();
+  msg += ln(1);
 
   for (const metadata of subcommandsMetadata) {
     const names = metadata.aliases.concat([metadata.name]);
@@ -21,8 +25,16 @@ export function printSubcommands(subcommandsMetadata: SubcommandMetadata[], c: P
 
     const coloredNames = names.map(name => c.command(name)).join(c.punctuation(", "));
 
-    println(indent(2), coloredNames, c.placeholder(placeholder), indent(spacing), c.description(normalizeDesc));
+    msg += withNewLine(
+      indent(2),
+      coloredNames,
+      c.placeholder(placeholder),
+      indent(spacing),
+      c.description(normalizeDesc),
+    );
   }
 
-  println();
+  msg += ln(1);
+
+  return msg;
 }

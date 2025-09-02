@@ -5,7 +5,7 @@ import { getSubcommandsMetadata } from "./get-subcommands-metadata.js";
 import type { Cli, Subcommand } from "../types.js";
 import type { CliMetadata } from "./metadata-types.js";
 
-export function getCliMetadata(inputData: [Cli, ...Subcommand[]]): CliMetadata {
+export function getCliMetadata(inputData: readonly [Cli, ...Subcommand[]]): CliMetadata {
   const [cli, ...subcommands] = inputData;
 
   const outputMetadata: CliMetadata = {
