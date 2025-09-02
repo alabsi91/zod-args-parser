@@ -408,7 +408,14 @@ cliSchema.setAction(results => {
 
 ### Help Message
 
-<img width="771" height="541" alt="image" src="https://github.com/user-attachments/assets/77396b13-58c1-4511-a952-57b2e658be39" /><br>
+Cli help message example preview
+
+<img width="1153" height="682" alt="image" src="https://github.com/user-attachments/assets/5610e5d0-8c08-4776-bbfc-b8e655241c39" /><br>
+
+Subcommand help message example preview
+
+<img width="1115" height="522" alt="image" src="https://github.com/user-attachments/assets/2a56a549-4059-45c4-84d2-93adaedaaac8" /><br>
+
 
 There are two ways to print the help message:
 
