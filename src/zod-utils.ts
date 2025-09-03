@@ -33,10 +33,6 @@ function isBooleanV4Schema(schema: SchemaV4): boolean {
       return true;
     }
 
-    if (isLiteralV4Def(def)) {
-      return def.values.includes(true) || def.values.includes(false);
-    }
-
     if (isV4DefPipe(def)) {
       return isBooleanV4Schema(def.out);
     }
@@ -56,10 +52,6 @@ function isBooleanV3Schema(schema: SchemaV3): boolean {
   while (type) {
     if (type instanceof Z3.ZodBoolean) {
       return true;
-    }
-
-    if (type instanceof Z3.ZodLiteral) {
-      return type.value === true || type.value === false;
     }
 
     if (type instanceof Z3.ZodEffects) {
@@ -140,10 +132,6 @@ export function isOptionalSchema(schema: Schema): schema is Z4.$ZodOptional {
 
 function isDefaultV4Def(def: Z4.$ZodTypeDef): def is Z4.$ZodDefaultDef {
   return def.type === "default";
-}
-
-function isLiteralV4Def(def: Z4.$ZodTypeDef): def is Z4.$ZodLiteralDef<any> {
-  return def.type === "literal";
 }
 
 type SchemaWithInnerType =

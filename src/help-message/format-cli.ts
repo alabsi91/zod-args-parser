@@ -1,9 +1,9 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.js";
-import { helpMsgStyles } from "./styles.js";
+import { concat, indent, ln } from "../utils.js";
 import { formatHelpMsgArguments } from "./format-arguments.js";
 import { formatHelpMsgOptions } from "./format-options.js";
 import { formatHelpMsgCommands } from "./format-subcommands.js";
-import { concat, indent, ln } from "./utils.js";
+import { helpMsgStyles } from "./styles.js";
 
 import type { Cli, HelpMsgStyle, Subcommand } from "../types.js";
 

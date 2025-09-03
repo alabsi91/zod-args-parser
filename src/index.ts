@@ -80,7 +80,7 @@ export { helpMsgStyles } from "./help-message/styles.js";
 export { unsafeParse as parse, unsafeParseAsync as parseAsync } from "./parser/unsafe-parse.js";
 export { safeParse, safeParseAsync } from "./parser/safe-parse.js";
 
-export { isOptionalSchema, schemaDefaultValue, isBooleanSchema, stringToArray, stringToSet } from "./zod-utils.js";
+export { isOptionalSchema, schemaDefaultValue, stringToArray, stringToSet } from "./zod-utils.js";
 
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.js";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.js";

@@ -24,7 +24,7 @@ it("-h, --help (optional: boolean): Pass `--h` instead of `-h` " + expectsFailur
   if (result.success) assert.fail("Should have failed");
 });
 
-it("-h, --help (optional: boolean): Pass `-H` instead of `-h` " + expectsFailure, () => {
+it("-h, --help (optional: boolean): Pass `-H` instead of `-h` " + expectsSuccess, () => {
   const cli = createCli({
     cliName: "test-cli",
     options: [{ name: "help", type: z.boolean().optional(), aliases: ["h"] }],
@@ -32,7 +32,7 @@ it("-h, --help (optional: boolean): Pass `-H` instead of `-h` " + expectsFailure
 
   const args = ["-H"];
   const result = safeParse(args, cli);
-  if (result.success) assert.fail("Should have failed");
+  if (result.success) assert.equal(result.data.help, true);
 });
 
 describe("-h, --help (required: boolean)", () => {

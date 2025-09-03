@@ -30,15 +30,15 @@ export function findSubcommand(subCmdName: string | undefined, subcommandArr: Su
  * @returns The matching `Option` object if found; otherwise, `undefined`.
  */
 export function findOption(optionArg: string, options: [Option, ...Option[]]): Option | undefined {
-  const optionName = parseArgOptionName(optionArg);
+  const validVarNames = optionArgToVarNames(optionArg);
   const isNegative = optionArg.startsWith("--no-");
 
   const option = options.find(o => {
-    if (o.name === optionName) {
+    if (validVarNames.has(o.name)) {
       return true;
     }
 
-    if (isNegative && negateOption(o.name) === optionName) {
+    if (isNegative && validVarNames.has(negateOption(o.name))) {
       return true;
     }
 
@@ -46,11 +46,11 @@ export function findOption(optionArg: string, options: [Option, ...Option[]]): O
       return false;
     }
 
-    if (o.aliases.includes(optionName)) {
+    if (o.aliases.some(a => validVarNames.has(a))) {
       return true;
     }
 
-    if (isNegative && o.aliases.map(negateOption).includes(optionName)) {
+    if (isNegative && o.aliases.map(negateOption).some(a => validVarNames.has(a))) {
       return true;
     }
 
@@ -86,19 +86,35 @@ export function decoupleFlags(args: string[]): string[] {
 }
 
 /**
- * - Transforms an argument name to a valid option name
+ * - Transforms an option argument name to a valid JavaScript variable name
  *
  * @param name - Should start with `'--'` or `'-'`
- * @returns - The transformed name E.g. `--input-dir` -> `InputDir` or `-i` -> `i`
  */
-export function parseArgOptionName(name: string): string {
+function optionArgToVarNames(name: string): Set<string> {
   if (!name.startsWith("-")) {
     throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`);
   }
 
-  name = name.startsWith("--") ? name.substring(2) : name.substring(1);
+  name = name.startsWith("--") ? name.substring(2) : name.substring(1); // remove prefix
+  name = name.toLowerCase(); // lowercase
 
-  return name.replace(/-([a-z])/g, g => g[1].toUpperCase());
+  const results = new Set<string>();
+
+  // camelCase
+  const camelCase = name.replace(/-(.)/g, m => m[1].toUpperCase());
+  results.add(camelCase);
+
+  // PascalCase (UpperCamelCase)
+  results.add(camelCase.replace(/^(.)/, m => m.toUpperCase()));
+
+  // snake_case
+  const snake_case = name.replace(/-(.)/g, g => "_" + g[1]);
+  results.add(snake_case);
+
+  // SCREAMING_SNAKE_CASE
+  results.add(snake_case.toUpperCase());
+
+  return results;
 }
 
 /** - Check if an arg string is a short arg. E.g. `-i` -> `true` */
@@ -108,7 +124,7 @@ export function isFlagArg(name: string): boolean {
 
 /** - Check if an arg string is a long arg. E.g. `--input-dir` -> `true` */
 function isLongArg(name: string): boolean {
-  return /^--[A-Z-a-z-]+[A-Z-a-z]$/.test(name);
+  return /^--[A-Z-a-z-]+[A-Z-a-z-0-9]$/.test(name);
 }
 
 /** - Check if an arg string is an options arg. E.g. `--input-dir` -> `true` , `-i` -> `true` */
@@ -134,12 +150,18 @@ export function negateOption(name: string): string {
 
 /** - Reverse of `transformArg`. E.g. `InputDir` -> `--input-dir` , `i` -> `-i` */
 export function transformOptionToArg(name: string): string {
-  // first letter always lower case
-  name = name.replace(/^[A-Z]/g, g => g.toLowerCase());
-
+  // single letter option name
   if (name.length === 1) {
-    return `-${name}`;
+    return `-${name.toLowerCase()}`;
   }
 
-  return `--${name.replace(/[A-Z]/g, g => "-" + g.toLowerCase())}`;
+  // snake_case, SCREAMING_SNAKE_CASE
+  if (name.includes("_") || /[A-Z]+$/.test(name)) {
+    name = name.replace(/_/g, "-");
+    return `--${name.toLowerCase()}`;
+  }
+
+  // camelCase, PascalCase
+  name = name.replace(/[A-Z]/g, (m, i) => (i ? "-" + m : m)); // add "-" before camel case letters except for the first letter
+  return `--${name.toLowerCase()}`;
 }
