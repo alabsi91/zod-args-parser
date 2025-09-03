@@ -1,6 +1,7 @@
-import * as Z3 from "zod/v3";
-import * as Z4 from "zod/v4/core";
+import { ZodBoolean, ZodDefault, ZodEffects } from "zod/v3";
+import { safeParse } from "zod/v4/core";
 
+import type * as Z4 from "zod/v4/core";
 import type { Schema, SchemaV3, SchemaV4 } from "./types.js";
 
 function isV4Schema(schema: Schema): schema is SchemaV4 {
@@ -10,7 +11,7 @@ function isV4Schema(schema: Schema): schema is SchemaV4 {
 /** - Safe parse a value against a schema */
 export function safeParseSchema(schema: Schema, value: unknown) {
   if (isV4Schema(schema)) {
-    return Z4.safeParse(schema, value);
+    return safeParse(schema, value);
   }
 
   return schema.safeParse(value);
@@ -50,11 +51,11 @@ function isBooleanV4Schema(schema: SchemaV4): boolean {
 function isBooleanV3Schema(schema: SchemaV3): boolean {
   let type = schema;
   while (type) {
-    if (type instanceof Z3.ZodBoolean) {
+    if (type instanceof ZodBoolean) {
       return true;
     }
 
-    if (type instanceof Z3.ZodEffects) {
+    if (type instanceof ZodEffects) {
       return isBooleanV3Schema(type._def.schema);
     }
 
@@ -98,11 +99,11 @@ function schemaV4DefaultValue(schema: SchemaV4): unknown | undefined {
 function schemaV3DefaultValue(schema: SchemaV3): unknown | undefined {
   let type = schema;
   while (type) {
-    if (type instanceof Z3.ZodDefault) {
+    if (type instanceof ZodDefault) {
       return type._def.defaultValue();
     }
 
-    if (type instanceof Z3.ZodEffects) {
+    if (type instanceof ZodEffects) {
       return schemaV3DefaultValue(type._def.schema);
     }
 
@@ -121,6 +122,7 @@ export function schemaDescription(schema: Schema): string | undefined {
 
   return schema.description;
 }
+
 /** - Check if a schema is optional */
 export function isOptionalSchema(schema: Schema): schema is Z4.$ZodOptional {
   if (isV4Schema(schema)) {

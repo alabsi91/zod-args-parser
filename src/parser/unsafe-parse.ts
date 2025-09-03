@@ -29,10 +29,10 @@ export function unsafeParse<T extends Subcommand[], U extends Cli>(
   const validateResult = validate(parsedData);
 
   Object.assign(validateResult, {
-    printCliHelp(style?: HelpMsgStyle) {
+    printCliHelp(style?: Partial<HelpMsgStyle>) {
       help.printCliHelp(params, style);
     },
-    printSubcommandHelp(subCmdName: string, style?: HelpMsgStyle) {
+    printSubcommandHelp(subCmdName: string, style?: Partial<HelpMsgStyle>) {
       const subcommandObj = findSubcommand(subCmdName, subcommandArr);
       if (!subcommandObj) {
         console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);
@@ -75,10 +75,10 @@ export async function unsafeParseAsync<T extends Subcommand[], U extends Cli>(
   const validateResult = validate(parsedData);
 
   Object.assign(validateResult, {
-    printCliHelp(style?: HelpMsgStyle) {
+    printCliHelp(style?: Partial<HelpMsgStyle>) {
       help.printCliHelp(params, style);
     },
-    printSubcommandHelp(subCmdName: string, style?: HelpMsgStyle) {
+    printSubcommandHelp(subCmdName: string, style?: Partial<HelpMsgStyle>) {
       const subcommandObj = findSubcommand(subCmdName, subcommandArr);
       if (!subcommandObj) {
         console.error(`Cannot print help for subcommand "${subCmdName}" as it does not exist`);

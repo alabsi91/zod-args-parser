@@ -7,7 +7,7 @@ import { helpMsgStyles } from "./styles.js";
 
 import type { Cli, HelpMsgStyle, Subcommand } from "../types.js";
 
-export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?: HelpMsgStyle): string {
+export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?: Partial<HelpMsgStyle>): string {
   const c = helpMsgStyles.default;
   if (style) Object.assign(c, style);
 
@@ -93,7 +93,7 @@ export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?
   return msg;
 }
 
-export function formatSubcommandHelpMsg(subcommand: Subcommand, printStyle?: HelpMsgStyle, cliName = "") {
+export function formatSubcommandHelpMsg(subcommand: Subcommand, printStyle?: Partial<HelpMsgStyle>, cliName = "") {
   const c = helpMsgStyles.default;
   if (printStyle) Object.assign(c, printStyle);
 
@@ -112,10 +112,10 @@ export function formatSubcommandHelpMsg(subcommand: Subcommand, printStyle?: Hel
   return formatCliHelpMsg([asCli], c);
 }
 
-export function printCliHelp(params: readonly [Cli, ...Subcommand[]], style?: HelpMsgStyle) {
+export function printCliHelp(params: readonly [Cli, ...Subcommand[]], style?: Partial<HelpMsgStyle>) {
   console.log(formatCliHelpMsg(params, style));
 }
 
-export function printSubcommandHelp(subcommand: Subcommand, style?: HelpMsgStyle, cliName = "") {
+export function printSubcommandHelp(subcommand: Subcommand, style?: Partial<HelpMsgStyle>, cliName = "") {
   console.log(formatSubcommandHelpMsg(subcommand, style, cliName));
 }

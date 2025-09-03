@@ -1,8 +1,6 @@
 import chalk from "chalk";
 import type { HelpMsgStyle } from "../types.js";
 
-export type HelpMsgStyleRequired = NonNullable<Required<HelpMsgStyle>>;
-
 export const helpMsgStyles = Object.freeze({
   default: {
     title: chalk.bold.blue,
@@ -115,7 +113,7 @@ export const helpMsgStyles = Object.freeze({
       },
     });
   },
-}) satisfies Record<string, HelpMsgStyleRequired>;
+}) satisfies Record<string, HelpMsgStyle>;
 
 function escapeHTML(str: string) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

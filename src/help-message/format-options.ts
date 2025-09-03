@@ -1,7 +1,7 @@
 import { concat, indent, ln } from "../utils.js";
 
 import type { OptionMetadata } from "../metadata/metadata-types.js";
-import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
+import type { HelpMsgStyle } from "../types.js";
 
 export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpMsgStyle, longest: number): string {
   if (!optionsMetadata.length) return "";

@@ -1,4 +1,4 @@
-import * as z from "zod/v4/core";
+import { prettifyError } from "zod/v4";
 
 import { generateOrdinalSuffix, stringToBoolean } from "../../utils.js";
 import { isBooleanSchema, safeParseSchema } from "../../zod-utils.js";
@@ -26,7 +26,7 @@ export function validate(parsedData: ParseCtx) {
 
     const res = safeParseSchema(schema, optionsValue);
     if (!res.success) {
-      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${z.prettifyError(res.error)}`);
+      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(res.error)}`);
     }
 
     results[optionName] = res.data;
@@ -42,7 +42,7 @@ export function validate(parsedData: ParseCtx) {
       const res = safeParseSchema(schema, argValue);
       if (!res.success) {
         throw new Error(
-          `The ${generateOrdinalSuffix(results.arguments.length)} argument "${rawValue}" is invalid: ${z.prettifyError(res.error)}`,
+          `The ${generateOrdinalSuffix(results.arguments.length)} argument "${rawValue}" is invalid: ${prettifyError(res.error)}`,
         );
       }
 

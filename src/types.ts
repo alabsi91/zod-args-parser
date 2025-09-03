@@ -1,7 +1,7 @@
 import type * as Z3 from "zod/v3";
 import type * as Z4 from "zod/v4/core";
-import type { ValidateResult } from "./parser/validate/validate-type.js";
 import type { ParseResult } from "./parser/parse/parse-types.js";
+import type { ValidateResult } from "./parser/validate/validate-type.js";
 
 export type SchemaV3 = Z3.ZodTypeAny;
 export type SchemaV4 = Z4.$ZodType;
@@ -11,7 +11,7 @@ export type ZodInfer<T extends Schema> = T extends SchemaV4 ? Z4.infer<T> : T ex
 
 export type Subcommand = {
   /**
-   * - The subcommand name, use `kebab-case`.
+   * - The subcommand name
    * - Make sure to not duplicate commands and aliases.
    *
    * @example
@@ -97,20 +97,20 @@ export type Cli = Prettify<
 
 export type Option = {
   /**
-   * - The name of the option, use `CamelCase`.
-   * - For example: the syntax for the option `rootPath` is `--root-path`.
+   * The name of the option, use a valid **JavaScript** variable name.\
+   * **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.\
+   * **Examples:**
+   *
+   * - `I` or `i` ➡️ `-i`
+   * - `InputDir`, `inputDir`, or `INPUT_DIR` ➡️ `--input-dir`
+   * - `Help`, `help`, or `HELP` ➡️ `--help`
    */
   name: string;
 
   /**
    * - The will be used to validate the user input.
    *
-   * @example
-   *   type: z.boolean().default(false);
-   *   type: z.coerce.number(); // will be coerced to number by Zod
-   *   type: z.preprocess(parseStringToArrFn, z.array(z.coerce.number())); // array of numbers
-   *
-   * @see https://zod.dev/?id=types
+   * @see https://zod.dev/api
    */
   type: Schema;
 
@@ -144,12 +144,7 @@ export type Argument = {
   /**
    * - The will be used to validate the user input.
    *
-   * @example
-   *   type: z.boolean();
-   *   type: z.coerce.number(); // will be coerced to number by Zod
-   *   type: z.preprocess(ParseStringToArrFn, z.array(z.coerce.number())); // array of numbers
-   *
-   * @see https://zod.dev/?id=types
+   * @see https://zod.dev/api
    */
   type: Schema;
 
@@ -169,19 +164,20 @@ export type Argument = {
 export type ColorFnType = (...text: unknown[]) => string;
 
 /** - The colors to use for the help message. */
-export type HelpMsgStyle = {
-  title?: ColorFnType;
-  description?: ColorFnType;
-  default?: ColorFnType;
-  optional?: ColorFnType;
-  exampleTitle?: ColorFnType;
-  example?: ColorFnType;
-  command?: ColorFnType;
-  option?: ColorFnType;
-  argument?: ColorFnType;
-  placeholder?: ColorFnType;
-  punctuation?: ColorFnType;
-};
+export type HelpMsgStyle = Record<
+  | "title"
+  | "description"
+  | "default"
+  | "optional"
+  | "exampleTitle"
+  | "example"
+  | "command"
+  | "option"
+  | "argument"
+  | "placeholder"
+  | "punctuation",
+  ColorFnType
+>;
 
 /**
  * - Infer the options type from a subcommand.
@@ -222,8 +218,8 @@ export type ToOptional<T> = Prettify<
 export type NoSubcommand = { name: undefined };
 
 export type PrintMethods<N extends Subcommand["name"]> = {
-  printCliHelp: (style?: HelpMsgStyle) => void;
-  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, style?: HelpMsgStyle) => void;
+  printCliHelp: (style?: Partial<HelpMsgStyle>) => void;
+  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, style?: Partial<HelpMsgStyle>) => void;
 };
 
 export type UnsafeParseResult<S extends Partial<Subcommand>[]> =

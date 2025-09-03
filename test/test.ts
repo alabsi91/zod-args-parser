@@ -1,8 +1,16 @@
 import chalk from "chalk";
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { z } from "zod";
+import * as z from "zod";
 import { createCli, safeParse } from "../src/index.js";
+import {
+  decoupleFlags,
+  isOptionArg,
+  optionArgToVarNames,
+  transformOptionToArg,
+} from "../src/parser/parse/parser-helpers.js";
+
+const err = (...message: string[]) => chalk.bold.red(...message);
 
 const padEnd = 16;
 const expectsFailure = chalk.yellow("expects failure".padEnd(padEnd));
@@ -93,7 +101,7 @@ describe("-h, --help (required: boolean)", () => {
   });
 
   it("No arguments provided".padEnd(indent) + expectsFailure, () => {
-    const args = [];
+    const args: string[] = [];
     const result = safeParse(args, cli);
     if (result.success) assert.fail("Should have failed");
   });
@@ -147,7 +155,7 @@ it("-h, --help (optional: boolean): No arguments provided " + expectsUndefined, 
     options: [{ name: "help", type: z.boolean().optional(), aliases: ["h"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.help, undefined);
@@ -159,7 +167,7 @@ it("-h, --help (default: false):    No arguments provided " + expectsFalse + "  
     options: [{ name: "help", type: z.boolean().default(false), aliases: ["h"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.help, false);
@@ -202,7 +210,7 @@ describe("-n, --number (required number)", () => {
   });
 
   it("No arguments provided".padEnd(indent) + expectsFailure, () => {
-    const args = [];
+    const args: string[] = [];
     const result = safeParse(args, cli);
     if (result.success) assert.fail("Should have failed");
   });
@@ -238,7 +246,7 @@ it("-n, --number (optional: number): No arguments provided " + expectsUndefined,
     options: [{ name: "number", type: z.coerce.number().optional(), aliases: ["n"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.number, undefined);
@@ -250,7 +258,7 @@ it("-n, --number (default: 0.1):     No arguments provided " + expectsNumber + "
     options: [{ name: "number", type: z.coerce.number().default(0.1), aliases: ["n"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.number, 0.1);
@@ -293,7 +301,7 @@ describe("-s, --string (required string)", () => {
   });
 
   it("No arguments provided".padEnd(indent) + expectsFailure, () => {
-    const args = [];
+    const args: string[] = [];
     const result = safeParse(args, cli);
     if (result.success) assert.fail("Should have failed");
   });
@@ -317,7 +325,7 @@ it("-s, --string (optional: string):       No arguments provided " + expectsUnde
     options: [{ name: "string", type: z.string().optional(), aliases: ["s"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.string, undefined);
@@ -329,7 +337,7 @@ it("-s, --string (default: 'hello world'): No arguments provided " + expectsStri
     options: [{ name: "string", type: z.string().default("hello world"), aliases: ["s"] }],
   });
 
-  const args = [];
+  const args: string[] = [];
   const result = safeParse(args, cli);
   if (!result.success) assert.fail(result.error.message);
   assert.equal(result.data.string, "hello world");
@@ -386,7 +394,7 @@ describe("booleanArg stringArg numberArg", () => {
   });
 
   it("No arguments provided".padEnd(indent) + expectsFailure, () => {
-    const args = [];
+    const args: string[] = [];
     const result = safeParse(args, cli);
     if (result.success) assert.fail("Should have failed");
   });
@@ -455,5 +463,87 @@ describe("stringArg numberArg booleanDefaultArg", () => {
     assert.equal(stringArg, "hello world");
     assert.equal(numberArg, 123);
     assert.equal(booleanDefaultArg, false);
+  });
+});
+
+describe("Testing Utils", () => {
+  it("transformOptionToArg", () => {
+    const testValues = new Map([
+      ["I", "-i"],
+      ["i", "-i"],
+      ["Input", "--input"],
+      ["input", "--input"],
+      ["InputDir", "--input-dir"],
+      ["inputDir", "--input-dir"],
+      ["input_Dir", "--input-dir"],
+      ["INPUT_DIR", "--input-dir"],
+      ["Help", "--help"],
+      ["help", "--help"],
+      ["HELP", "--help"],
+    ]);
+
+    for (const [key, value] of testValues) {
+      assert.equal(transformOptionToArg(key), value, err(`"${key}" should be transformed to "${value}"`));
+    }
+  });
+
+  it("isOptionArg", () => {
+    const testValues = new Map([
+      ["--input", true],
+      ["--input-dir", true],
+      ["--help", true],
+      ["-i", true],
+      ["--i", false],
+    ]);
+
+    for (const [key, value] of testValues) {
+      assert.equal(isOptionArg(key), value, err(`"${key}" should${value ? "" : " not"} be an option argument.`));
+    }
+  });
+
+  it("optionArgToVarNames", () => {
+    const testValues = new Map([
+      ["-i", new Set(["i", "I"])],
+      ["--input", new Set(["input", "Input", "INPUT"])],
+      ["--input-dir", new Set(["inputDir", "InputDir", "input_dir", "INPUT_DIR"])],
+    ]);
+
+    for (const [key, value] of testValues) {
+      const results = optionArgToVarNames(key);
+
+      const missingNames = value.difference(results);
+      const extraNames = results.difference(value);
+
+      const isExtra = extraNames.size > 0;
+      const isMissing = missingNames.size > 0;
+
+      assert(
+        !isExtra && !isMissing,
+        isExtra
+          ? err(`"${key}" has extra var names: "${[...extraNames].join(", ")}"`)
+          : err(`"${key}" is missing var names: "${[...missingNames].join(", ")}"`),
+      );
+    }
+  });
+
+  it("decoupleFlags", () => {
+    const testValues = new Map([
+      ["-r", ["-r"]],
+      ["-rf", ["-r", "-f"]],
+      ["-rfa", ["-r", "-f", "-a"]],
+      ["-rfab0", ["-r", "-f", "-a", "-b", "-0"]],
+      ["--options", ["--options"]],
+      ["--option-name", ["--option-name"]],
+      ["argument", ["argument"]],
+    ]);
+
+    for (const [key, value] of testValues) {
+      const results = decoupleFlags([key]);
+      assert.deepEqual(
+        results,
+        value,
+        err(`"${key}" should be decoupled to "${value.join(", ")}" but was "${results.join(", ")}"`),
+      );
+    }
   });
 });

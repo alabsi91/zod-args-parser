@@ -1,7 +1,7 @@
 import { concat, indent, ln } from "../utils.js";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.js";
-import type { HelpMsgStyleRequired as HelpMsgStyle } from "./styles.js";
+import type { HelpMsgStyle } from "../types.js";
 
 export function formatHelpMsgCommands(
   subcommandsMetadata: SubcommandMetadata[],

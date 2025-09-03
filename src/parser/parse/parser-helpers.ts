@@ -62,7 +62,7 @@ export function findOption(optionArg: string, options: [Option, ...Option[]]): O
 
 /** - Decouple flags E.g. `-rf` -> `-r, -f` */
 export function decoupleFlags(args: string[]): string[] {
-  const flagsRe = /^-[a-z]{2,}$/i;
+  const flagsRe = /^-[a-z0-9]{2,}$/i;
 
   const result = [];
   for (let i = 0; i < args.length; i++) {
@@ -90,7 +90,7 @@ export function decoupleFlags(args: string[]): string[] {
  *
  * @param name - Should start with `'--'` or `'-'`
  */
-function optionArgToVarNames(name: string): Set<string> {
+export function optionArgToVarNames(name: string): Set<string> {
   if (!name.startsWith("-")) {
     throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`);
   }
@@ -119,12 +119,12 @@ function optionArgToVarNames(name: string): Set<string> {
 
 /** - Check if an arg string is a short arg. E.g. `-i` -> `true` */
 export function isFlagArg(name: string): boolean {
-  return /^-[A-Z-a-z]$/.test(name);
+  return /^-[A-Za-z]$/.test(name);
 }
 
 /** - Check if an arg string is a long arg. E.g. `--input-dir` -> `true` */
 function isLongArg(name: string): boolean {
-  return /^--[A-Z-a-z-]+[A-Z-a-z-0-9]$/.test(name);
+  return /^--[A-Za-z-]+[A-Za-z0-9]$/.test(name);
 }
 
 /** - Check if an arg string is an options arg. E.g. `--input-dir` -> `true` , `-i` -> `true` */
