@@ -92,7 +92,7 @@ export function decoupleFlags(args: string[]): string[] {
  */
 export function optionArgToVarNames(name: string): Set<string> {
   if (!name.startsWith("-")) {
-    throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`);
+    throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`, { cause: "zod-args-parser" });
   }
 
   name = name.startsWith("--") ? name.substring(2) : name.substring(1); // remove prefix

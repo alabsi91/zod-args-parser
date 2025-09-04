@@ -22,11 +22,22 @@ export function validate(parsedData: ParseCtx) {
 
   // validate options
   for (const [optionName, { schema, rawValue, flag }] of Object.entries(parsedData.options)) {
-    const optionsValue = rawValue && isBooleanSchema(schema) ? stringToBoolean(rawValue) : rawValue;
+    let optionsValue: string | boolean | undefined = rawValue;
+
+    // infer boolean value if possible
+    if (flag && rawValue && isBooleanSchema(schema)) {
+      const booleanValue = stringToBoolean(rawValue);
+      if (typeof booleanValue === "boolean") {
+        const isNegated = flag.startsWith("--no");
+        optionsValue = isNegated ? !booleanValue : booleanValue;
+      }
+    }
 
     const res = safeParseSchema(schema, optionsValue);
     if (!res.success) {
-      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(res.error)}`);
+      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(res.error)}`, {
+        cause: "zod-args-parser",
+      });
     }
 
     results[optionName] = res.data;
@@ -43,6 +54,7 @@ export function validate(parsedData: ParseCtx) {
       if (!res.success) {
         throw new Error(
           `The ${generateOrdinalSuffix(results.arguments.length)} argument "${rawValue}" is invalid: ${prettifyError(res.error)}`,
+          { cause: "zod-args-parser" },
         );
       }
 

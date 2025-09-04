@@ -17,7 +17,7 @@ export function unsafeParse<T extends Subcommand[], U extends Cli>(
 
   const subcommandObj = findSubcommand(parsedData.subcommand, subcommandArr);
   if (!subcommandObj) {
-    throw new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
+    throw new Error(`Subcommand "${parsedData.subcommand}" does not exist`, { cause: "zod-args-parser" });
   }
 
   // Fire preValidation hook
@@ -63,7 +63,7 @@ export async function unsafeParseAsync<T extends Subcommand[], U extends Cli>(
 
   const subcommandObj = findSubcommand(parsedData.subcommand, subcommandArr);
   if (!subcommandObj) {
-    throw new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
+    throw new Error(`Subcommand "${parsedData.subcommand}" does not exist`, { cause: "zod-args-parser" });
   }
 
   // Fire preValidation hook

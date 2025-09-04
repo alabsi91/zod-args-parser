@@ -1,4 +1,4 @@
-import { generateOrdinalSuffix, stringToBoolean } from "../../utils.js";
+import { generateOrdinalSuffix } from "../../utils.js";
 import { isBooleanSchema, isOptionalSchema, schemaDefaultValue } from "../../zod-utils.js";
 import {
   decoupleFlags,
@@ -57,52 +57,51 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
 
     if (isOptionArg(argument)) {
       if (isFlagArg(argument) && argWithEquals) {
-        throw new Error(`Flag arguments cannot be assigned using "=": "${arg}"`);
+        throw new Error(`Flag arguments cannot be assigned using "=": "${arg}"`, { cause: "zod-args-parser" });
       }
 
       const subcommandObj = getSubcommandObj();
       if (!subcommandObj) {
-        throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+        throw new Error(`Unknown subcommand: "${results.subcommand}"`, { cause: "zod-args-parser" });
       }
 
       if (!subcommandObj.options) {
         if (!results.subcommand) {
-          throw new Error(`Error: options are not allowed here: "${argument}"`);
+          throw new Error(`Error: options are not allowed here: "${argument}"`, { cause: "zod-args-parser" });
         }
 
-        throw new Error(`Error: subcommand "${results.subcommand}" does not allow options: "${argument}"`);
+        throw new Error(`Error: subcommand "${results.subcommand}" does not allow options: "${argument}"`, {
+          cause: "zod-args-parser",
+        });
       }
 
       const option = findOption(argument, subcommandObj.options);
       if (!option) {
-        throw new Error(`Unknown option: "${argument}"`);
+        throw new Error(`Unknown option: "${argument}"`, { cause: "zod-args-parser" });
       }
 
       if (option.name in results.options) {
-        throw new Error(`Duplicated option: "${argument}"`);
+        throw new Error(`Duplicated option: "${argument}"`, { cause: "zod-args-parser" });
       }
 
       const isTypeBoolean = isBooleanSchema(option.type);
-      const isNegative = argument.startsWith("--no-");
       const nextArg = argv[i + 1];
 
       let optionValue: string | boolean = argWithEquals ? argValue : nextArg;
 
       // infer value for boolean options
-      if (isTypeBoolean) {
-        if (argWithEquals) {
-          optionValue = isNegative ? !stringToBoolean(argValue) : stringToBoolean(argValue);
-        } else {
-          optionValue = !isNegative;
-        }
+      if (isTypeBoolean && !argWithEquals) {
+        optionValue = "true";
       }
 
       if (typeof optionValue === "undefined") {
-        throw new Error(`Expected a value for "${argument}" but got nothing`);
+        throw new Error(`Expected a value for "${argument}" but got nothing`, { cause: "zod-args-parser" });
       }
 
       if (!argWithEquals && isOptionArg(optionValue)) {
-        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArg}"`);
+        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArg}"`, {
+          cause: "zod-args-parser",
+        });
       }
 
       results.options[option.name] = {
@@ -155,18 +154,21 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
 
     // * Unexpected
     if (!results.subcommand) {
-      throw new Error(`Unexpected argument "${arg}": positional arguments are not allowed here`);
+      throw new Error(`Unexpected argument "${arg}": positional arguments are not allowed here`, {
+        cause: "zod-args-parser",
+      });
     }
 
     throw new Error(
       `Unexpected argument "${arg}": positional arguments are not allowed for subcommand "${results.subcommand}"`,
+      { cause: "zod-args-parser" },
     );
   }
 
   // * Check for missing options - set defaults - add `source`
   const subcommandObj = getSubcommandObj();
   if (!subcommandObj) {
-    throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+    throw new Error(`Unknown subcommand: "${results.subcommand}"`, { cause: "zod-args-parser" });
   }
 
   // Options
@@ -187,7 +189,7 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
         continue;
       }
 
-      throw new Error(`Missing required option: ${transformOptionToArg(option.name)}`);
+      throw new Error(`Missing required option: ${transformOptionToArg(option.name)}`, { cause: "zod-args-parser" });
     }
   }
 
@@ -214,7 +216,9 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
           continue;
         }
 
-        throw new Error(`the ${generateOrdinalSuffix(i)} argument is required: "${subcommandObj.arguments[i].name}"`);
+        throw new Error(`the ${generateOrdinalSuffix(i)} argument is required: "${subcommandObj.arguments[i].name}"`, {
+          cause: "zod-args-parser",
+        });
       }
     }
   }

@@ -1,5 +1,10 @@
-/** - Convert string to boolean. E.g. `"true"` -> `true` , `"false"` -> `false` */
-export function stringToBoolean(str: string): boolean {
+/**
+ * Converts a string to its corresponding boolean value if the string is "true" or "false" (case-insensitive).
+ *
+ * @param str - The input string to convert.
+ * @returns `true` if the input is "true", `false` if the input is "false", or the original string otherwise.
+ */
+export function stringToBoolean(str: string): boolean | string {
   if (str.toLowerCase() === "true") {
     return true;
   }
@@ -8,7 +13,7 @@ export function stringToBoolean(str: string): boolean {
     return false;
   }
 
-  throw new Error(`[stringToBoolean] Invalid boolean value: "${str}"; Expected "true" or "false"`);
+  return str;
 }
 
 /**

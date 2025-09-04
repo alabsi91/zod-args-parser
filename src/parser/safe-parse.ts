@@ -40,6 +40,7 @@ export function safeParse<T extends Subcommand[], U extends Cli>(
       printSubcommandHelp,
     } as SafeParseResult<[...T, NoSubcommand & U]>;
   } catch (e) {
+    if (!(e instanceof Error) || e.cause !== "zod-args-parser") throw e;
     return {
       success: false,
       error: e as Error,
@@ -85,6 +86,7 @@ export async function safeParseAsync<T extends Subcommand[], U extends Cli>(
       printSubcommandHelp,
     } as SafeParseResult<[...T, NoSubcommand & U]>;
   } catch (e) {
+    if (!(e instanceof Error) || e.cause !== "zod-args-parser") throw e;
     return {
       success: false,
       error: e as Error,
