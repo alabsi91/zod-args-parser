@@ -32,7 +32,7 @@ it("-h, --help (optional: boolean): Pass `--h` instead of `-h` " + expectsFailur
   assert(!result.success, err("Invalid option `--h`. Expected failure, but parsing succeeded."));
 });
 
-it("-h, --help (optional: boolean): Pass `-H` instead of `-h` " + expectsSuccess, () => {
+it("-h, --help (optional: boolean): Pass `-H` instead of `-h`  " + expectsSuccess, () => {
   const cli = createCli({
     cliName: "test-cli",
     options: [{ name: "help", type: z.boolean().optional(), aliases: ["h"] }],
@@ -518,6 +518,30 @@ it("-s, --string (default: 'hello world'): No arguments provided " + expectsStri
   );
 });
 
+it("-abcd, booleans flags     " + expectsSuccess, () => {
+  const cli = createCli({
+    cliName: "test-cli",
+    options: [
+      { name: "a", type: z.boolean() },
+      { name: "b", type: z.boolean() },
+      { name: "c", type: z.boolean() },
+      { name: "d", type: z.boolean() },
+    ],
+  });
+
+  const args = ["-abcd"];
+  const result = safeParse(args, cli);
+
+  if (!result.success) {
+    assert.fail(err("Parsing failed with the error message:", result.error.message));
+  }
+
+  assert(result.data.a, err("Invalid value for option `-a`. Expected `true`, but received:", result.data.a));
+  assert(result.data.b, err("Invalid value for option `-b`. Expected `true`, but received:", result.data.b));
+  assert(result.data.c, err("Invalid value for option `-c`. Expected `true`, but received:", result.data.c));
+  assert(result.data.d, err("Invalid value for option `-d`. Expected `true`, but received:", result.data.d));
+});
+
 describe("booleanArg stringArg numberArg", () => {
   const cli = createCli({
     cliName: "test-cli",
@@ -727,7 +751,7 @@ describe("stringArg numberArg booleanDefaultArg", () => {
 });
 
 describe("Testing Utils", () => {
-  it("transformOptionToArg", () => {
+  it("transformOptionToArg  ", () => {
     const testValues = new Map([
       ["I", "-i"],
       ["i", "-i"],
@@ -747,7 +771,7 @@ describe("Testing Utils", () => {
     }
   });
 
-  it("isOptionArg", () => {
+  it("isOptionArg           ", () => {
     const testValues = new Map([
       ["--input", true],
       ["--input-dir", true],
@@ -761,7 +785,7 @@ describe("Testing Utils", () => {
     }
   });
 
-  it("optionArgToVarNames", () => {
+  it("optionArgToVarNames   ", () => {
     const testValues = new Map([
       ["-i", new Set(["i", "I"])],
       ["--input", new Set(["input", "Input", "INPUT"])],
@@ -786,7 +810,7 @@ describe("Testing Utils", () => {
     }
   });
 
-  it("decoupleFlags", () => {
+  it("decoupleFlags         ", () => {
     const testValues = new Map([
       ["-r", ["-r"]],
       ["-rf", ["-r", "-f"]],

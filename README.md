@@ -369,7 +369,7 @@ countSchema.setAction(results => {
 
 - The `preValidationHook` is called after parsing but before validation.
 - The provided context object can be modified before validation for advanced use cases.
-- When using **async** hooks, make sure to call [`parseAsync`](#parseasyncargs-string-cli-cli-subcommands-subcommand-promiseunsafeparseresult) or [`safeParseAsync`](#parseasyncargs-string-cli-cli-subcommands-subcommand-promiseunsafeparseresult).
+- When using **async** hooks, make sure to call [`parseAsync`](#parseasync) or [`safeParseAsync`](#parseasync).
 
 See the [Context](#context) type for more details.
 
@@ -426,7 +426,7 @@ There are two ways to print the help message:
 2. `printSubcommandHelp(subcommandName: string, style?: HelpMsgStyle)`  
    Print the help message for a specific subcommand.
 
-See the [HelpMsgStyle](#HelpMsgStyle) type for more details.
+See the [HelpMsgStyle](#helpmsgstyle) type for more details.
 
 ```ts
 import chalk from "chalk";
@@ -555,25 +555,33 @@ type Arguments = InferArgumentsType<typeof subcommand>;
 
 `(schema: Cli) => Cli & SetMethods<Cli>`
 
-Creates the CLI program schema. See the [Cli](#cli) object type.
+Creates the CLI program schema.
+
+See [Cli](#cli) object type.
 
 #### createSubcommand
 
 `(schema: Subcommand) => Subcommand & SetMethods<Subcommand>`
 
-Creates the subcommand schema. See the [Subcommand](#subcommand) object type.
+Creates the subcommand schema.
+
+See [Subcommand](#subcommand) object type.
 
 #### createOptions
 
 `(schema: Option[]) => Option[]`
 
-Creates an array of option schemas for option sharing. See the [Option](#option) object type.
+Creates an array of option schemas for option sharing.
+
+See [Option](#option) object type.
 
 #### createArguments
 
 `(schema: Argument[]) => Argument[]`
 
-Creates an array of argument schemas for argument sharing. See the [Argument](#argument) object type.
+Creates an array of argument schemas for argument sharing.
+
+See [Argument](#argument) object type.
 
 #### parse
 
@@ -581,7 +589,7 @@ Creates an array of argument schemas for argument sharing. See the [Argument](#a
 
 Parses and validates the provided arguments and throws an error if parsing or validation failed.
 
-See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
+See [Cli](#cli), [Subcommand](#subcommand), and [Results](#results)
 
 #### parseAsync
 
@@ -590,7 +598,7 @@ See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
 Same as [`parse`](#parse), but returns a promise.  
 Use this when you have async actions or hooks.
 
-See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
+See [Cli](#cli), [Subcommand](#subcommand), and [Results](#results)
 
 #### safeParse
 
@@ -598,7 +606,7 @@ See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
 
 Parses and validates the provided arguments without throwing an error.
 
-See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
+See [Cli](#cli), [Subcommand](#subcommand), and [Results](#results)
 
 #### safeParseAsync
 
@@ -607,7 +615,7 @@ See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
 Same as [`safeParse`](#safeparse), but returns a promise.  
 Use this when you have async actions or hooks.
 
-See [Cli](#cli), [Subcommand](#subcommand), and [Results](#Results)
+See [Cli](#cli), [Subcommand](#subcommand), and [Results](#results)
 
 #### generateBashAutocompleteScript
 
