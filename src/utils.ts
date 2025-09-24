@@ -60,3 +60,13 @@ export function concat(...messages: string[]) {
   // messages = messages.filter(Boolean);
   return messages.join(" ");
 }
+
+export function stringifyValue(value: unknown): string {
+  // Set
+  if (value instanceof Set) {
+    return "new Set([" + Array.from(value).map(stringifyValue).join(", ") + "])";
+  }
+
+  // unknown
+  return JSON.stringify(value);
+}

@@ -1,3 +1,4 @@
+import { stringifyValue } from "src/utils.js";
 import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
 import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utils.js";
 
@@ -23,7 +24,7 @@ export function getOptionsMetadata(options: Option[]): OptionMetadata[] {
       optional: isOptionalSchema(option.type),
       example: option.example ?? "",
       defaultValue,
-      defaultValueAsString: JSON.stringify(defaultValue),
+      defaultValueAsString: stringifyValue(defaultValue),
       type: option.type,
     });
   }
