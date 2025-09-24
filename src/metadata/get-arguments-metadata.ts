@@ -1,4 +1,4 @@
-import { stringifyValue } from "src/utils.js";
+import { stringifyValue } from "../utils.js";
 import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utils.js";
 
 import type { Argument } from "../types.js";

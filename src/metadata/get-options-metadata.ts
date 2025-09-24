@@ -1,5 +1,5 @@
-import { stringifyValue } from "src/utils.js";
 import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
+import { stringifyValue } from "../utils.js";
 import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utils.js";
 
 import type { Option } from "../types.js";
