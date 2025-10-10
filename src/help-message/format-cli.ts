@@ -1,5 +1,5 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.js";
-import { concat, indent, ln } from "../utils.js";
+import { concat, indent, ln, subcommandPlaceholder } from "../utils.js";
 import { formatHelpMsgArguments } from "./format-arguments.js";
 import { formatHelpMsgOptions } from "./format-options.js";
 import { formatHelpMsgCommands } from "./format-subcommands.js";
@@ -25,7 +25,8 @@ export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?
       c.description(metadata.name),
       metadata.subcommands.length ? c.command("[command]") : "",
       metadata.options.length ? c.option("[options]") : "",
-      metadata.arguments.length || metadata.allowPositional ? c.argument("<arguments>") : "",
+      metadata.arguments.length ? c.argument("<arguments>") : "",
+      metadata.allowPositional ? c.argument("<positionals>") : "",
     );
   msg += formatTitle("Usage") + ln(1);
   msg += indent(2) + usage + ln(2);
@@ -56,8 +57,7 @@ export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?
 
   const longestSubcommandTitle = subcommandsMetadata.reduce((acc, metadata) => {
     const names = metadata.aliases.concat([metadata.name]).join(", ");
-    const placeholder =
-      metadata.placeholder || (metadata.options.length ? "[options]" : metadata.allowPositional ? "<args>" : " ");
+    const placeholder = subcommandPlaceholder(metadata);
     const optLength = names.length + placeholder.length;
     return optLength > acc ? optLength : acc;
   }, 0);
@@ -86,7 +86,7 @@ export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?
   if (metadata.example) {
     msg += formatTitle("Example");
     msg += ln(1);
-    const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(3));
+    const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(3));
     msg += concat(indent(2), c.example(normalizeExample), ln(2));
   }
 

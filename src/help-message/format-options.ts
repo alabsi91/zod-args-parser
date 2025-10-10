@@ -10,7 +10,7 @@ export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpM
 
   for (const metadata of optionsMetadata) {
     const names = metadata.aliasesAsArgs.concat([metadata.nameAsArg]);
-    const normalizeDesc = metadata.description.replace(/\n/g, "\n" + indent(longest + 6) + c.punctuation("└"));
+    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
     const defaultStr =
       typeof metadata.defaultValue !== "undefined" ? `(default: ${metadata.defaultValueAsString})` : "";
 
@@ -30,7 +30,7 @@ export function formatHelpMsgOptions(optionsMetadata: OptionMetadata[], c: HelpM
     );
 
     if (metadata.example) {
-      const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(longest + 16));
+      const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(longest + 16));
       msg += concat(
         indent(longest + 6) + c.punctuation("└") + c.exampleTitle("Example:"),
         c.example(normalizeExample) + ln(1),

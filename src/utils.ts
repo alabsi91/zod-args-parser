@@ -1,3 +1,5 @@
+import { SubcommandMetadata } from "./metadata/metadata-types.js";
+
 /**
  * Converts a string to its corresponding boolean value if the string is "true" or "false" (case-insensitive).
  *
@@ -52,6 +54,7 @@ export function ln(count: number) {
 
 /** Space */
 export function indent(count: number) {
+  if (count <= 0) return "";
   return " ".repeat(count);
 }
 
@@ -76,4 +79,27 @@ export function insertAtEndOfFirstLine(str: string, insert: string) {
   const lines = str.split("\n");
   lines[0] += " " + insert;
   return lines.join("\n");
+}
+
+/** Get the placeholder for a subcommand */
+export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
+  let placeholder = metadata.placeholder;
+
+  if (!placeholder && metadata.options.length) {
+    placeholder = "[options]";
+  }
+
+  if (!placeholder && metadata.arguments.length) {
+    placeholder = "<arguments>";
+  }
+
+  if (metadata.allowPositional) {
+    placeholder += (placeholder ? " " : "") + "<positionals>";
+  }
+
+  if (!placeholder) {
+    placeholder = " ";
+  }
+
+  return placeholder;
 }

@@ -9,7 +9,7 @@ export const configureSchema = createSubcommand({
     {
       name: "enableLogging",
       description: "Enable logging",
-      example: "--enable-logging=false or --no-enable-logging",
+      example: "--enable-logging=false\n--no-enable-logging",
       type: z.boolean().default(true),
     },
     {

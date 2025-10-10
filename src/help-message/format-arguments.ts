@@ -13,7 +13,7 @@ export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: Help
       typeof metadata.defaultValue !== "undefined" ? `(default: ${metadata.defaultValueAsString})` : "";
 
     const spacing = longest + 2 - metadata.name.length;
-    const normalizeDesc = metadata.description.replace(/\n/g, "\n" + indent(longest + 6) + c.punctuation("└"));
+    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
     const defaultOrOptional = defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "";
 
     msg += concat(
@@ -24,7 +24,7 @@ export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: Help
     );
 
     if (metadata.example) {
-      const normalizeExample = metadata.example.replace(/\n/g, "\n" + indent(longest + 16));
+      const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(longest + 16));
       msg += concat(
         indent(longest + 5),
         c.punctuation("└") + c.exampleTitle("Example:"),

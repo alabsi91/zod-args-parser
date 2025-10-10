@@ -1,4 +1,4 @@
-import { concat, indent, ln } from "../utils.js";
+import { concat, indent, ln, subcommandPlaceholder } from "../utils.js";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.js";
 import type { HelpMsgStyle } from "../types.js";
@@ -14,9 +14,8 @@ export function formatHelpMsgCommands(
 
   for (const metadata of subcommandsMetadata) {
     const names = metadata.aliases.concat([metadata.name]);
-    const placeholder =
-      metadata.placeholder || (metadata.options.length ? "[options]" : metadata.allowPositional ? "<args>" : " ");
-    const normalizeDesc = metadata.description.replace(/\n/g, "\n" + indent(longest + 7) + c.punctuation("└"));
+    const placeholder = subcommandPlaceholder(metadata);
+    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
 
     const optLength = names.join(", ").length + placeholder.length;
     const spacing = longest + 1 - optLength;

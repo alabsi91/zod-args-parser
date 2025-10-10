@@ -3,13 +3,13 @@ import { cliSchemas } from "./cli.js";
 
 // * Test different inputs 👇
 
-const args: string[] = ["-h"];
+// const args: string[] = ["-h"];
 // const args: string[] = ["--version"];
 
 // const args: string[] = ["help", "help"];
 // const args: string[] = ["help", "process"];
 // const args: string[] = ["help", "convert"];
-// const args: string[] = ["help", "configure"];
+const args: string[] = ["help", "configure"];
 // const args: string[] = ["help", "count"];
 
 // const args: string[] = ["process", "--name", "test", "-c", "5", "--tags", "tag1;tag2;tag3", "-v"];
