@@ -6,6 +6,7 @@ import { cliSchemas } from "./cli.js";
 const args: string[] = ["-h"];
 // const args: string[] = ["--version"];
 
+// const args: string[] = ["help", "help"];
 // const args: string[] = ["help", "process"];
 // const args: string[] = ["help", "convert"];
 // const args: string[] = ["help", "configure"];

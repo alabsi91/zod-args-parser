@@ -70,3 +70,10 @@ export function stringifyValue(value: unknown): string {
   // unknown
   return JSON.stringify(value);
 }
+
+/** Insert text at the end of the first line */
+export function insertAtEndOfFirstLine(str: string, insert: string) {
+  const lines = str.split("\n");
+  lines[0] += " " + insert;
+  return lines.join("\n");
+}

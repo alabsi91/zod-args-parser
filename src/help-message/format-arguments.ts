@@ -1,4 +1,4 @@
-import { concat, indent, ln } from "../utils.js";
+import { concat, indent, insertAtEndOfFirstLine, ln } from "../utils.js";
 
 import type { ArgumentMetadata } from "../metadata/metadata-types.js";
 import type { HelpMsgStyle } from "../types.js";
@@ -14,12 +14,13 @@ export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: Help
 
     const spacing = longest + 2 - metadata.name.length;
     const normalizeDesc = metadata.description.replace(/\n/g, "\n" + indent(longest + 6) + c.punctuation("└"));
+    const defaultOrOptional = defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "";
 
     msg += concat(
       indent(2) + c.argument(metadata.name),
       indent(spacing),
-      c.description(normalizeDesc),
-      (defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "") + ln(1),
+      insertAtEndOfFirstLine(c.description(normalizeDesc), defaultOrOptional),
+      ln(1),
     );
 
     if (metadata.example) {
