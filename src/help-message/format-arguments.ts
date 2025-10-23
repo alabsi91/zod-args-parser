@@ -1,4 +1,4 @@
-import { concat, indent, insertAtEndOfFirstLine, ln } from "../utilities.ts";
+import { concat, indent, insertAtEndOfFirstLine, ln } from "../utilities.js";
 
 import type { ArgumentMetadata } from "../metadata/metadata-types.js";
 import type { HelpMessageStyle } from "../types.js";

@@ -1,7 +1,7 @@
 import { prettifyError } from "zod/v4/core";
 
-import { generateOrdinalSuffix, stringToBoolean } from "../../utilities.ts";
-import { isBooleanSchema, safeParseSchema } from "../../zod-utilities.ts";
+import { generateOrdinalSuffix, stringToBoolean } from "../../utilities.js";
+import { isBooleanSchema, safeParseSchema } from "../../zod-utilities.js";
 
 import type { ParsedContext } from "../parse/parse-types.js";
 

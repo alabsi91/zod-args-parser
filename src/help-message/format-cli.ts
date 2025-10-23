@@ -1,5 +1,5 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.js";
-import { concat, indent, ln, subcommandPlaceholder } from "../utilities.ts";
+import { concat, indent, ln, subcommandPlaceholder } from "../utilities.js";
 import { formatHelpMessageArguments } from "./format-arguments.js";
 import { formatHelpMessageOptions } from "./format-options.js";
 import { formatHelpMessageCommands } from "./format-subcommands.js";

@@ -1,4 +1,4 @@
-import { SubcommandMetadata } from "./metadata/metadata-types.ts";
+import { SubcommandMetadata } from "./metadata/metadata-types.js";
 
 /**
  * Converts a string to its corresponding boolean value if the string is "true" or "false" (case-insensitive).

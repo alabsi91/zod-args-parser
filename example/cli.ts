@@ -1,11 +1,11 @@
 import * as z from "zod";
 import { createCli, helpMessageStyles } from "zod-args-parser";
 
-import { configureSchema } from "./commands/configure-cmd.ts";
-import { convertSchema } from "./commands/convert-cmd.ts";
-import { countSchema } from "./commands/count-cmd.ts";
-import { helpCommandSchema } from "./commands/help-cmd.ts";
-import { precessSchema } from "./commands/process-cmd.ts";
+import { configureSchema } from "./commands/configure-cmd.js";
+import { convertSchema } from "./commands/convert-cmd.js";
+import { countSchema } from "./commands/count-cmd.js";
+import { helpCommandSchema } from "./commands/help-cmd.js";
+import { precessSchema } from "./commands/process-cmd.js";
 
 // Create a CLI schema
 // This will be used when no subcommands are provided. E.g. `argplay --help`

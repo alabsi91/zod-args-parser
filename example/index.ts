@@ -1,5 +1,5 @@
 import { safeParse } from "zod-args-parser";
-import { cliSchemas } from "./cli.ts";
+import { cliSchemas } from "./cli.js";
 
 // * Test different inputs 👇
 

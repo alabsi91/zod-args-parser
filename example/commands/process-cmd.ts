@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { createSubcommand, stringToArray } from "zod-args-parser";
-import { sharedOptions } from "../shared.ts";
+import { sharedOptions } from "../shared.js";
 
 export const precessSchema = createSubcommand({
   name: "process",

@@ -1,5 +1,5 @@
-import { stringifyValue } from "../utilities.ts";
-import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utilities.ts";
+import { stringifyValue } from "../utilities.js";
+import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utilities.js";
 
 import type { Argument } from "../types.js";
 import type { ArgumentMetadata } from "./metadata-types.js";

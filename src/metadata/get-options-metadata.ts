@@ -1,6 +1,6 @@
 import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
-import { stringifyValue } from "../utilities.ts";
-import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utilities.ts";
+import { stringifyValue } from "../utilities.js";
+import { isOptionalSchema, schemaDefaultValue, schemaDescription } from "../zod-utilities.js";
 
 import type { Option } from "../types.js";
 import type { OptionMetadata } from "./metadata-types.js";

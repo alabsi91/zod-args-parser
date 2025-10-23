@@ -5,7 +5,7 @@ import {
   generateZshAutocompleteScript,
 } from "zod-args-parser";
 
-import { cliSchemas } from "./cli.ts";
+import { cliSchemas } from "./cli.js";
 
 /*
 - Generate bash autocomplete script for `argplay`.

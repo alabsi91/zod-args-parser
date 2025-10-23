@@ -1,5 +1,5 @@
-import { generateOrdinalSuffix } from "../../utilities.ts";
-import { isBooleanSchema, isOptionalSchema, schemaDefaultValue } from "../../zod-utilities.ts";
+import { generateOrdinalSuffix } from "../../utilities.js";
+import { isBooleanSchema, isOptionalSchema, schemaDefaultValue } from "../../zod-utilities.js";
 import {
   decoupleFlags,
   findOption,

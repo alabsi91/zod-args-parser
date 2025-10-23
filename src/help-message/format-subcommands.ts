@@ -1,4 +1,4 @@
-import { concat, indent, ln, subcommandPlaceholder } from "../utilities.ts";
+import { concat, indent, ln, subcommandPlaceholder } from "../utilities.js";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.js";
 import type { HelpMessageStyle } from "../types.js";
