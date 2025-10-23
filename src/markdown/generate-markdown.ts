@@ -39,6 +39,9 @@ export function generateMarkdown(...params: [Cli, ...Subcommand[]]): string {
     md += renderSubcommands(metadata.subcommands);
   }
 
+  md = stripAnsi(md);
+  md = escapeHtmlTags(md);
+
   return md;
 }
 
@@ -138,7 +141,7 @@ function renderSubcommands(subcommandsMetadata: SubcommandMetadata[]) {
 
     const aliases = [metadata.name].concat(metadata.aliases).join(", ");
 
-    const placeholder = metadata.placeholder && ` ${escapeTags(metadata.placeholder)}`;
+    const placeholder = metadata.placeholder && ` ${metadata.placeholder}`;
 
     outStr += `### ${aliases + placeholder}\n\n`;
 
@@ -168,6 +171,36 @@ function renderSubcommands(subcommandsMetadata: SubcommandMetadata[]) {
   return outStr;
 }
 
-function escapeTags(str: string) {
-  return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function escapeHtmlTags(markdown: string) {
+  return markdown.replace(/(```[\s\S]*?```|`[^`]*`)|(<[^>]+>)/g, (_: string, code: string, html: string) => {
+    if (code) {
+      return code;
+    }
+
+    return html.replace(/[&<>]/g, match => {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[match as "&" | "<" | ">"];
+    });
+  });
+}
+
+/** Credits: https://github.com/chalk/ansi-regex */
+function ansiRegex({ onlyFirst = false } = {}) {
+  // Valid string terminator sequences are BEL, ESC\, and 0x9c
+  const ST = "(?:\\u0007|\\u001B\\u005C|\\u009C)";
+
+  // OSC sequences only: ESC ] ... ST (non-greedy until the first ST)
+  const osc = `(?:\\u001B\\][\\s\\S]*?${ST})`;
+
+  // CSI and related: ESC/C1, optional intermediates, optional params (supports ; and :) then final byte
+  const csi = "[\\u001B\\u009B][[\\]()#;?]*(?:\\d{1,4}(?:[;:]\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]";
+
+  const pattern = `${osc}|${csi}`;
+
+  return new RegExp(pattern, onlyFirst ? undefined : "g");
+}
+
+const regex = ansiRegex();
+
+function stripAnsi(string: string): string {
+  return string.replace(regex, "");
 }

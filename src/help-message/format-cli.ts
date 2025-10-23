@@ -34,7 +34,7 @@ export function formatCliHelpMsg(params: readonly [Cli, ...Subcommand[]], style?
   // CLI description
   if (metadata.description) {
     msg += formatTitle("Description") + ln(1);
-    msg += indent(2) + c.description(metadata.description) + ln(2);
+    msg += indent(2) + c.description(metadata.description).replace(/\n+/g, "\n" + indent(2)) + ln(2);
   }
 
   let longest = 0;
