@@ -515,15 +515,21 @@ cliSchema.setAction(results => {
 
 ### Type Utilities
 
-- `InferOptionsType<Cli | Subcommand>`  
-  Infer the options type from the Cli or subcommand schema.
+- `InferOptionsInput<Cli | Subcommand>`  
+  Infer the options input type (before zod validation) from the Cli or subcommand schema.
 
-- `InferArgumentsType<Cli | Subcommand>`  
-  Infer the arguments type from the Cli or subcommand schema.
+- `InferOptionsOutput<Cli | Subcommand>`  
+  Infer the options Output type (after zod validation) from the Cli or subcommand schema.
+
+- `InferArgumentsInput<Cli | Subcommand>`  
+  Infer the arguments input type (before zod validation) from the Cli or subcommand schema.
+
+- `InferArgumentsOutput<Cli | Subcommand>`  
+  Infer the arguments Output type (after zod validation) from the Cli or subcommand schema.
 
 ```ts
 import { createSubcommand } from "zod-args-parser";
-import type { InferOptionsType, InferArgumentsType } from "zod-args-parser";
+import type { InferOptionsOutput, InferArgumentsOutput } from "zod-args-parser";
 
 const subcommand = createSubcommand({
   name: "subcommand",
@@ -540,10 +546,10 @@ const subcommand = createSubcommand({
   ],
 });
 
-type Options = InferOptionsType<typeof subcommand>;
+type Options = InferOptionsOutput<typeof subcommand>;
 // { numberOption: number; stringOption: string; booleanOption: boolean; optionalOption?: boolean | undefined; }
 
-type Arguments = InferArgumentsType<typeof subcommand>;
+type Arguments = InferArgumentsOutput<typeof subcommand>;
 // [string, number, boolean]
 ```
 

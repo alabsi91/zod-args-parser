@@ -7,9 +7,19 @@ export type SchemaV3 = Z3.ZodTypeAny;
 export type SchemaV4 = Z4.$ZodType;
 export type Schema = SchemaV3 | SchemaV4;
 
-export type ZodInfer<T extends Schema> = T extends SchemaV4 ? Z4.infer<T> : T extends SchemaV3 ? Z3.infer<T> : never;
+export type ZodInferOutput<T extends Schema> = T extends SchemaV4
+  ? Z4.infer<T>
+  : T extends SchemaV3
+    ? Z3.infer<T>
+    : never;
 
-export type Subcommand = {
+export type ZodInferInput<T extends Schema> = T extends SchemaV4
+  ? Z4.input<T>
+  : T extends SchemaV3
+    ? Z3.input<T>
+    : never;
+
+export interface Subcommand {
   /**
    * - The subcommand name
    * - Make sure to not duplicate commands and aliases.
@@ -86,7 +96,7 @@ export type Subcommand = {
    *   helpCommand.setPreValidationHook(ctx => console.log(ctx));
    */
   preValidation?: (ctx?: any) => any;
-};
+}
 
 export type Cli = Prettify<
   Omit<Subcommand, "name" | "aliases" | "placeholder"> & {
@@ -95,7 +105,7 @@ export type Cli = Prettify<
   }
 >;
 
-export type Option = {
+export interface Option {
   /**
    * The name of the option, use a valid **JavaScript** variable name.\
    * **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.\
@@ -135,9 +145,9 @@ export type Option = {
    * - Make sure to not duplicate aliases.
    */
   aliases?: [string, ...string[]];
-};
+}
 
-export type Argument = {
+export interface Argument {
   /** - The name of the argument. */
   name: string;
 
@@ -159,7 +169,7 @@ export type Argument = {
    * - Used for generating the help message.
    */
   example?: string;
-};
+}
 
 export type ColorFnType = (...text: unknown[]) => string;
 
@@ -182,23 +192,59 @@ export type HelpMsgStyle = Record<
 /**
  * - Infer the options type from a subcommand.
  *
+ * @deprecated Use `InferOptionsOutput` instead.
+ */
+export type InferOptionsType<T extends Partial<Subcommand>> = InferOptionsOutput<T>;
+
+/**
+ * - Infer the options output type (after zod validation) from a subcommand.
+ *
  * @example
  *   const subcommand = createSubcommand({ name: "build", options: [...] });
- *   type OptionsType = InferOptionsType<typeof subcommand>;
+ *   type OptionsType = InferOptionsOutput<typeof subcommand>;
  */
-export type InferOptionsType<T extends Partial<Subcommand>> = T["options"] extends infer U extends Option[]
-  ? ToOptional<{ [K in U[number]["name"]]: ZodInfer<Extract<U[number], { name: K }>["type"]> }>
+export type InferOptionsOutput<T extends Partial<Subcommand>> = T["options"] extends infer U extends Option[]
+  ? ToOptional<{ [K in U[number]["name"]]: ZodInferOutput<Extract<U[number], { name: K }>["type"]> }>
   : undefined;
 
 /**
- * - Infer the arguments type from a subcommand.
+ * - Infer the options input type (before zod validation) from a subcommand.
+ *
+ * @example
+ *   const subcommand = createSubcommand({ name: "build", options: [...] });
+ *   type OptionsType = InferOptionsInput<typeof subcommand>;
+ */
+export type InferOptionsInput<T extends Partial<Subcommand>> = T["options"] extends infer U extends Option[]
+  ? ToOptional<{ [K in U[number]["name"]]: ZodInferInput<Extract<U[number], { name: K }>["type"]> }>
+  : undefined;
+
+/**
+ * - Infer the arguments output type (after zod validation) from a subcommand.
+ *
+ * @deprecated Use `InferArgumentsOutput` instead.
+ */
+export type InferArgumentsType<T extends Partial<Subcommand>> = InferArgumentsOutput<T>;
+
+/**
+ * - Infer the arguments output type (after zod validation) from a subcommand.
  *
  * @example
  *   const subcommand = createSubcommand({ name: "build", arguments: [...] });
- *   type ArgumentsType = InferArgumentsType<typeof subcommand>;
+ *   type ArgumentsType = InferArgumentsOutput<typeof subcommand>;
  */
-export type InferArgumentsType<T extends Partial<Subcommand>> = T["arguments"] extends infer U extends Argument[]
-  ? { [K in keyof U]: U[K] extends { type: Schema } ? ZodInfer<U[K]["type"]> : never }
+export type InferArgumentsOutput<T extends Partial<Subcommand>> = T["arguments"] extends infer U extends Argument[]
+  ? { [K in keyof U]: U[K] extends { type: Schema } ? ZodInferOutput<U[K]["type"]> : never }
+  : undefined;
+
+/**
+ * - Infer the arguments Input type (before zod validation) from a subcommand.
+ *
+ * @example
+ *   const subcommand = createSubcommand({ name: "build", arguments: [...] });
+ *   type ArgumentsType = InferArgumentsInput<typeof subcommand>;
+ */
+export type InferArgumentsInput<T extends Partial<Subcommand>> = T["arguments"] extends infer U extends Argument[]
+  ? { [K in keyof U]: U[K] extends { type: Schema } ? ZodInferInput<U[K]["type"]> : never }
   : undefined;
 
 /** `{ some props } & { other props }` => `{ some props, other props }` */
