@@ -1,7 +1,7 @@
 import c from "chalk";
 import * as z from "zod";
 import { createSubcommand } from "zod-args-parser";
-import { sharedOptions } from "../shared.js";
+import { sharedOptions } from "../shared.ts";
 
 export const convertSchema = createSubcommand({
   name: "convert",

@@ -14,9 +14,11 @@
 
     "allowJs": true,
     "checkJs": true,
+    "allowImportingTsExtensions": true,
 
     "declaration": true,
     "declarationMap": true,
+    "emitDeclarationOnly": true,
     "sourceMap": true,
     "outDir": "dist",
     "newLine": "lf",

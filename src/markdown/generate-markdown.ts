@@ -77,7 +77,7 @@ function renderOptions(optionsMetadata: OptionMetadata[] = [], h: number) {
     outStr += "\n\n";
 
     if (metadata.description) {
-      outStr += `- ${metadata.description}\n`;
+      outStr += `- ${metadata.description.replace(/(\n+)/g, "  $1  ")}\n`;
     }
 
     if (typeof metadata.defaultValue !== "undefined") {
@@ -111,7 +111,7 @@ function renderArguments(argsMetadata: ArgumentMetadata[] = [], h: number) {
     outStr += "\n\n";
 
     if (metadata.description) {
-      outStr += `- ${metadata.description}\n`;
+      outStr += `- ${metadata.description.replace(/(\n+)/g, "  $1  ")}\n`;
     }
 
     if (typeof metadata.defaultValue !== "undefined") {

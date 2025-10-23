@@ -1,11 +1,11 @@
 import * as z from "zod";
 import { createCli, helpMsgStyles } from "zod-args-parser";
 
-import { configureSchema } from "./commands/configureCmd.js";
-import { convertSchema } from "./commands/convertCmd.js";
-import { countSchema } from "./commands/countCmd.js";
-import { helpCommandSchema } from "./commands/helpCmd.js";
-import { precessSchema } from "./commands/processCmd.js";
+import { configureSchema } from "./commands/configureCmd.ts";
+import { convertSchema } from "./commands/convertCmd.ts";
+import { countSchema } from "./commands/countCmd.ts";
+import { helpCommandSchema } from "./commands/helpCmd.ts";
+import { precessSchema } from "./commands/processCmd.ts";
 
 // Create a CLI schema
 // This will be used when no subcommands are provided. E.g. `argplay --help`
@@ -17,12 +17,14 @@ const cliSchema = createCli({
     {
       name: "help",
       aliases: ["h"],
-      type: z.boolean().optional().describe("Show this help message"),
+      description: "Show this help message",
+      type: z.boolean().optional(),
     },
     {
       name: "version",
       aliases: ["v"],
-      type: z.boolean().optional().describe("Show version"),
+      description: "Show version",
+      type: z.boolean().optional(),
     },
   ],
 });
