@@ -28,7 +28,7 @@ export const precessSchema = createSubcommand({
       placeholder: "<list>",
       description: "tags separated by semicolon (;)",
       example: "--tags tag1;tag2;tag3",
-      type: z.preprocess(val => stringToArray(val, ";"), z.array(z.string())),
+      type: z.preprocess((stringValue: string) => stringToArray(stringValue, ";"), z.array(z.string())),
     },
     ...sharedOptions,
   ],
