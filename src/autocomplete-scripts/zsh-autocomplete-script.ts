@@ -1,4 +1,4 @@
-import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
 
 import type { Cli, Option, Subcommand } from "../types.js";
 
@@ -10,12 +10,12 @@ import type { Cli, Option, Subcommand } from "../types.js";
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-export function generateZshAutocompleteScript(...params: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = params;
+export function generateZshAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
+  const [cli, ...subcommands] = parameters;
 
   const genArguments = (options: Option[]) => {
     return options
-      ?.map(option => `'${transformOptionToArg(option.name)}[${option.description ?? ""}]'`)
+      ?.map(option => `'${transformOptionToArgument(option.name)}[${option.description ?? ""}]'`)
       .join(" \\\n            ");
   };
 
@@ -43,7 +43,10 @@ _${cli.cliName}_autocomplete() {
   case $state in
     subcmds)
       case "$words[1]" in
-        ${subcommands.map(genSubCommand).filter(Boolean).join("\n        ")}
+        ${subcommands
+          .map(subCommand => genSubCommand(subCommand))
+          .filter(Boolean)
+          .join("\n        ")}
         *)
           _arguments \\
             '*: :_files' \\

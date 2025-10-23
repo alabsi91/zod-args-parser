@@ -1,16 +1,16 @@
-import { concat, indent, ln, subcommandPlaceholder } from "../utils.js";
+import { concat, indent, ln, subcommandPlaceholder } from "../utilities.ts";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.js";
-import type { HelpMsgStyle } from "../types.js";
+import type { HelpMessageStyle } from "../types.js";
 
-export function formatHelpMsgCommands(
+export function formatHelpMessageCommands(
   subcommandsMetadata: SubcommandMetadata[],
-  c: HelpMsgStyle,
+  c: HelpMessageStyle,
   longest: number,
 ): string {
-  if (!subcommandsMetadata.length) return "";
+  if (subcommandsMetadata.length === 0) return "";
 
-  let msg = c.title(" COMMANDS") + ln(1);
+  let message = c.title(" COMMANDS") + ln(1);
 
   for (const metadata of subcommandsMetadata) {
     const names = metadata.aliases.concat([metadata.name]);
@@ -22,7 +22,7 @@ export function formatHelpMsgCommands(
 
     const coloredNames = names.map(name => c.command(name)).join(c.punctuation(", "));
 
-    msg += concat(
+    message += concat(
       indent(2) + coloredNames,
       c.placeholder(placeholder),
       indent(spacing),
@@ -30,7 +30,7 @@ export function formatHelpMsgCommands(
     );
   }
 
-  msg += ln(1);
+  message += ln(1);
 
-  return msg;
+  return message;
 }

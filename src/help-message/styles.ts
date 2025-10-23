@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import type { HelpMsgStyle } from "../types.js";
+import type { HelpMessageStyle } from "../types.js";
 
-export const helpMsgStyles = Object.freeze({
+export const helpMessageStyles = Object.freeze({
   default: {
     title: chalk.bold.blue,
     description: chalk.white,
@@ -55,17 +55,17 @@ export const helpMsgStyles = Object.freeze({
     punctuation: chalk.hex("#4C566A"),
   },
   html: {
-    title: (...str) => `<span style="color: #89dceb; font-weight: bold;">${escapeHTML(str.join(" "))}</span>`,
-    description: (...str) => `<span style="color: #cdd6e8;">${escapeHTML(str.join(" "))}</span>`,
-    default: (...str) => `<span style="color: #6c7086; font-style: italic;">${escapeHTML(str.join(" "))}</span>`,
-    optional: (...str) => `<span style="color: #6c7086; font-style: italic;">${escapeHTML(str.join(" "))}</span>`,
-    exampleTitle: (...str) => `<span style="color: #f9e2af;">${escapeHTML(str.join(" "))}</span>`,
-    example: (...str) => `<span style="color: #6c7086;">${escapeHTML(str.join(" "))}</span>`,
-    command: (...str) => `<span style="color: #f9e2af;">${escapeHTML(str.join(" "))}</span>`,
-    option: (...str) => `<span style="color: #17b85d;">${escapeHTML(str.join(" "))}</span>`,
-    argument: (...str) => `<span style="color: #00ff00;">${escapeHTML(str.join(" "))}</span>`,
-    placeholder: (...str) => `<span style="color: #db9518;">${escapeHTML(str.join(" "))}</span>`,
-    punctuation: (...str) => `<span style="color: #6c7086;">${escapeHTML(str.join(" "))}</span>`,
+    title: (...string) => `<span style="color: #89dceb; font-weight: bold;">${escapeHTML(string.join(" "))}</span>`,
+    description: (...string) => `<span style="color: #cdd6e8;">${escapeHTML(string.join(" "))}</span>`,
+    default: (...string) => `<span style="color: #6c7086; font-style: italic;">${escapeHTML(string.join(" "))}</span>`,
+    optional: (...string) => `<span style="color: #6c7086; font-style: italic;">${escapeHTML(string.join(" "))}</span>`,
+    exampleTitle: (...string) => `<span style="color: #f9e2af;">${escapeHTML(string.join(" "))}</span>`,
+    example: (...string) => `<span style="color: #6c7086;">${escapeHTML(string.join(" "))}</span>`,
+    command: (...string) => `<span style="color: #f9e2af;">${escapeHTML(string.join(" "))}</span>`,
+    option: (...string) => `<span style="color: #17b85d;">${escapeHTML(string.join(" "))}</span>`,
+    argument: (...string) => `<span style="color: #00ff00;">${escapeHTML(string.join(" "))}</span>`,
+    placeholder: (...string) => `<span style="color: #db9518;">${escapeHTML(string.join(" "))}</span>`,
+    punctuation: (...string) => `<span style="color: #6c7086;">${escapeHTML(string.join(" "))}</span>`,
   },
   gruvboxDark: {
     title: chalk.bold.hex("#FABD2F"),
@@ -109,12 +109,12 @@ export const helpMsgStyles = Object.freeze({
   get noColors() {
     return new Proxy(this.default, {
       get() {
-        return (...str: string[]) => str.join(" ");
+        return (...string: string[]) => string.join(" ");
       },
-    });
+    }) as HelpMessageStyle;
   },
-}) satisfies Record<string, HelpMsgStyle>;
+}) satisfies Record<string, HelpMessageStyle>;
 
-function escapeHTML(str: string) {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function escapeHTML(string: string) {
+  return string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

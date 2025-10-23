@@ -8,8 +8,8 @@ import type { Option, Subcommand } from "../../types.js";
  * @param subcommandArr - An array of `Subcommand` objects to search within.
  * @returns The matching `Subcommand` object if found; otherwise, `undefined`.
  */
-export function findSubcommand(subCmdName: string | undefined, subcommandArr: Subcommand[]): Subcommand | undefined {
-  return subcommandArr.find(c => {
+export function findSubcommand(subCmdName: string | undefined, subcommandArray: Subcommand[]): Subcommand | undefined {
+  return subcommandArray.find(c => {
     // match for undefined too
     if (c.name === subCmdName) {
       return true;
@@ -29,16 +29,16 @@ export function findSubcommand(subCmdName: string | undefined, subcommandArr: Su
  * @param options - An array of `Option` objects to search through.
  * @returns The matching `Option` object if found; otherwise, `undefined`.
  */
-export function findOption(optionArg: string, options: [Option, ...Option[]]): Option | undefined {
-  const validVarNames = optionArgToVarNames(optionArg);
-  const isNegative = optionArg.startsWith("--no-");
+export function findOption(optionArgument: string, options: [Option, ...Option[]]): Option | undefined {
+  const validVariableNames = optionArgumentToVariableNames(optionArgument);
+  const isNegative = optionArgument.startsWith("--no-");
 
   const option = options.find(o => {
-    if (validVarNames.has(o.name)) {
+    if (validVariableNames.has(o.name)) {
       return true;
     }
 
-    if (isNegative && validVarNames.has(negateOption(o.name))) {
+    if (isNegative && validVariableNames.has(negateOption(o.name))) {
       return true;
     }
 
@@ -46,11 +46,11 @@ export function findOption(optionArg: string, options: [Option, ...Option[]]): O
       return false;
     }
 
-    if (o.aliases.some(a => validVarNames.has(a))) {
+    if (o.aliases.some(a => validVariableNames.has(a))) {
       return true;
     }
 
-    if (isNegative && o.aliases.map(negateOption).some(a => validVarNames.has(a))) {
+    if (isNegative && o.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
       return true;
     }
 
@@ -61,25 +61,24 @@ export function findOption(optionArg: string, options: [Option, ...Option[]]): O
 }
 
 /** - Decouple flags E.g. `-rf` -> `-r, -f` */
-export function decoupleFlags(args: string[]): string[] {
+export function decoupleFlags(arguments_: string[]): string[] {
   const flagsRe = /^-[a-z0-9]{2,}$/i;
 
   const result = [];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    const isCoupled = flagsRe.test(arg);
+  for (const argument of arguments_) {
+    const isCoupled = flagsRe.test(argument);
 
     if (!isCoupled) {
-      result.push(arg);
+      result.push(argument);
       continue;
     }
 
-    const decoupledArr = arg
-      .substring(1)
+    const decoupledArray = argument
+      .slice(1)
       .split("")
       .map(c => "-" + c);
 
-    result.push(...decoupledArr);
+    result.push(...decoupledArray);
   }
 
   return result;
@@ -90,12 +89,12 @@ export function decoupleFlags(args: string[]): string[] {
  *
  * @param name - Should start with `'--'` or `'-'`
  */
-export function optionArgToVarNames(name: string): Set<string> {
+export function optionArgumentToVariableNames(name: string): Set<string> {
   if (!name.startsWith("-")) {
     throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`, { cause: "zod-args-parser" });
   }
 
-  name = name.startsWith("--") ? name.substring(2) : name.substring(1); // remove prefix
+  name = name.startsWith("--") ? name.slice(2) : name.slice(1); // remove prefix
   name = name.toLowerCase(); // lowercase
 
   const results = new Set<string>();
@@ -118,22 +117,22 @@ export function optionArgToVarNames(name: string): Set<string> {
 }
 
 /** - Check if an arg string is a short arg. E.g. `-i` -> `true` */
-export function isFlagArg(name: string): boolean {
+export function isFlagArgument(name: string): boolean {
   return /^-[A-Za-z]$/.test(name);
 }
 
 /** - Check if an arg string is a long arg. E.g. `--input-dir` -> `true` */
-function isLongArg(name: string): boolean {
+function isLongArgument(name: string): boolean {
   return /^--[A-Za-z-]+[A-Za-z0-9]$/.test(name);
 }
 
 /** - Check if an arg string is an options arg. E.g. `--input-dir` -> `true` , `-i` -> `true` */
-export function isOptionArg(name: string | boolean): boolean {
+export function isOptionArgument(name: string | boolean): boolean {
   if (typeof name !== "string") {
     return false;
   }
 
-  return isFlagArg(name) || isLongArg(name);
+  return isFlagArgument(name) || isLongArgument(name);
 }
 
 /**
@@ -149,7 +148,7 @@ export function negateOption(name: string): string {
 }
 
 /** - Reverse of `transformArg`. E.g. `InputDir` -> `--input-dir` , `i` -> `-i` */
-export function transformOptionToArg(name: string): string {
+export function transformOptionToArgument(name: string): string {
   // single letter option name
   if (name.length === 1) {
     return `-${name.toLowerCase()}`;
@@ -162,6 +161,6 @@ export function transformOptionToArg(name: string): string {
   }
 
   // camelCase, PascalCase
-  name = name.replace(/[A-Z]/g, (m, i) => (i ? "-" + m : m)); // add "-" before camel case letters except for the first letter
+  name = name.replace(/[A-Z]/g, (match, index: number) => (index > 0 ? "-" + match : match)); // add "-" before camel case letters except for the first letter
   return `--${name.toLowerCase()}`;
 }

@@ -1,4 +1,4 @@
-import { writeFile } from "fs/promises";
+import { writeFile } from "node:fs/promises";
 import {
   generateBashAutocompleteScript,
   generatePowerShellAutocompleteScript,
@@ -15,7 +15,7 @@ import { cliSchemas } from "./cli.ts";
   - Save and reopen bash to take effect
 */
 const bashScript = generateBashAutocompleteScript(...cliSchemas);
-await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf-8" });
+await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf8" });
 
 /*
 - Generates a PowerShell autocomplete script for `argplay`.
@@ -27,7 +27,7 @@ await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf-8" });
     - Save and reopen powershell to take effect
 */
 const powershellScript = generatePowerShellAutocompleteScript(...cliSchemas);
-await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf-8" });
+await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf8" });
 
 /**
  * - Generates a ZSH autocomplete script for your CLI.
@@ -38,4 +38,4 @@ await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "
  *   - Save and reopen zsh to take effect
  */
 const zshScript = generateZshAutocompleteScript(...cliSchemas);
-await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf-8" });
+await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf8" });

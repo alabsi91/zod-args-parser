@@ -1,45 +1,45 @@
-import { generateOrdinalSuffix } from "../../utils.js";
-import { isBooleanSchema, isOptionalSchema, schemaDefaultValue } from "../../zod-utils.js";
+import { generateOrdinalSuffix } from "../../utilities.ts";
+import { isBooleanSchema, isOptionalSchema, schemaDefaultValue } from "../../zod-utilities.ts";
 import {
   decoupleFlags,
   findOption,
   findSubcommand,
-  isFlagArg,
-  isOptionArg,
-  transformOptionToArg,
+  isFlagArgument,
+  isOptionArgument,
+  transformOptionToArgument,
 } from "./parser-helpers.js";
 
 import type { Cli, Subcommand } from "../../types.js";
-import type { ParseCtx } from "./parse-types.js";
+import type { ParsedContext } from "./parse-types.js";
 
-export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
-  const subcommandArr = params as Subcommand[];
-  const allSubcommands = new Set<string>(subcommandArr.flatMap(c => [c.name, ...(c.aliases || [])]));
+export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
+  const subcommandArray = parameters as Subcommand[];
+  const allSubcommands = new Set<string>(subcommandArray.flatMap(c => [c.name, ...(c.aliases || [])]));
 
   argv = decoupleFlags(argv); // decouple flags E.g. `-rf` -> `-r, -f`
 
-  const results: ParseCtx = {
+  const results: ParsedContext = {
     subcommand: undefined,
     options: {},
   };
 
   /** - Get current subcommand object */
-  const getSubcommandObj = () => findSubcommand(results.subcommand, subcommandArr);
+  const getSubcommandObject = () => findSubcommand(results.subcommand, subcommandArray);
 
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
+  for (let index = 0; index < argv.length; index++) {
+    const argument_ = argv[index];
 
     // * Subcommand check
-    if (i === 0) {
-      results.subcommand = allSubcommands.has(arg) ? arg : undefined;
+    if (index === 0) {
+      results.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
 
       // add positional and arguments arrays
-      const subcommandObj = getSubcommandObj();
-      if (subcommandObj && subcommandObj.allowPositional) {
+      const subcommandObject = getSubcommandObject();
+      if (subcommandObject && subcommandObject.allowPositional) {
         results.positional = [];
       }
 
-      if (subcommandObj && subcommandObj.arguments?.length) {
+      if (subcommandObject && subcommandObject.arguments?.length) {
         results.arguments = [];
       }
 
@@ -50,22 +50,22 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
     // * Option check
 
     // Check for `--option=value` or `--option value`
-    const argAndValue = arg.split("=").filter(Boolean);
-    const argWithEquals = arg.includes("=");
-    const argument = argAndValue[0];
-    const argValue: string | undefined = argAndValue[1];
+    const argumentAndValue = argument_.split("=").filter(Boolean);
+    const argumentWithEquals = argument_.includes("=");
+    const argument = argumentAndValue[0];
+    const argumentValue: string | undefined = argumentAndValue[1];
 
-    if (isOptionArg(argument)) {
-      if (isFlagArg(argument) && argWithEquals) {
-        throw new Error(`Flag arguments cannot be assigned using "=": "${arg}"`, { cause: "zod-args-parser" });
+    if (isOptionArgument(argument)) {
+      if (isFlagArgument(argument) && argumentWithEquals) {
+        throw new Error(`Flag arguments cannot be assigned using "=": "${argument_}"`, { cause: "zod-args-parser" });
       }
 
-      const subcommandObj = getSubcommandObj();
-      if (!subcommandObj) {
+      const subcommandObject = getSubcommandObject();
+      if (!subcommandObject) {
         throw new Error(`Unknown subcommand: "${results.subcommand}"`, { cause: "zod-args-parser" });
       }
 
-      if (!subcommandObj.options) {
+      if (!subcommandObject.options) {
         if (!results.subcommand) {
           throw new Error(`Error: options are not allowed here: "${argument}"`, { cause: "zod-args-parser" });
         }
@@ -75,7 +75,7 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
         });
       }
 
-      const option = findOption(argument, subcommandObj.options);
+      const option = findOption(argument, subcommandObject.options);
       if (!option) {
         throw new Error(`Unknown option: "${argument}"`, { cause: "zod-args-parser" });
       }
@@ -85,21 +85,21 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
       }
 
       const isTypeBoolean = isBooleanSchema(option.type);
-      const nextArg = argv[i + 1];
+      const nextArgument = argv[index + 1];
 
-      let optionValue: string | boolean = argWithEquals ? argValue : nextArg;
+      let optionValue: string | boolean = argumentWithEquals ? argumentValue : nextArgument;
 
       // infer value for boolean options
-      if (isTypeBoolean && !argWithEquals) {
+      if (isTypeBoolean && !argumentWithEquals) {
         optionValue = "true";
       }
 
-      if (typeof optionValue === "undefined") {
+      if (optionValue === undefined) {
         throw new Error(`Expected a value for "${argument}" but got nothing`, { cause: "zod-args-parser" });
       }
 
-      if (!argWithEquals && isOptionArg(optionValue)) {
-        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArg}"`, {
+      if (!argumentWithEquals && isOptionArgument(optionValue)) {
+        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`, {
           cause: "zod-args-parser",
         });
       }
@@ -113,29 +113,29 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
       };
 
       // Skip to the next argument if it is the current option’s value.
-      if (!argWithEquals && !isTypeBoolean) {
-        i++;
+      if (!argumentWithEquals && !isTypeBoolean) {
+        index++;
       }
 
       continue;
     }
 
-    const subcommandObj = getSubcommandObj();
+    const subcommandObject = getSubcommandObject();
 
     // * Arguments check
-    if (subcommandObj?.arguments?.length) {
+    if (subcommandObject?.arguments?.length) {
       if (!results.arguments) {
         results.arguments = [];
       }
 
-      const currentArgCount = results.arguments.length;
+      const currentArgumentCount = results.arguments.length;
 
       // Any extra arguments are possibly positional
-      if (currentArgCount < subcommandObj.arguments.length) {
-        const argType = subcommandObj.arguments[currentArgCount].type;
+      if (currentArgumentCount < subcommandObject.arguments.length) {
+        const argumentType = subcommandObject.arguments[currentArgumentCount].type;
         results.arguments.push({
-          schema: argType,
-          rawValue: arg,
+          schema: argumentType,
+          rawValue: argument_,
           source: "cli",
         });
         continue;
@@ -143,37 +143,37 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
     }
 
     // * Positional check
-    if (subcommandObj?.allowPositional) {
+    if (subcommandObject?.allowPositional) {
       if (!results.positional) {
         results.positional = [];
       }
 
-      results.positional.push(arg);
+      results.positional.push(argument_);
       continue;
     }
 
     // * Unexpected
     if (!results.subcommand) {
-      throw new Error(`Unexpected argument "${arg}": positional arguments are not allowed here`, {
+      throw new Error(`Unexpected argument "${argument_}": positional arguments are not allowed here`, {
         cause: "zod-args-parser",
       });
     }
 
     throw new Error(
-      `Unexpected argument "${arg}": positional arguments are not allowed for subcommand "${results.subcommand}"`,
+      `Unexpected argument "${argument_}": positional arguments are not allowed for subcommand "${results.subcommand}"`,
       { cause: "zod-args-parser" },
     );
   }
 
   // * Check for missing options - set defaults - add `source`
-  const subcommandObj = getSubcommandObj();
-  if (!subcommandObj) {
+  const subcommandObject = getSubcommandObject();
+  if (!subcommandObject) {
     throw new Error(`Unknown subcommand: "${results.subcommand}"`, { cause: "zod-args-parser" });
   }
 
   // Options
-  if (subcommandObj.options?.length) {
-    for (const option of subcommandObj.options) {
+  if (subcommandObject.options?.length) {
+    for (const option of subcommandObject.options) {
       // option already exists
       if (option.name in results.options) continue;
 
@@ -181,7 +181,7 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
       const defaultValue = schemaDefaultValue(option.type);
 
       if (optional) {
-        if (typeof defaultValue === "undefined") {
+        if (defaultValue === undefined) {
           continue;
         }
 
@@ -189,24 +189,26 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
         continue;
       }
 
-      throw new Error(`Missing required option: ${transformOptionToArg(option.name)}`, { cause: "zod-args-parser" });
+      throw new Error(`Missing required option: ${transformOptionToArgument(option.name)}`, {
+        cause: "zod-args-parser",
+      });
     }
   }
 
   // Arguments
-  if (subcommandObj.arguments?.length) {
-    const currentArgCount = results.arguments?.length ?? 0;
-    const subcommandArgCount = subcommandObj.arguments.length;
+  if (subcommandObject.arguments?.length) {
+    const currentArgumentCount = results.arguments?.length ?? 0;
+    const subcommandArgumentCount = subcommandObject.arguments.length;
 
     // missing arguments
-    if (currentArgCount < subcommandArgCount) {
-      for (let i = currentArgCount; i < subcommandArgCount; i++) {
-        const argumentType = subcommandObj.arguments[i].type;
+    if (currentArgumentCount < subcommandArgumentCount) {
+      for (let index = currentArgumentCount; index < subcommandArgumentCount; index++) {
+        const argumentType = subcommandObject.arguments[index].type;
         const optional = isOptionalSchema(argumentType);
         const defaultValue = schemaDefaultValue(argumentType);
 
         if (optional) {
-          if (typeof defaultValue === "undefined") {
+          if (defaultValue === undefined) {
             continue;
           }
 
@@ -216,9 +218,10 @@ export function parse(argv: string[], ...params: [Cli, ...Subcommand[]]) {
           continue;
         }
 
-        throw new Error(`the ${generateOrdinalSuffix(i)} argument is required: "${subcommandObj.arguments[i].name}"`, {
-          cause: "zod-args-parser",
-        });
+        throw new Error(
+          `the ${generateOrdinalSuffix(index)} argument is required: "${subcommandObject.arguments[index].name}"`,
+          { cause: "zod-args-parser" },
+        );
       }
     }
   }

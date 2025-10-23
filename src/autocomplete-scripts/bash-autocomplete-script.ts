@@ -1,4 +1,4 @@
-import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
 
 import type { Cli, Subcommand } from "../types.js";
 
@@ -10,29 +10,29 @@ import type { Cli, Subcommand } from "../types.js";
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen bash to take effect
  */
-export function generateBashAutocompleteScript(...params: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = params;
+export function generateBashAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
+  const [cli, ...subcommands] = parameters;
 
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
-  const mappedCommands = subcommands.reduce((acc: MappedCommands, subcommand) => {
-    acc[subcommand.name] = {
-      options: subcommand.options?.map(option => transformOptionToArg(option.name)) ?? [],
+  const mappedCommands: MappedCommands = {};
+  for (const subcommand of subcommands) {
+    mappedCommands[subcommand.name] = {
+      options: subcommand.options?.map(option => transformOptionToArgument(option.name)) ?? [],
       aliases: subcommand.aliases ?? [],
     };
-    return acc;
-  }, {});
+  }
 
   let switchCase = "";
   for (const [key, { options, aliases }] of Object.entries(mappedCommands)) {
-    switchCase += `    ${key}${aliases.length ? "|" : ""}${aliases.join("|")})\n`;
+    switchCase += `    ${key}${aliases.length > 0 ? "|" : ""}${aliases.join("|")})\n`;
     switchCase += `      opts="${options.join(" ")}"\n`;
     switchCase += "      ;;\n";
   }
 
   if (cli.options?.length) {
     switchCase += `    "-"*)\n`;
-    switchCase += `      opts="${cli.options.map(option => transformOptionToArg(option.name)).join(" ")}"\n`;
+    switchCase += `      opts="${cli.options.map(option => transformOptionToArgument(option.name)).join(" ")}"\n`;
     switchCase += "      ;;\n";
   }
 

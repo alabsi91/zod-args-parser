@@ -1,22 +1,29 @@
-import { concat, indent, insertAtEndOfFirstLine, ln } from "../utils.js";
+import { concat, indent, insertAtEndOfFirstLine, ln } from "../utilities.ts";
 
 import type { ArgumentMetadata } from "../metadata/metadata-types.js";
-import type { HelpMsgStyle } from "../types.js";
+import type { HelpMessageStyle } from "../types.js";
 
-export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: HelpMsgStyle, longest: number): string {
-  if (!argsMetadata.length) return "";
+export function formatHelpMessageArguments(
+  argumentsMetadata: ArgumentMetadata[],
+  c: HelpMessageStyle,
+  longest: number,
+): string {
+  if (argumentsMetadata.length === 0) return "";
 
-  let msg = c.title(" ARGUMENTS") + ln(1);
+  let message = c.title(" ARGUMENTS") + ln(1);
 
-  for (const metadata of argsMetadata) {
-    const defaultStr =
-      typeof metadata.defaultValue !== "undefined" ? `(default: ${metadata.defaultValueAsString})` : "";
+  for (const metadata of argumentsMetadata) {
+    const defaultString = metadata.defaultValue === undefined ? "" : `(default: ${metadata.defaultValueAsString})`;
 
     const spacing = longest + 2 - metadata.name.length;
     const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
-    const defaultOrOptional = defaultStr ? c.default(defaultStr) : metadata.optional ? c.optional("(optional)") : "";
+    const defaultOrOptional = defaultString
+      ? c.default(defaultString)
+      : metadata.optional
+        ? c.optional("(optional)")
+        : "";
 
-    msg += concat(
+    message += concat(
       indent(2) + c.argument(metadata.name),
       indent(spacing),
       insertAtEndOfFirstLine(c.description(normalizeDesc), defaultOrOptional),
@@ -25,7 +32,7 @@ export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: Help
 
     if (metadata.example) {
       const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(longest + 16));
-      msg += concat(
+      message += concat(
         indent(longest + 5),
         c.punctuation("└") + c.exampleTitle("Example:"),
         c.example(normalizeExample) + ln(1),
@@ -33,7 +40,7 @@ export function formatHelpMsgArguments(argsMetadata: ArgumentMetadata[], c: Help
     }
   }
 
-  msg += ln(1);
+  message += ln(1);
 
-  return msg;
+  return message;
 }

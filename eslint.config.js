@@ -6,13 +6,14 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig({
-  files: ["src/**/*.ts"],
+  files: ["src/**/*.ts", "example/**/*.ts"],
   extends: [
     pluginJs.configs.recommended,
     tseslint.configs.recommendedTypeChecked,
     eslintPluginPrettierRecommended,
     eslintPluginUnicorn.configs.recommended,
   ],
+
   /** @type {import("typescript-eslint").ConfigArray[number]["languageOptions"]} */
   languageOptions: {
     globals: globals.node,
@@ -23,7 +24,12 @@ export default defineConfig({
       tsconfigRootDir: import.meta.dirname,
     },
   },
+
   rules: {
     "@typescript-eslint/no-explicit-any": "off",
+    "unicorn/prefer-spread": "off",
+    "unicorn/prefer-string-replace-all": "off",
+    "unicorn/no-nested-ternary": "off",
+    "unicorn/consistent-function-scoping": "off",
   },
 });

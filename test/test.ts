@@ -5,9 +5,9 @@ import * as z from "zod";
 import { createCli, safeParse } from "../src/index.js";
 import {
   decoupleFlags,
-  isOptionArg,
-  optionArgToVarNames,
-  transformOptionToArg,
+  isOptionArgument,
+  optionArgumentToVariableNames,
+  transformOptionToArgument,
 } from "../src/parser/parse/parser-helpers.js";
 
 const err = (...message: unknown[]) => chalk.bold.red(...message);
@@ -767,7 +767,7 @@ describe("Testing Utils", () => {
     ]);
 
     for (const [key, value] of testValues) {
-      assert.equal(transformOptionToArg(key), value, err(`"${key}" should be transformed to "${value}"`));
+      assert.equal(transformOptionToArgument(key), value, err(`"${key}" should be transformed to "${value}"`));
     }
   });
 
@@ -781,7 +781,7 @@ describe("Testing Utils", () => {
     ]);
 
     for (const [key, value] of testValues) {
-      assert.equal(isOptionArg(key), value, err(`"${key}" should${value ? "" : " not"} be an option argument.`));
+      assert.equal(isOptionArgument(key), value, err(`"${key}" should${value ? "" : " not"} be an option argument.`));
     }
   });
 
@@ -793,7 +793,7 @@ describe("Testing Utils", () => {
     ]);
 
     for (const [key, value] of testValues) {
-      const results = optionArgToVarNames(key);
+      const results = optionArgumentToVariableNames(key);
 
       const missingNames = value.difference(results);
       const extraNames = results.difference(value);

@@ -1,50 +1,60 @@
-import { SubcommandMetadata } from "./metadata/metadata-types.js";
+import { SubcommandMetadata } from "./metadata/metadata-types.ts";
 
 /**
  * Converts a string to its corresponding boolean value if the string is "true" or "false" (case-insensitive).
  *
- * @param str - The input string to convert.
+ * @param string - The input string to convert.
  * @returns `true` if the input is "true", `false` if the input is "false", or the original string otherwise.
  */
-export function stringToBoolean(str: string): boolean | string {
-  if (str.toLowerCase() === "true") {
+export function stringToBoolean(string: string): boolean | string {
+  if (string.toLowerCase() === "true") {
     return true;
   }
 
-  if (str.toLowerCase() === "false") {
+  if (string.toLowerCase() === "false") {
     return false;
   }
 
-  return str;
+  return string;
 }
 
 /**
- * Returns the ordinal representation of a given zero-based index.
+ * Converts a zero-based index into its human-readable ordinal form.
  *
- * For example, passing `0` returns `"1st"`, `1` returns `"2nd"`, and so on.
+ * Examples: 0 → "1st" 1 → "2nd" 2 → "3rd" 3 → "4th" 10 → "11th"
  *
- * Handles special cases for numbers ending in 11, 12, or 13 (e.g., `10` returns `"11th"`).
+ * Handles special cases for 11, 12, and 13.
  *
- * @param index - The zero-based index to convert to an ordinal string.
- * @returns The ordinal string representation (e.g., `"1st"`, `"2nd"`, `"3rd"`, `"4th"`, ...).
+ * @param index - The zero-based index to convert.
+ * @returns The ordinal string (e.g., "1st", "2nd", "3rd", "4th", ...).
  */
 export function generateOrdinalSuffix(index: number): string {
   if (index < 0) return "";
 
-  const suffixes = ["th", "st", "nd", "rd"];
-  const lastDigit = index % 10;
-  const lastTwoDigits = index % 100;
+  const number = index + 1;
+  const lastDigit = number % 10;
+  const lastTwoDigits = number % 100;
 
-  const suffix =
-    lastDigit === 1 && lastTwoDigits !== 11
-      ? suffixes[1]
-      : lastDigit === 2 && lastTwoDigits !== 12
-        ? suffixes[2]
-        : lastDigit === 3 && lastTwoDigits !== 13
-          ? suffixes[3]
-          : suffixes[0];
+  let suffix = "th";
 
-  return `${index + 1}${suffix}`;
+  if (lastTwoDigits < 11 || lastTwoDigits > 13) {
+    switch (lastDigit) {
+      case 1: {
+        suffix = "st";
+        break;
+      }
+      case 2: {
+        suffix = "nd";
+        break;
+      }
+      case 3: {
+        suffix = "rd";
+        break;
+      }
+    }
+  }
+
+  return `${number}${suffix}`;
 }
 
 /** New line */
@@ -67,7 +77,13 @@ export function concat(...messages: string[]) {
 export function stringifyValue(value: unknown): string {
   // Set
   if (value instanceof Set) {
-    return "new Set([" + Array.from(value).map(stringifyValue).join(", ") + "])";
+    return (
+      "new Set([" +
+      Array.from(value)
+        .map(element => stringifyValue(element))
+        .join(", ") +
+      "])"
+    );
   }
 
   // unknown
@@ -75,8 +91,8 @@ export function stringifyValue(value: unknown): string {
 }
 
 /** Insert text at the end of the first line */
-export function insertAtEndOfFirstLine(str: string, insert: string) {
-  const lines = str.split("\n");
+export function insertAtEndOfFirstLine(string: string, insert: string) {
+  const lines = string.split("\n");
   lines[0] += " " + insert;
   return lines.join("\n");
 }
@@ -85,11 +101,11 @@ export function insertAtEndOfFirstLine(str: string, insert: string) {
 export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
   let placeholder = metadata.placeholder;
 
-  if (!placeholder && metadata.options.length) {
+  if (!placeholder && metadata.options.length > 0) {
     placeholder = "[options]";
   }
 
-  if (!placeholder && metadata.arguments.length) {
+  if (!placeholder && metadata.arguments.length > 0) {
     placeholder = "<arguments>";
   }
 

@@ -85,7 +85,7 @@ export interface Subcommand {
    *   const helpCommand = createSubcommand({ name: "help", options: [...] });
    *   helpCommand.setAction(res => console.log(res));
    */
-  action?: (results?: any) => any;
+  action?: (data?: any) => any;
 
   /**
    * - The preValidation hook is executed before the action.
@@ -95,7 +95,7 @@ export interface Subcommand {
    *   const helpCommand = createSubcommand({ name: "help", options: [...] });
    *   helpCommand.setPreValidationHook(ctx => console.log(ctx));
    */
-  preValidation?: (ctx?: any) => any;
+  preValidation?: (context?: any) => any;
 }
 
 export type Cli = Prettify<
@@ -171,10 +171,10 @@ export interface Argument {
   example?: string;
 }
 
-export type ColorFnType = (...text: unknown[]) => string;
+export type ColorFunctionType = (...text: unknown[]) => string;
 
 /** - The colors to use for the help message. */
-export type HelpMsgStyle = Record<
+export type HelpMessageStyle = Record<
   | "title"
   | "description"
   | "default"
@@ -186,7 +186,7 @@ export type HelpMsgStyle = Record<
   | "argument"
   | "placeholder"
   | "punctuation",
-  ColorFnType
+  ColorFunctionType
 >;
 
 /**
@@ -264,8 +264,8 @@ export type ToOptional<T> = Prettify<
 export type NoSubcommand = { name: undefined };
 
 export type PrintMethods<N extends Subcommand["name"]> = {
-  printCliHelp: (style?: Partial<HelpMsgStyle>) => void;
-  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, style?: Partial<HelpMsgStyle>) => void;
+  printCliHelp: (style?: Partial<HelpMessageStyle>) => void;
+  printSubcommandHelp: (subcommand: LiteralUnion<NonNullable<N>>, style?: Partial<HelpMessageStyle>) => void;
 };
 
 export type UnsafeParseResult<S extends Partial<Subcommand>[]> =
@@ -281,18 +281,22 @@ export type SafeParseResult<S extends Partial<Subcommand>[]> =
           PrintMethods<NonNullable<S[number]["name"]>>
       >;
 
-export type ActionsFn<T extends Subcommand | Cli> = {
-  setAction: (actions: (res: UnsafeParseResult<[T]>) => void) => void;
-  setPreValidationHook: (hookFn: (ctx: ParseResult<[T]>) => void) => void;
+export type ActionsFunctions<T extends Subcommand | Cli> = {
+  setAction: (actions: (data: UnsafeParseResult<[T]>) => void) => void;
+  setPreValidationHook: (hook: (context: ParseResult<[T]>) => void) => void;
 };
 
 /** - Combine `name` and `aliases` to a `string[]` */
-type MapNameAndAliases2StrArr<T extends { name?: string; aliases?: string[] }[]> = T extends [
+type MapNameAndAliasesToStringArray<T extends { name?: string; aliases?: string[] }[]> = T extends [
   infer First extends Subcommand,
   ...infer Rest,
 ]
   ? Rest extends { name?: string; aliases?: string[] }[]
-    ? [First["name"], ...(First["aliases"] extends string[] ? First["aliases"] : []), ...MapNameAndAliases2StrArr<Rest>]
+    ? [
+        First["name"],
+        ...(First["aliases"] extends string[] ? First["aliases"] : []),
+        ...MapNameAndAliasesToStringArray<Rest>,
+      ]
     : [First["name"], ...(First["aliases"] extends string[] ? First["aliases"] : [])]
   : [];
 
@@ -300,11 +304,11 @@ type MapNameAndAliases2StrArr<T extends { name?: string; aliases?: string[] }[]>
  * - Find duplicated items in an array and return it
  * - Return `false` if not found
  */
-type IsDuplicatesInArr<Input extends any[]> = Input extends [infer Item, ...infer Rest]
+type IsDuplicatesInArray<Input extends any[]> = Input extends [infer Item, ...infer Rest]
   ? Rest extends any[]
     ? Item extends Rest[number]
       ? Item
-      : IsDuplicatesInArr<Rest>
+      : IsDuplicatesInArray<Rest>
     : false
   : false;
 
@@ -314,7 +318,7 @@ type IsDuplicatesInArr<Input extends any[]> = Input extends [infer Item, ...infe
  * - Return `undefined` if not found
  */
 export type CheckDuplicatedOptions<T extends { options?: Option[] }> = T["options"] extends infer O extends Option[]
-  ? IsDuplicatesInArr<MapNameAndAliases2StrArr<O>> extends infer Name extends string
+  ? IsDuplicatesInArray<MapNameAndAliasesToStringArray<O>> extends infer Name extends string
     ? `>>> Error: Duplicated Options. Check the options with the name \`${Name}\` <<<`
     : undefined
   : undefined;
@@ -325,7 +329,7 @@ export type CheckDuplicatedOptions<T extends { options?: Option[] }> = T["option
  * - Return the `undefined` if no error
  */
 type CheckDuplicatedSubcommands<T extends Partial<Subcommand>[]> =
-  IsDuplicatesInArr<MapNameAndAliases2StrArr<T>> extends infer Name extends string
+  IsDuplicatesInArray<MapNameAndAliasesToStringArray<T>> extends infer Name extends string
     ? `>>> Error: Duplicated Subcommand. Check the subcommands with the name \`${Name}\` <<<`
     : undefined;
 
@@ -336,7 +340,7 @@ type CheckDuplicatedSubcommands<T extends Partial<Subcommand>[]> =
  */
 export type CheckDuplicatedArguments<T extends { arguments?: Argument[] }> = T["arguments"] extends infer A extends
   Argument[]
-  ? IsDuplicatesInArr<MapNameAndAliases2StrArr<A>> extends infer Name extends string
+  ? IsDuplicatesInArray<MapNameAndAliasesToStringArray<A>> extends infer Name extends string
     ? `>>> Error: Duplicated Arguments. Check the arguments with the name \`${Name}\` <<<`
     : undefined
   : undefined;

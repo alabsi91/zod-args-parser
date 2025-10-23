@@ -64,11 +64,11 @@ type ParsedArgument<S extends Schema = Schema> =
       source: "default";
     };
 
-type OptionsArr2Record<T extends Option[] | undefined> = T extends Option[]
+type OptionsArray2Record<T extends Option[] | undefined> = T extends Option[]
   ? { [K in T[number]["name"]]: ParsedOption<Extract<T[number], { name: K }>["type"], K> }
   : Record<never, never>;
 
-type ArgumentsArr2ArrType<T extends Argument[] | undefined> = T extends Argument[]
+type ArgumentsArray2ArrayType<T extends Argument[] | undefined> = T extends Argument[]
   ? { [K in keyof T]: ParsedArgument<T[K] extends { type: Schema } ? T[K]["type"] : never> }
   : never;
 
@@ -76,12 +76,12 @@ export type ParseResult<S extends Partial<Subcommand>[]> = {
   [K in keyof S]: Prettify<{
     subcommand: S[K]["name"] extends string ? S[K]["name"] : undefined;
     positional: S[K]["allowPositional"] extends true ? string[] : never;
-    options: OptionsArr2Record<S[K]["options"]>;
-    arguments: ArgumentsArr2ArrType<S[K]["arguments"]>;
+    options: OptionsArray2Record<S[K]["options"]>;
+    arguments: ArgumentsArray2ArrayType<S[K]["arguments"]>;
   }>;
 }[number];
 
-export type ParseCtx = {
+export type ParsedContext = {
   subcommand: string | undefined;
   options: Record<string, ParsedOption>;
   arguments?: ParsedArgument[];

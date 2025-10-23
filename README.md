@@ -420,17 +420,17 @@ Subcommand help message example preview
 
 There are two ways to print the help message:
 
-1. `printCliHelp(style?: HelpMsgStyle)`  
+1. `printCliHelp(style?: HelpMessageStyle)`  
    Print the help message for the CLI.
 
-2. `printSubcommandHelp(subcommandName: string, style?: HelpMsgStyle)`  
+2. `printSubcommandHelp(subcommandName: string, style?: HelpMessageStyle)`  
    Print the help message for a specific subcommand.
 
-See the [HelpMsgStyle](#helpmsgstyle) type for more details.
+See the [HelpMessageStyle](#helpmsgstyle) type for more details.
 
 ```ts
 import chalk from "chalk";
-import { formatCliHelpMsg, formatSubcommandHelpMsg, helpMsgStyles } from "zod-args-parser";
+import { formatCliHelpMsg, formatSubcommandHelpMsg, helpMessageStyles } from "zod-args-parser";
 
 // Define the CLI schema
 const cliSchema = createCli(/* ... */);
@@ -440,10 +440,10 @@ const subcommandSchema = createSubcommand(/* ... */);
 
 subcommandSchema.setAction(results => {
   // print help for CLI (without colors)
-  results.printCliHelp(helpMsgStyles.noColors);
+  results.printCliHelp(helpMessageStyles.noColors);
 
   // choose a style
-  results.printCliHelp(helpMsgStyles.dracula);
+  results.printCliHelp(helpMessageStyles.dracula);
 
   // print help for subcommand (with custom title color)
   results.printSubcommandHelp("build", { title: chalk.red });
@@ -458,10 +458,10 @@ if (results.success) {
 }
 
 // get the string without printing to console
-const cliHelp = formatCliHelpMsg(schemas, helpMsgStyles.html);
+const cliHelp = formatCliHelpMsg(schemas, helpMessageStyles.html);
 console.log(`<pre style="background-color: #1e1e2e">${cliHelp}</pre>`);
 
-const subcommandHelp = formatSubcommandHelpMsg(subcommandSchema, helpMsgStyles.html, cliSchema.cliName);
+const subcommandHelp = formatSubcommandHelpMsg(subcommandSchema, helpMessageStyles.html, cliSchema.cliName);
 console.log(`<pre style="background-color: #1e1e2e">${subcommandHelp}</pre>`);
 ```
 
@@ -740,10 +740,10 @@ The context object is generated after parsing the CLI arguments and before valid
 | `[optionName: string]` | `unknown`                                            | Validated options for the CLI/subcommand.                                             |
 | arguments              | `unknown[] \| undefined`                             | Validated arguments for the CLI/subcommand.                                           |
 | positional             | `string[] \| undefined`                              | Positional array for the CLI/subcommand.                                              |
-| printCliHelp           | `(style?: HelpMsgStyle) => void`                     | Prints the CLI help message. See [HelpMsgStyle](#helpmsgstyle)                        |
-| printSubcommandHelp    | `(subcommand: string, style?: HelpMsgStyle) => void` | Prints the help message for a specified subcommand. See [HelpMsgStyle](#helpmsgstyle) |
+| printCliHelp           | `(style?: HelpMessageStyle) => void`                     | Prints the CLI help message. See [HelpMessageStyle](#helpmsgstyle)                        |
+| printSubcommandHelp    | `(subcommand: string, style?: HelpMessageStyle) => void` | Prints the help message for a specified subcommand. See [HelpMessageStyle](#helpmsgstyle) |
 
-#### HelpMsgStyle
+#### HelpMessageStyle
 
 Available styles: `default`, `dracula`, `solarizedDark`, `nord`, `html`, `gruvboxDark`, `monokai`, `oneDark`, `noColors`
 

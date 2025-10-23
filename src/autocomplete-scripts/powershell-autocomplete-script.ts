@@ -1,4 +1,4 @@
-import { transformOptionToArg } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
 
 import type { Cli, Subcommand } from "../types.js";
 
@@ -13,31 +13,33 @@ import type { Cli, Subcommand } from "../types.js";
  *   - Add the following line: `. "<generated script path>"`
  *   - Save and reopen powershell to take effect
  */
-export function generatePowerShellAutocompleteScript(...params: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = params;
+export function generatePowerShellAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
+  const [cli, ...subcommands] = parameters;
 
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
-  const mappedCommands = subcommands.reduce((acc: MappedCommands, subcommand) => {
-    acc[subcommand.name] = {
-      options: subcommand.options?.map(option => transformOptionToArg(option.name)) ?? [],
+  const mappedCommands: MappedCommands = {};
+  for (const subcommand of subcommands) {
+    mappedCommands[subcommand.name] = {
+      options: subcommand.options?.map(option => transformOptionToArgument(option.name)) ?? [],
       aliases: subcommand.aliases ?? [],
     };
-    return acc;
-  }, {});
+  }
 
-  const subcommandsStr = Object.keys(mappedCommands)
+  const subcommandsString = Object.keys(mappedCommands)
     .map(key => `'${key}'`)
     .join(", ");
-  const cliOptionsStr = cli.options?.map(option => `'${transformOptionToArg(option.name)}'`).join(", ") || "";
+  const cliOptionsString = cli.options?.map(option => `'${transformOptionToArgument(option.name)}'`).join(", ") || "";
 
   let switchCase = "switch ($subcommand) {\n";
   for (const [key, { options, aliases }] of Object.entries(mappedCommands)) {
-    const optionsStr = options.map(option => `'${option}'`).join(", ");
-    switchCase += `        '${key}' { @(${optionsStr}) }\n`;
-    aliases.forEach(a => (switchCase += `        '${a}' { @(${optionsStr}) }\n`));
+    const optionsString = options.map(option => `'${option}'`).join(", ");
+    switchCase += `        '${key}' { @(${optionsString}) }\n`;
+    for (const a of aliases) {
+      switchCase += `        '${a}' { @(${optionsString}) }\n`;
+    }
   }
-  switchCase += `        default { @(${cliOptionsStr}) }\n    }`;
+  switchCase += `        default { @(${cliOptionsString}) }\n    }`;
 
   let functionInfo = "";
   if (cli.description) {
@@ -65,7 +67,7 @@ function ${cli.cliName} {
 
 Register-ArgumentCompleter -CommandName '${cli.cliName}' -ParameterName 'subcommand' -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-    $subcommands = @(${subcommandsStr}${subcommandsStr && cliOptionsStr ? ", " : ""}${cliOptionsStr})
+    $subcommands = @(${subcommandsString}${subcommandsString && cliOptionsString ? ", " : ""}${cliOptionsString})
     $subcommands | Where-Object { $_ -like "$wordToComplete*" }
 }
 

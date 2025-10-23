@@ -1,20 +1,20 @@
-import { prettifyError } from "zod/v4";
+import { prettifyError } from "zod/v4/core";
 
-import { generateOrdinalSuffix, stringToBoolean } from "../../utils.js";
-import { isBooleanSchema, safeParseSchema } from "../../zod-utils.js";
+import { generateOrdinalSuffix, stringToBoolean } from "../../utilities.ts";
+import { isBooleanSchema, safeParseSchema } from "../../zod-utilities.ts";
 
-import type { ParseCtx } from "../parse/parse-types.js";
+import type { ParsedContext } from "../parse/parse-types.js";
 
 /** The return result object temporarily type. used inside the `parse` function */
-type ResultsTempType = Record<string, unknown> & {
+type ResultsTemporaryType = Record<string, unknown> & {
   subcommand: string | undefined;
   positional?: string[];
   arguments?: unknown[];
-  ctx: ParseCtx;
+  ctx: ParsedContext;
 };
 
-export function validate(parsedData: ParseCtx) {
-  const results: ResultsTempType = {
+export function validate(parsedData: ParsedContext) {
+  const results: ResultsTemporaryType = {
     subcommand: parsedData.subcommand,
     positional: parsedData.positional,
     ctx: parsedData,
@@ -33,14 +33,14 @@ export function validate(parsedData: ParseCtx) {
       }
     }
 
-    const res = safeParseSchema(schema, optionsValue);
-    if (!res.success) {
-      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(res.error)}`, {
+    const safeParseResult = safeParseSchema(schema, optionsValue);
+    if (!safeParseResult.success) {
+      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(safeParseResult.error)}`, {
         cause: "zod-args-parser",
       });
     }
 
-    results[optionName] = res.data;
+    results[optionName] = safeParseResult.data;
   }
 
   // validate arguments
@@ -48,17 +48,17 @@ export function validate(parsedData: ParseCtx) {
     if (!results.arguments) results.arguments = [];
 
     for (const { schema, rawValue } of parsedData.arguments) {
-      const argValue = rawValue && isBooleanSchema(schema) ? stringToBoolean(rawValue) : rawValue;
+      const argumentValue = rawValue && isBooleanSchema(schema) ? stringToBoolean(rawValue) : rawValue;
 
-      const res = safeParseSchema(schema, argValue);
-      if (!res.success) {
+      const safeParseResult = safeParseSchema(schema, argumentValue);
+      if (!safeParseResult.success) {
         throw new Error(
-          `The ${generateOrdinalSuffix(results.arguments.length)} argument "${rawValue}" is invalid: ${prettifyError(res.error)}`,
+          `The ${generateOrdinalSuffix(results.arguments.length)} argument "${rawValue}" is invalid: ${prettifyError(safeParseResult.error)}`,
           { cause: "zod-args-parser" },
         );
       }
 
-      results.arguments.push(res.data);
+      results.arguments.push(safeParseResult.data);
     }
   }
 

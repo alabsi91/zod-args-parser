@@ -1,5 +1,5 @@
 import type {
-  ActionsFn,
+  ActionsFunctions,
   Argument,
   CheckArgumentsOptional,
   CheckDuplicatedArguments,
@@ -17,45 +17,45 @@ import type {
  * - Insures no optional arguments are allowed when `allowPositional` is enabled
  */
 type CheckCliSubcommandInput<T extends Cli | Subcommand> =
-  CheckDuplicatedOptions<T> extends infer Err extends string
-    ? Err
-    : CheckDuplicatedArguments<T> extends infer Err extends string
-      ? Err
-      : CheckArgumentsOptional<T> extends infer Err extends string
-        ? Err
+  CheckDuplicatedOptions<T> extends infer Error extends string
+    ? Error
+    : CheckDuplicatedArguments<T> extends infer Error extends string
+      ? Error
+      : CheckArgumentsOptional<T> extends infer Error extends string
+        ? Error
         : T;
 
 export function createCli<const T extends Cli>(input: CheckCliSubcommandInput<T>) {
-  const setAction = (action: (res: any) => any) => {
+  const setAction = (action: (data: any) => any) => {
     if (typeof input === "string") return;
     input.action = action;
   };
 
-  const setPreValidationHook = (hook: (ctx: any) => any) => {
+  const setPreValidationHook = (hook: (context: any) => any) => {
     if (typeof input === "string") return;
     input.preValidation = hook;
   };
 
-  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFn<T>>;
+  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFunctions<T>>;
 }
 
 export function createSubcommand<const T extends Subcommand>(input: CheckCliSubcommandInput<T>) {
-  const setAction = (action: (res: any) => any) => {
+  const setAction = (action: (data: any) => any) => {
     if (typeof input === "string") return;
     input.action = action as T["action"];
   };
 
-  const setPreValidationHook = (hook: (ctx: any) => any) => {
+  const setPreValidationHook = (hook: (context: any) => any) => {
     if (typeof input === "string") return;
     input.preValidation = hook;
   };
 
-  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFn<T>>;
+  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFunctions<T>>;
 }
 
 /** - Insures that there are no duplicated options */
 type CheckOptionsInput<T extends Option[]> =
-  CheckDuplicatedOptions<{ options: T }> extends infer Err extends string ? Err : T;
+  CheckDuplicatedOptions<{ options: T }> extends infer Error extends string ? Error : T;
 
 export function createOptions<const T extends [Option, ...Option[]]>(options: CheckOptionsInput<T>) {
   return options;
@@ -63,24 +63,24 @@ export function createOptions<const T extends [Option, ...Option[]]>(options: Ch
 
 /** - Insures that only the last argument is optional */
 type CheckArgumentsInput<T extends Argument[]> =
-  CheckArgumentsOptional<{ arguments: T }> extends infer Err extends string ? Err : T;
+  CheckArgumentsOptional<{ arguments: T }> extends infer Error extends string ? Error : T;
 
-export function createArguments<const T extends [Argument, ...Argument[]]>(args: CheckArgumentsInput<T>) {
-  return args;
+export function createArguments<const T extends [Argument, ...Argument[]]>(arguments_: CheckArgumentsInput<T>) {
+  return arguments_;
 }
 
 export {
-  formatCliHelpMsg,
-  formatSubcommandHelpMsg,
+  formatCliHelpMessage as formatCliHelpMsg,
+  formatSubcommandHelpMessage as formatSubcommandHelpMsg,
   printCliHelp,
   printSubcommandHelp,
 } from "./help-message/format-cli.js";
-export { helpMsgStyles } from "./help-message/styles.js";
+export { helpMessageStyles } from "./help-message/styles.js";
 
 export { safeParse, safeParseAsync } from "./parser/safe-parse.js";
 export { unsafeParse as parse, unsafeParseAsync as parseAsync } from "./parser/unsafe-parse.js";
 
-export { isOptionalSchema, schemaDefaultValue, stringToArray, stringToSet } from "./zod-utils.js";
+export { isOptionalSchema, schemaDefaultValue, stringToArray, stringToSet } from "./zod-utilities.ts";
 
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.js";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.js";

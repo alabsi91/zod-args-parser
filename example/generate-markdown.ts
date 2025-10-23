@@ -3,4 +3,4 @@ import { generateMarkdown } from "zod-args-parser";
 import { cliSchemas } from "./cli.ts";
 
 const markdown = generateMarkdown(...cliSchemas);
-await writeFile("./CLI.md", markdown, { encoding: "utf-8" });
+await writeFile("./CLI.md", markdown, { encoding: "utf8" });

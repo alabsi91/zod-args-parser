@@ -7,7 +7,9 @@ import type { SubcommandMetadata } from "./metadata-types.js";
 export function getSubcommandsMetadata(subcommands: Subcommand[]): SubcommandMetadata[] {
   const outputMetadata: SubcommandMetadata[] = [];
 
-  if (!subcommands || !subcommands.length) return outputMetadata;
+  if (!subcommands || subcommands.length === 0) {
+    return outputMetadata;
+  }
 
   for (const subcommand of subcommands) {
     const optionsMetadata = subcommand.options ? getOptionsMetadata(subcommand.options) : [];

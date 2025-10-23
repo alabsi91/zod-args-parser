@@ -1,8 +1,9 @@
 import { ZodBoolean, ZodDefault, ZodEffects } from "zod/v3";
 import { safeParse } from "zod/v4/core";
 
+import type * as Z3 from "zod/v3";
 import type * as Z4 from "zod/v4/core";
-import type { Schema, SchemaV3, SchemaV4 } from "./types.js";
+import type { Schema, SchemaV3, SchemaV4 } from "./types.ts";
 
 function isV4Schema(schema: Schema): schema is SchemaV4 {
   return "_zod" in schema;
@@ -27,22 +28,22 @@ export function isBooleanSchema(schema: Schema): boolean {
 }
 
 function isBooleanV4Schema(schema: SchemaV4): boolean {
-  let def = schema._zod.def;
+  let schemaDefinition = schema._zod.def;
 
-  while (def) {
-    if (def.type === "boolean") {
+  while (schemaDefinition) {
+    if (schemaDefinition.type === "boolean") {
       return true;
     }
 
-    if (isV4DefPipe(def)) {
-      return isBooleanV4Schema(def.out);
+    if (isV4SchemaDefinitionPipe(schemaDefinition)) {
+      return isBooleanV4Schema(schemaDefinition.out);
     }
 
-    if (!isV4DefWithInnerType(def)) {
+    if (!isV4SchemaDefinitionHasInnerType(schemaDefinition)) {
       return false;
     }
 
-    def = def.innerType._zod.def;
+    schemaDefinition = schemaDefinition.innerType._zod.def;
   }
 
   return false;
@@ -50,23 +51,30 @@ function isBooleanV4Schema(schema: SchemaV4): boolean {
 
 function isBooleanV3Schema(schema: SchemaV3): boolean {
   let type = schema;
+
   while (type) {
     if (type instanceof ZodBoolean) {
       return true;
     }
 
     if (type instanceof ZodEffects) {
-      return isBooleanV3Schema(type._def.schema);
+      return isBooleanV3Schema(type._def.schema as SchemaV3);
     }
 
-    type = type._def.innerType;
+    const definition = type._def as Z3.ZodTypeDef;
+
+    if ("innerType" in definition) {
+      type = definition.innerType as Z3.ZodTypeAny;
+    }
+
+    return false;
   }
 
   return false;
 }
 
 /** - Get the default value of a schema */
-export function schemaDefaultValue(schema: Schema): unknown | undefined {
+export function schemaDefaultValue(schema: Schema): unknown {
   if (isV4Schema(schema)) {
     return schemaV4DefaultValue(schema);
   }
@@ -74,29 +82,29 @@ export function schemaDefaultValue(schema: Schema): unknown | undefined {
   return schemaV3DefaultValue(schema);
 }
 
-function schemaV4DefaultValue(schema: SchemaV4): unknown | undefined {
-  let def = schema._zod.def;
+function schemaV4DefaultValue(schema: SchemaV4): unknown {
+  let schemaDefinition = schema._zod.def;
 
-  while (def) {
-    if (isDefaultV4Def(def)) {
-      return def.defaultValue;
+  while (schemaDefinition) {
+    if (isSchemaDefinitionDefaultV4(schemaDefinition)) {
+      return schemaDefinition.defaultValue;
     }
 
-    if (isV4DefPipe(def)) {
-      return schemaV4DefaultValue(def.out);
+    if (isV4SchemaDefinitionPipe(schemaDefinition)) {
+      return schemaV4DefaultValue(schemaDefinition.out);
     }
 
-    if (!isV4DefWithInnerType(def)) {
+    if (!isV4SchemaDefinitionHasInnerType(schemaDefinition)) {
       return undefined;
     }
 
-    def = def.innerType._zod.def;
+    schemaDefinition = schemaDefinition.innerType._zod.def;
   }
 
   return undefined;
 }
 
-function schemaV3DefaultValue(schema: SchemaV3): unknown | undefined {
+function schemaV3DefaultValue(schema: SchemaV3): unknown {
   let type = schema;
   while (type) {
     if (type instanceof ZodDefault) {
@@ -104,20 +112,36 @@ function schemaV3DefaultValue(schema: SchemaV3): unknown | undefined {
     }
 
     if (type instanceof ZodEffects) {
-      return schemaV3DefaultValue(type._def.schema);
+      return schemaV3DefaultValue(type._def.schema as SchemaV3);
     }
 
-    type = type._def.innerType;
+    const definition = type._def as Z3.ZodTypeDef;
+
+    if ("innerType" in definition) {
+      type = definition.innerType as Z3.ZodTypeAny;
+    }
+
+    return;
   }
 
-  return undefined;
+  return;
 }
 
 /** - Get the description of a schema */
 export function schemaDescription(schema: Schema): string | undefined {
   if (isV4Schema(schema)) {
-    if (!("meta" in schema) || typeof schema.meta !== "function") return;
-    return schema.meta()?.description;
+    if (!("meta" in schema) || typeof schema.meta !== "function") {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const metaResult = schema.meta() as { description?: string } | undefined;
+
+    if (!metaResult || typeof metaResult !== "object" || !("description" in metaResult)) {
+      return;
+    }
+
+    return metaResult.description;
   }
 
   return schema.description;
@@ -132,8 +156,8 @@ export function isOptionalSchema(schema: Schema): schema is Z4.$ZodOptional {
   return schema.isOptional();
 }
 
-function isDefaultV4Def(def: Z4.$ZodTypeDef): def is Z4.$ZodDefaultDef {
-  return def.type === "default";
+function isSchemaDefinitionDefaultV4(schemaDefinition: Z4.$ZodTypeDef): schemaDefinition is Z4.$ZodDefaultDef {
+  return schemaDefinition.type === "default";
 }
 
 type SchemaWithInnerType =
@@ -147,7 +171,7 @@ type SchemaWithInnerType =
   | Z4.$ZodReadonlyDef
   | Z4.$ZodPromiseDef;
 
-function isV4DefWithInnerType(def: Z4.$ZodTypeDef): def is SchemaWithInnerType {
+function isV4SchemaDefinitionHasInnerType(schemaDefinition: Z4.$ZodTypeDef): schemaDefinition is SchemaWithInnerType {
   return new Set([
     "default",
     "prefault",
@@ -158,11 +182,11 @@ function isV4DefWithInnerType(def: Z4.$ZodTypeDef): def is SchemaWithInnerType {
     "catch",
     "readonly",
     "promise",
-  ]).has(def.type);
+  ]).has(schemaDefinition.type);
 }
 
-function isV4DefPipe(def: Z4.$ZodTypeDef): def is Z4.$ZodPipeDef {
-  return def.type === "pipe";
+function isV4SchemaDefinitionPipe(schemaDefinition: Z4.$ZodTypeDef): schemaDefinition is Z4.$ZodPipeDef {
+  return schemaDefinition.type === "pipe";
 }
 
 /**

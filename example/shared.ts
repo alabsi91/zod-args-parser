@@ -10,7 +10,7 @@ export const sharedOptions = createOptions([
   },
 ]);
 
-export const sharedArgs = createArguments([
+export const sharedArguments = createArguments([
   {
     name: "input-path",
     description: "The path to the input file",
