@@ -168,32 +168,23 @@ function isV4DefPipe(def: Z4.$ZodTypeDef): def is Z4.$ZodPipeDef {
 /**
  * A preprocessing function for Zod that converts a string to an array of strings.
  *
- * @param val - The value given by zod.
- * @param sep - The separator to use when splitting the string. Defaults to ",".
+ * @param stringValue - The string value given by zod.
+ * @param separator - The separator to use when splitting the string. Defaults to ",".
  */
-export function stringToArray(val: unknown, sep: string = ",") {
-  if (typeof val === "string") {
-    return val
-      .split(sep)
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
-
-  return val;
+export function stringToArray(stringValue: string, separator: string = ","): string[] {
+  return stringValue
+    .split(separator)
+    .map(s => s.trim())
+    .filter(Boolean);
 }
 
 /**
  * A preprocessing function for Zod that converts a string to a `Set` of strings.
  *
- * @param val - The value given by zod.
- * @param sep - The separator to use when splitting the string. Defaults to ",".
+ * @param stringValue - The string value given by zod.
+ * @param separator - The separator to use when splitting the string. Defaults to ",".
  */
-export function stringToSet(val: unknown, sep: string = ",") {
-  const maybeArray = stringToArray(val, sep);
-
-  if (Array.isArray(maybeArray)) {
-    return new Set(maybeArray);
-  }
-
-  return val;
+export function stringToSet(stringValue: string, separator: string = ","): Set<string> {
+  const maybeArray = stringToArray(stringValue, separator);
+  return new Set(maybeArray);
 }

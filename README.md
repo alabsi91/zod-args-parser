@@ -221,16 +221,16 @@ z.union([z.coerce.number(), z.literal("development")]);
 import { stringToArray, stringToSet } from "zod-args-parser";
 
 // Array -> string[]
-z.preprocess(val => stringToArray(val), z.string().array());
+z.preprocess((value: string) => stringToArray(value), z.string().array());
 
 // Tuple -> [string, number, boolean]
 z.preprocess(
-  val => stringToArray(val, ";"), // second arg is the separator (default: ",")
+  (value: string) => stringToArray(value, ";"), // second arg is the separator (default: ",")
   z.tuple([z.string(), z.coerce.number(), z.coerce.boolean()]),
 );
 
 // Set -> Set<string>
-z.preprocess(val => stringToSet(val), z.set(z.string()));
+z.preprocess((value: string) => stringToSet(value), z.set(z.string()));
 ```
 
 ### Options
@@ -473,10 +473,10 @@ console.log(`<pre style="background-color: #1e1e2e">${subcommandHelp}</pre>`);
 - `schemaDefaultValue(schema: ZodTypeAny): unknown | undefined`  
   Get the default value of a schema if it has one.
 
-- `stringToArray(value: unknown, separator?: string = ","): unknown`  
+- `stringToArray(value: string, separator?: string = ","): string[]`  
   A preprocessing handle to convert a string to an array.
 
-- `stringToSet(value: unknown, separator?: string = ","): unknown`  
+- `stringToSet(value: string, separator?: string = ","): Set<string>`  
   A preprocessing handle to convert a string to a set.
 
 ```ts
@@ -492,7 +492,7 @@ const cliSchema = createCli({
       placeholder: "<list>",
       description: "tags separated by semicolon (;)",
       example: "--tags tag1;tag2;tag3",
-      type: z.preprocess(val => stringToArray(val, ";"), z.array(z.string())),
+      type: z.preprocess((value: string) => stringToArray(value, ";"), z.array(z.string())),
     },
     {
       name: "verbose",
