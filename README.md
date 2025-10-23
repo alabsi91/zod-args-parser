@@ -11,7 +11,7 @@ A strictly typed command-line arguments parser powered by [Zod](https://github.c
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Guid](#guid)
+- [Guide](#guide)
   - [Subcommands](#subcommands)
   - [Type Zod Schemas](#type-zod-schemas)
   - [Options](#options)
@@ -139,7 +139,7 @@ if (!results.success) {
 }
 ```
 
-## Guid
+## Guide
 
 ### Subcommands
 
