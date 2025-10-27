@@ -26,5 +26,4 @@ configureSchema.setAction(results => {
   console.log("Configuring system:");
   console.log(`  Logging: ${results.enableLogging}`);
   console.log(`  Mode: ${results.mode}`);
-  console.log(results.ctx.options.enableLogging.flag);
 });

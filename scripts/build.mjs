@@ -5,6 +5,8 @@ import { glob } from "glob";
 import path from "path";
 import ts from "typescript";
 
+/** @import {TransformOptions} from '@babel/core' */
+
 // Paths
 const srcDir = "src";
 const libDir = "lib";
@@ -35,16 +37,19 @@ program.emit();
  * @param {string} filename
  * @param {string} sourceRoot
  * @param {boolean} [commonjs=false] Default is `false`
- * @returns
+ * @returns {TransformOptions}
  */
 const babelOptions = (filename, sourceRoot, commonjs = false) => ({
   presets: [
     ["@babel/preset-env", { targets: "defaults", modules: commonjs ? "commonjs" : false }],
     "@babel/preset-typescript",
   ],
+  plugins: [["replace-import-extension", { extMapping: { ".js": commonjs ? ".cjs" : ".mjs" } }]],
   filename,
   sourceRoot,
-  compact: true,
+  minified: true,
+  babelrc: false,
+  configFile: false,
   comments: false,
   sourceMaps: true,
 });
@@ -64,8 +69,8 @@ for (const filePath of tsFiles) {
 
   // commonjs paths
   const commonjsOutputDir = path.join(commonjsDir, dir);
-  const commonjsOutputPath = path.join(commonjsOutputDir, `${fileBaseName}.js`);
-  const commonjsMapOutputPath = path.join(commonjsOutputDir, `${fileBaseName}.js.map`);
+  const commonjsOutputPath = path.join(commonjsOutputDir, `${fileBaseName}.cjs`);
+  const commonjsMapOutputPath = path.join(commonjsOutputDir, `${fileBaseName}.cjs.map`);
   await mkdir(commonjsOutputDir, { recursive: true }); // Ensure directories exist
 
   // Source root relative path for source maps
@@ -101,8 +106,8 @@ for (const filePath of tsFiles) {
 
   // esm paths
   const esmOutputDir = path.join(esmDir, dir);
-  const esmOutputPath = path.join(esmOutputDir, `${fileBaseName}.js`);
-  const esmMapOutputPath = path.join(esmOutputDir, `${fileBaseName}.js.map`);
+  const esmOutputPath = path.join(esmOutputDir, `${fileBaseName}.mjs`);
+  const esmMapOutputPath = path.join(esmOutputDir, `${fileBaseName}.mjs.map`);
   await mkdir(esmOutputDir, { recursive: true }); // Ensure directories exist
 
   // Source root relative path for source maps
@@ -124,3 +129,9 @@ for (const filePath of tsFiles) {
 }
 
 console.log("\n✅ Compilation successful!\n");
+
+/** Replace the extension of a given path. */
+function replaceExtension(filePath, ext) {
+  const { dir, name } = path.parse(filePath);
+  return path.format({ dir, name, ext }).replace(/\\/g, "/");
+}
