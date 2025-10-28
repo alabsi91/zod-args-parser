@@ -45,7 +45,10 @@ it("-h, --help (optional: boolean): Pass `-H` instead of `-h`  " + expectsSucces
     assert.fail(err("Parsing failed with the error message:", result.error.message));
   }
 
-  assert(result.data.help, err("Invalid value for option `-H`. Expected `true`, but received:", result.data.help));
+  assert(
+    result.data.options.help,
+    err("Invalid value for option `-H`. Expected `true`, but received:", result.data.options.help),
+  );
 });
 
 describe("-h, --help (required: boolean)", () => {
@@ -65,8 +68,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      result.data.help,
-      err("Invalid value for option `--help`. Expected `true`, but received:", result.data.help),
+      result.data.options.help,
+      err("Invalid value for option `--help`. Expected `true`, but received:", result.data.options.help),
     );
   });
 
@@ -79,8 +82,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      result.data.help,
-      err("Invalid value for option `--help=true`. Expected `true`, but received:", result.data.help),
+      result.data.options.help,
+      err("Invalid value for option `--help=true`. Expected `true`, but received:", result.data.options.help),
     );
   });
 
@@ -93,8 +96,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      result.data.help,
-      err("Invalid value for option `--no-help=false`. Expected `true`, but received:", result.data.help),
+      result.data.options.help,
+      err("Invalid value for option `--no-help=false`. Expected `true`, but received:", result.data.options.help),
     );
   });
 
@@ -106,7 +109,10 @@ describe("-h, --help (required: boolean)", () => {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(result.data.help, err("Invalid value for option `-h`. Expected `true`, but received:", result.data.help));
+    assert(
+      result.data.options.help,
+      err("Invalid value for option `-h`. Expected `true`, but received:", result.data.options.help),
+    );
   });
 
   it("--help=false".padEnd(indent) + expectsFalse, () => {
@@ -118,8 +124,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      !result.data.help,
-      err("Invalid value for option `--help=false`. Expected `false`, but received:", result.data.help),
+      !result.data.options.help,
+      err("Invalid value for option `--help=false`. Expected `false`, but received:", result.data.options.help),
     );
   });
 
@@ -132,8 +138,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      !result.data.help,
-      err("Invalid value for option `--no-help`. Expected `false`, but received:", result.data.help),
+      !result.data.options.help,
+      err("Invalid value for option `--no-help`. Expected `false`, but received:", result.data.options.help),
     );
   });
 
@@ -146,8 +152,8 @@ describe("-h, --help (required: boolean)", () => {
     }
 
     assert(
-      !result.data.help,
-      err("Invalid value for option `--no-help=true`. Expected `false`, but received:", result.data.help),
+      !result.data.options.help,
+      err("Invalid value for option `--no-help=true`. Expected `false`, but received:", result.data.options.help),
     );
   });
 
@@ -237,8 +243,8 @@ it("-h, --help (optional: boolean): No arguments provided " + expectsUndefined, 
   }
 
   assert(
-    result.data.help === undefined,
-    err("Invalid value for option `help`. Expected `undefined`, but received:", result.data.help),
+    result.data.options.help === undefined,
+    err("Invalid value for option `help`. Expected `undefined`, but received:", result.data.options.help),
   );
 });
 
@@ -255,7 +261,10 @@ it("-h, --help (default: false):    No arguments provided " + expectsFalse + "  
     assert.fail(err("Parsing failed with the error message:", result.error.message));
   }
 
-  assert(!result.data.help, err("Invalid value for option `help`. Expected `false`, but received:", result.data.help));
+  assert(
+    !result.data.options.help,
+    err("Invalid value for option `help`. Expected `false`, but received:", result.data.options.help),
+  );
 });
 
 describe("-n, --number (required number)", () => {
@@ -275,8 +284,8 @@ describe("-n, --number (required number)", () => {
     }
 
     assert(
-      result.data.number === 123,
-      err("Invalid value for option `--number 123`. Expected `123`, but received:", result.data.number),
+      result.data.options.number === 123,
+      err("Invalid value for option `--number 123`. Expected `123`, but received:", result.data.options.number),
     );
   });
 
@@ -289,8 +298,8 @@ describe("-n, --number (required number)", () => {
     }
 
     assert(
-      result.data.number === 123,
-      err("Invalid value for option `-n 123`. Expected `123`, but received:", result.data.number),
+      result.data.options.number === 123,
+      err("Invalid value for option `-n 123`. Expected `123`, but received:", result.data.options.number),
     );
   });
 
@@ -303,8 +312,8 @@ describe("-n, --number (required number)", () => {
     }
 
     assert(
-      result.data.number === 0.5,
-      err("Invalid value for option `--number 0.5`. Expected `0.5`, but received:", result.data.number),
+      result.data.options.number === 0.5,
+      err("Invalid value for option `--number 0.5`. Expected `0.5`, but received:", result.data.options.number),
     );
   });
 
@@ -317,8 +326,8 @@ describe("-n, --number (required number)", () => {
     }
 
     assert(
-      result.data.number === 0.5,
-      err("Invalid value for option `-n 0.5`. Expected `0.5`, but received:", result.data.number),
+      result.data.options.number === 0.5,
+      err("Invalid value for option `-n 0.5`. Expected `0.5`, but received:", result.data.options.number),
     );
   });
 
@@ -373,8 +382,8 @@ it("-n, --number (optional: number): No arguments provided " + expectsUndefined,
   }
 
   assert(
-    result.data.number === undefined,
-    err("Invalid value for option `number`. Expected `undefined`, but received:", result.data.number),
+    result.data.options.number === undefined,
+    err("Invalid value for option `number`. Expected `undefined`, but received:", result.data.options.number),
   );
 });
 
@@ -392,8 +401,8 @@ it("-n, --number (default: 0.1):     No arguments provided " + expectsNumber + "
   }
 
   assert(
-    result.data.number === 0.1,
-    err("Invalid value for option `number`. Expected `0.1`, but received:", result.data.number),
+    result.data.options.number === 0.1,
+    err("Invalid value for option `number`. Expected `0.1`, but received:", result.data.options.number),
   );
 });
 
@@ -414,10 +423,10 @@ describe("-s, --string (required string)", () => {
     }
 
     assert(
-      result.data.string === "hello world",
+      result.data.options.string === "hello world",
       err(
         'Invalid value for option `--string "hello world"`. Expected `"hello world"`, but received:',
-        result.data.string,
+        result.data.options.string,
       ),
     );
   });
@@ -431,8 +440,11 @@ describe("-s, --string (required string)", () => {
     }
 
     assert(
-      result.data.string === "hello world",
-      err('Invalid value for option `-s "hello world"`. Expected `"hello world"`, but received:', result.data.string),
+      result.data.options.string === "hello world",
+      err(
+        'Invalid value for option `-s "hello world"`. Expected `"hello world"`, but received:',
+        result.data.options.string,
+      ),
     );
   });
 
@@ -444,7 +456,7 @@ describe("-s, --string (required string)", () => {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert.equal(result.data.string, "123");
+    assert.equal(result.data.options.string, "123");
   });
 
   it("-s 123".padEnd(indent) + expectsString, () => {
@@ -456,8 +468,8 @@ describe("-s, --string (required string)", () => {
     }
 
     assert(
-      result.data.string === "123",
-      err('Invalid value for option `-s 123`. Expected `"123"`, but received:', result.data.string),
+      result.data.options.string === "123",
+      err('Invalid value for option `-s 123`. Expected `"123"`, but received:', result.data.options.string),
     );
   });
 
@@ -494,8 +506,8 @@ it("-s, --string (optional: string):       No arguments provided " + expectsUnde
   }
 
   assert(
-    result.data.string === undefined,
-    err("Invalid value for option `string`. Expected `undefined`, but received:", result.data.string),
+    result.data.options.string === undefined,
+    err("Invalid value for option `string`. Expected `undefined`, but received:", result.data.options.string),
   );
 });
 
@@ -513,8 +525,11 @@ it("-s, --string (default: 'hello world'): No arguments provided " + expectsStri
   }
 
   assert(
-    result.data.string === "hello world",
-    err('Invalid default value for option `string`. Expected `"hello world"`, but received:', result.data.string),
+    result.data.options.string === "hello world",
+    err(
+      'Invalid default value for option `string`. Expected `"hello world"`, but received:',
+      result.data.options.string,
+    ),
   );
 });
 
@@ -536,10 +551,10 @@ it("-abcd, booleans flags     " + expectsSuccess, () => {
     assert.fail(err("Parsing failed with the error message:", result.error.message));
   }
 
-  assert(result.data.a, err("Invalid value for option `-a`. Expected `true`, but received:", result.data.a));
-  assert(result.data.b, err("Invalid value for option `-b`. Expected `true`, but received:", result.data.b));
-  assert(result.data.c, err("Invalid value for option `-c`. Expected `true`, but received:", result.data.c));
-  assert(result.data.d, err("Invalid value for option `-d`. Expected `true`, but received:", result.data.d));
+  assert(result.data.options.a, err("Invalid value for option `-a`. Expected `true`, but received:", result.data.options.a));
+  assert(result.data.options.b, err("Invalid value for option `-b`. Expected `true`, but received:", result.data.options.b));
+  assert(result.data.options.c, err("Invalid value for option `-c`. Expected `true`, but received:", result.data.options.c));
+  assert(result.data.options.d, err("Invalid value for option `-d`. Expected `true`, but received:", result.data.options.d));
 });
 
 describe("booleanArg stringArg numberArg", () => {
