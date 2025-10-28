@@ -41,7 +41,7 @@ export const convertSchema = createSubcommand({
 
 convertSchema.setAction(results => {
   const [source, destination] = results.arguments;
-  const { format, overwrite, verbose } = results;
+  const { format, overwrite, verbose } = results.options;
   console.log(`Converting "${source}" to "${destination}" in ${format} format.`);
   if (overwrite) console.log("Overwrite enabled.");
   if (verbose) console.log("Verbose mode enabled.");

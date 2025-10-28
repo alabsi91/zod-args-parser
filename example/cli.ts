@@ -31,7 +31,7 @@ const cliSchema = createCli({
 
 // Execute this function when the CLI is run
 cliSchema.setAction(results => {
-  const { help, version } = results;
+  const { help, version } = results.options;
 
   if (help) {
     results.printCliHelp(helpMessageStyles.default);

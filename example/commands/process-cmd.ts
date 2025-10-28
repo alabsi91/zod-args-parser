@@ -34,7 +34,7 @@ export const precessSchema = createSubcommand({
   ],
 });
 
-precessSchema.setAction(results => {
-  console.log(`Processing "${results.name}" ${results.count} times with tags:`, results.tags);
-  if (results.verbose) console.log("Verbose mode ON.");
+precessSchema.setAction(({ options }) => {
+  console.log(`Processing "${options.name}" ${options.count} times with tags:`, options.tags);
+  if (options.verbose) console.log("Verbose mode ON.");
 });

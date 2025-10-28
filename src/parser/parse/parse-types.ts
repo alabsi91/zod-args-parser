@@ -76,14 +76,14 @@ export type ParseResult<S extends Partial<Subcommand>[]> = {
   [K in keyof S]: Prettify<{
     subcommand: S[K]["name"] extends string ? S[K]["name"] : undefined;
     positional: S[K]["allowPositional"] extends true ? string[] : never;
-    options: OptionsArray2Record<S[K]["options"]>;
+    options: S[K]["options"] extends Option[] ? OptionsArray2Record<S[K]["options"]> : never;
     arguments: ArgumentsArray2ArrayType<S[K]["arguments"]>;
   }>;
 }[number];
 
 export type ParsedContext = {
   subcommand: string | undefined;
-  options: Record<string, ParsedOption>;
+  options?: Record<string, ParsedOption>;
   arguments?: ParsedArgument[];
   positional?: string[];
 };

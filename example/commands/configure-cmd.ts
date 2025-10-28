@@ -22,8 +22,8 @@ export const configureSchema = createSubcommand({
   ],
 });
 
-configureSchema.setAction(results => {
+configureSchema.setAction(({ options }) => {
   console.log("Configuring system:");
-  console.log(`  Logging: ${results.enableLogging}`);
-  console.log(`  Mode: ${results.mode}`);
+  console.log(`  Logging: ${options.enableLogging}`);
+  console.log(`  Mode: ${options.mode}`);
 });

@@ -10,6 +10,7 @@ type ResultsTemporaryType = Record<string, unknown> & {
   subcommand: string | undefined;
   positional?: string[];
   arguments?: unknown[];
+  options?: Record<string, unknown>;
   ctx: ParsedContext;
 };
 
@@ -21,26 +22,30 @@ export function validate(parsedData: ParsedContext) {
   };
 
   // validate options
-  for (const [optionName, { schema, rawValue, flag }] of Object.entries(parsedData.options)) {
-    let optionsValue: string | boolean | undefined = rawValue;
+  if (parsedData.options) {
+    if (!results.options) results.options = {};
 
-    // infer boolean value if possible
-    if (flag && rawValue && isBooleanSchema(schema)) {
-      const booleanValue = stringToBoolean(rawValue);
-      if (typeof booleanValue === "boolean") {
-        const isNegated = flag.startsWith("--no");
-        optionsValue = isNegated ? !booleanValue : booleanValue;
+    for (const [optionName, { schema, rawValue, flag }] of Object.entries(parsedData.options)) {
+      let optionsValue: string | boolean | undefined = rawValue;
+
+      // infer boolean value if possible
+      if (flag && rawValue && isBooleanSchema(schema)) {
+        const booleanValue = stringToBoolean(rawValue);
+        if (typeof booleanValue === "boolean") {
+          const isNegated = flag.startsWith("--no");
+          optionsValue = isNegated ? !booleanValue : booleanValue;
+        }
       }
-    }
 
-    const safeParseResult = safeParseSchema(schema, optionsValue);
-    if (!safeParseResult.success) {
-      throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(safeParseResult.error)}`, {
-        cause: "zod-args-parser",
-      });
-    }
+      const safeParseResult = safeParseSchema(schema, optionsValue);
+      if (!safeParseResult.success) {
+        throw new Error(`Invalid value "${rawValue}" for "${flag}": ${prettifyError(safeParseResult.error)}`, {
+          cause: "zod-args-parser",
+        });
+      }
 
-    results[optionName] = safeParseResult.data;
+      results.options[optionName] = safeParseResult.data;
+    }
   }
 
   // validate arguments

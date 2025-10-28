@@ -20,7 +20,6 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
 
   const results: ParsedContext = {
     subcommand: undefined,
-    options: {},
   };
 
   /** - Get current subcommand object */
@@ -80,7 +79,7 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
         throw new Error(`Unknown option: "${argument}"`, { cause: "zod-args-parser" });
       }
 
-      if (option.name in results.options) {
+      if (results.options && option.name in results.options) {
         throw new Error(`Duplicated option: "${argument}"`, { cause: "zod-args-parser" });
       }
 
@@ -102,6 +101,10 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
         throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`, {
           cause: "zod-args-parser",
         });
+      }
+
+      if (!results.options) {
+        results.options = {};
       }
 
       results.options[option.name] = {
@@ -175,7 +178,7 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
   if (subcommandObject.options?.length) {
     for (const option of subcommandObject.options) {
       // option already exists
-      if (option.name in results.options) continue;
+      if (results.options && option.name in results.options) continue;
 
       const optional = isOptionalSchema(option.type);
       const defaultValue = schemaDefaultValue(option.type);
@@ -183,6 +186,10 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
       if (optional) {
         if (defaultValue === undefined) {
           continue;
+        }
+
+        if (!results.options) {
+          results.options = {};
         }
 
         results.options[option.name] = { name: option.name, schema: option.type, source: "default" };
