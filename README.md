@@ -85,7 +85,7 @@ const cliSchema = createCli({
 
 // Execute this function when the CLI is run (no subcommands)
 cliSchema.setAction(results => {
-  const { help, version, verbose } = results;
+  const { help, version, verbose } = results.options;
 
   if (help) {
     results.printCliHelp();
@@ -734,14 +734,14 @@ The context object is generated after parsing the CLI arguments and before valid
 
 #### Results
 
-| Name                   | Type                                                 | Description                                                                           |
-| ---------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| subcommand             | `string \| undefined`                                | The name of the executed subcommand.                                                  |
-| `[optionName: string]` | `unknown`                                            | Validated options for the CLI/subcommand.                                             |
-| arguments              | `unknown[] \| undefined`                             | Validated arguments for the CLI/subcommand.                                           |
-| positional             | `string[] \| undefined`                              | Positional array for the CLI/subcommand.                                              |
-| printCliHelp           | `(style?: HelpMessageStyle) => void`                     | Prints the CLI help message. See [HelpMessageStyle](#helpmsgstyle)                        |
-| printSubcommandHelp    | `(subcommand: string, style?: HelpMessageStyle) => void` | Prints the help message for a specified subcommand. See [HelpMessageStyle](#helpmsgstyle) |
+| Name                | Type                                                     | Description                                                                               |
+| ------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| subcommand          | `string \| undefined`                                    | The name of the executed subcommand.                                                      |
+| options             | `{ [OptionName: string]: unknown }`                      | Validated options for the CLI/subcommand.                                                 |
+| arguments           | `unknown[] \| undefined`                                 | Validated arguments for the CLI/subcommand.                                               |
+| positional          | `string[] \| undefined`                                  | Positional array for the CLI/subcommand.                                                  |
+| printCliHelp        | `(style?: HelpMessageStyle) => void`                     | Prints the CLI help message. See [HelpMessageStyle](#helpmsgstyle)                        |
+| printSubcommandHelp | `(subcommand: string, style?: HelpMessageStyle) => void` | Prints the help message for a specified subcommand. See [HelpMessageStyle](#helpmsgstyle) |
 
 #### HelpMessageStyle
 
