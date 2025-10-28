@@ -32,16 +32,6 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
     if (index === 0) {
       results.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
 
-      // add positional and arguments arrays
-      const subcommandObject = getSubcommandObject();
-      if (subcommandObject && subcommandObject.allowPositional) {
-        results.positional = [];
-      }
-
-      if (subcommandObject && subcommandObject.arguments?.length) {
-        results.arguments = [];
-      }
-
       // First argument is a subcommand. Skip to the next argument
       if (results.subcommand) continue;
     }
@@ -126,7 +116,7 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
     const subcommandObject = getSubcommandObject();
 
     // * Arguments check
-    if (subcommandObject?.arguments?.length) {
+    if (subcommandObject?.arguments) {
       if (!results.arguments) {
         results.arguments = [];
       }
@@ -175,7 +165,11 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
   }
 
   // Options
-  if (subcommandObject.options?.length) {
+  if (subcommandObject.options) {
+    if (!results.options) {
+      results.options = {};
+    }
+
     for (const option of subcommandObject.options) {
       // option already exists
       if (results.options && option.name in results.options) continue;
@@ -186,10 +180,6 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
       if (optional) {
         if (defaultValue === undefined) {
           continue;
-        }
-
-        if (!results.options) {
-          results.options = {};
         }
 
         results.options[option.name] = { name: option.name, schema: option.type, source: "default" };
@@ -203,8 +193,12 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
   }
 
   // Arguments
-  if (subcommandObject.arguments?.length) {
-    const currentArgumentCount = results.arguments?.length ?? 0;
+  if (subcommandObject.arguments) {
+    if (!results.arguments) {
+      results.arguments = [];
+    }
+
+    const currentArgumentCount = results.arguments.length ?? 0;
     const subcommandArgumentCount = subcommandObject.arguments.length;
 
     // missing arguments
@@ -231,6 +225,10 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
         );
       }
     }
+  }
+
+  if (subcommandObject.allowPositional && !results.positional) {
+    results.positional = [];
   }
 
   return results;
