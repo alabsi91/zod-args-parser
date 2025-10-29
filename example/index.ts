@@ -8,8 +8,8 @@ import { cliSchemas } from "./cli.js";
 
 // const arguments_: string[] = ["help", "help"];
 // const arguments_: string[] = ["help", "process"];
-// const arguments_: string[] = ["help", "convert"];
-const arguments_: string[] = ["help", "configure"];
+const arguments_: string[] = ["help", "convert"];
+// const arguments_: string[] = ["help", "configure"];
 // const arguments_: string[] = ["help", "count"];
 
 // const arguments_: string[] = ["process", "--name", "test", "-c", "5", "--tags", "tag1;tag2;tag3", "-v"];

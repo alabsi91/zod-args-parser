@@ -8,7 +8,7 @@ import type { ParsedContext } from "../parse/parse-types.js";
 /** The return result object temporarily type. used inside the `parse` function */
 type ResultsTemporaryType = Record<string, unknown> & {
   subcommand: string | undefined;
-  positional?: string[];
+  positionals?: string[];
   arguments?: unknown[];
   options?: Record<string, unknown>;
   ctx: ParsedContext;
@@ -17,7 +17,7 @@ type ResultsTemporaryType = Record<string, unknown> & {
 export function validate(parsedData: ParsedContext) {
   const results: ResultsTemporaryType = {
     subcommand: parsedData.subcommand,
-    positional: parsedData.positional,
+    positionals: parsedData.positionals,
     ctx: parsedData,
   };
 

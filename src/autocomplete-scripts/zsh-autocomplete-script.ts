@@ -15,7 +15,7 @@ export function generateZshAutocompleteScript(...parameters: [Cli, ...Subcommand
 
   const genArguments = (options: Option[]) => {
     return options
-      ?.map(option => `'${transformOptionToArgument(option.name)}[${option.description ?? ""}]'`)
+      ?.map(option => `'${transformOptionToArgument(option.name)}[${option.meta?.description ?? ""}]'`)
       .join(" \\\n            ");
   };
 
@@ -61,7 +61,7 @@ _${cli.cliName}_autocomplete() {
   
 _${cli.cliName}_commands() {
   local -a commands=(
-    ${subcommands.map(subcommand => `"${subcommand.name}:${subcommand.description ?? ""}"`).join("\n    ")}
+    ${subcommands.map(subcommand => `"${subcommand.name}:${subcommand.meta?.description ?? ""}"`).join("\n    ")}
   )
 
   _describe -t subcommands 'subcommand' commands

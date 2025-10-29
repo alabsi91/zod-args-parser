@@ -109,7 +109,7 @@ export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
     placeholder = "<arguments>";
   }
 
-  if (metadata.allowPositional) {
+  if (metadata.allowPositionals) {
     placeholder += (placeholder ? " " : "") + "<positionals>";
   }
 

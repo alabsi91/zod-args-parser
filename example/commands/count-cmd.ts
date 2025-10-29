@@ -3,12 +3,14 @@ import { createSubcommand } from "zod-args-parser";
 export const countSchema = createSubcommand({
   name: "count",
   aliases: ["list"],
-  description: "Print a list of items provided by the user",
-  allowPositional: true,
+  meta: {
+    description: "Print a list of items provided by the user",
+  },
+  allowPositionals: true,
 });
 
 countSchema.setAction(results => {
-  const items = results.positional;
+  const items = results.positionals;
   if (items.length === 0) {
     console.log("No items provided");
     return;

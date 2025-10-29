@@ -11,20 +11,26 @@ import { precessSchema } from "./commands/process-cmd.js";
 // This will be used when no subcommands are provided. E.g. `argplay --help`
 const cliSchema = createCli({
   cliName: "argplay",
-  description: "A CLI to test argument parsing",
-  example: "example of how to use argplay\nargplay --help",
+  meta: {
+    description: "A CLI to test argument parsing",
+    example: "example of how to use argplay\nargplay --help",
+  },
   options: [
     {
       name: "help",
       aliases: ["h"],
-      description: "Show this help message",
       type: z.boolean().optional(),
+      meta: {
+        description: "Show this help message",
+      },
     },
     {
       name: "version",
       aliases: ["v"],
-      description: "Show version",
       type: z.boolean().optional(),
+      meta: {
+        description: "Show version",
+      },
     },
   ],
 });

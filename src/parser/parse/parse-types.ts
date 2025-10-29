@@ -75,7 +75,7 @@ type ArgumentsArray2ArrayType<T extends Argument[] | undefined> = T extends Argu
 export type ParseResult<S extends Partial<Subcommand>[]> = {
   [K in keyof S]: Prettify<{
     subcommand: S[K]["name"] extends string ? S[K]["name"] : undefined;
-    positional: S[K]["allowPositional"] extends true ? string[] : never;
+    positionals: S[K]["allowPositionals"] extends true ? string[] : never;
     options: S[K]["options"] extends Option[] ? OptionsArray2Record<S[K]["options"]> : never;
     arguments: ArgumentsArray2ArrayType<S[K]["arguments"]>;
   }>;
@@ -85,5 +85,5 @@ export type ParsedContext = {
   subcommand: string | undefined;
   options?: Record<string, ParsedOption>;
   arguments?: ParsedArgument[];
-  positional?: string[];
+  positionals?: string[];
 };

@@ -14,15 +14,16 @@ export function getSubcommandsMetadata(subcommands: Subcommand[]): SubcommandMet
   for (const subcommand of subcommands) {
     const optionsMetadata = subcommand.options ? getOptionsMetadata(subcommand.options) : [];
     const argumentsMetadata = subcommand.arguments ? getArgumentsMetadata(subcommand.arguments) : [];
+    const meta = subcommand.meta ?? {};
 
     outputMetadata.push({
       name: subcommand.name,
       aliases: subcommand.aliases ?? [],
-      description: subcommand.description ?? "",
-      placeholder: subcommand.placeholder ?? "",
-      usage: subcommand.usage ?? "",
-      example: subcommand.example ?? "",
-      allowPositional: subcommand.allowPositional ?? false,
+      description: meta.description ?? "",
+      placeholder: meta.placeholder ?? "",
+      usage: meta.usage ?? "",
+      example: meta.example ?? "",
+      allowPositionals: subcommand.allowPositionals ?? false,
       options: optionsMetadata,
       arguments: argumentsMetadata,
     });

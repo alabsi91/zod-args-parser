@@ -5,8 +5,10 @@ export const sharedOptions = createOptions([
   {
     name: "verbose",
     aliases: ["v"],
-    description: "Enable verbose mode",
     type: z.boolean().optional(),
+    meta: {
+      description: "Enable verbose mode",
+    },
   },
 ]);
 
@@ -15,5 +17,8 @@ export const sharedArguments = createArguments([
     name: "input-path",
     description: "The path to the input file",
     type: z.string().optional(),
+    meta: {
+      description: "<string>",
+    },
   },
 ]);

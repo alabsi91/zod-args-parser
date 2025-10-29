@@ -123,7 +123,7 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
 
       const currentArgumentCount = results.arguments.length;
 
-      // Any extra arguments are possibly positional
+      // Any extra arguments are possibly positionals
       if (currentArgumentCount < subcommandObject.arguments.length) {
         const argumentType = subcommandObject.arguments[currentArgumentCount].type;
         results.arguments.push({
@@ -136,24 +136,24 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
     }
 
     // * Positional check
-    if (subcommandObject?.allowPositional) {
-      if (!results.positional) {
-        results.positional = [];
+    if (subcommandObject?.allowPositionals) {
+      if (!results.positionals) {
+        results.positionals = [];
       }
 
-      results.positional.push(argument_);
+      results.positionals.push(argument_);
       continue;
     }
 
     // * Unexpected
     if (!results.subcommand) {
-      throw new Error(`Unexpected argument "${argument_}": positional arguments are not allowed here`, {
+      throw new Error(`Unexpected argument "${argument_}": positionals arguments are not allowed here`, {
         cause: "zod-args-parser",
       });
     }
 
     throw new Error(
-      `Unexpected argument "${argument_}": positional arguments are not allowed for subcommand "${results.subcommand}"`,
+      `Unexpected argument "${argument_}": positionals arguments are not allowed for subcommand "${results.subcommand}"`,
       { cause: "zod-args-parser" },
     );
   }
@@ -220,15 +220,15 @@ export function parse(argv: string[], ...parameters: [Cli, ...Subcommand[]]) {
         }
 
         throw new Error(
-          `the ${generateOrdinalSuffix(index)} argument is required: "${subcommandObject.arguments[index].name}"`,
+          `the ${generateOrdinalSuffix(index)} argument is required: "${subcommandObject.arguments[index]?.meta?.name ?? ""}"`,
           { cause: "zod-args-parser" },
         );
       }
     }
   }
 
-  if (subcommandObject.allowPositional && !results.positional) {
-    results.positional = [];
+  if (subcommandObject.allowPositionals && !results.positionals) {
+    results.positionals = [];
   }
 
   return results;

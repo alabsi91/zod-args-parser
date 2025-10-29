@@ -13,8 +13,8 @@ export interface CliMetadata {
   /** - The example of the cli program. Empty string if not provided */
   readonly example: string;
 
-  /** - Whether the cli program allows positional arguments. */
-  readonly allowPositional: boolean;
+  /** - Whether the cli program allows positionals arguments. */
+  readonly allowPositionals: boolean;
 
   /** - The options of the cli program. Empty array if not provided */
   readonly options: OptionMetadata[];
@@ -45,8 +45,8 @@ export interface SubcommandMetadata {
   /** - The example of the subcommand. Empty string if not provided */
   readonly example: string;
 
-  /** - Whether the subcommand allows positional arguments. */
-  readonly allowPositional: boolean;
+  /** - Whether the subcommand allows positionals arguments. */
+  readonly allowPositionals: boolean;
 
   /** - The options of the subcommand. Empty array if not provided */
   readonly options: OptionMetadata[];

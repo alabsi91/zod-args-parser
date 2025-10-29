@@ -19,6 +19,29 @@ export type ZodInferInput<T extends Schema> = T extends SchemaV4
     ? Z3.input<T>
     : never;
 
+export interface SubcommandMeta {
+  /** Text to display as a placeholder for the expected arguments (e.g. `[options] <arg1> <arg2>`). */
+  placeholder?: string;
+
+  /**
+   * Short explanation of what this cli/subcommand does.
+   *
+   * - Supports multi-line text.
+   * - Console color styles (like `chalk`) can be used; they will be stripped out in markdown.
+   */
+  description?: string;
+
+  /** E.g. `cliName subcommand [options] <arg1> <arg2>` */
+  usage?: string;
+
+  /**
+   * Example value shown to the user.
+   *
+   * - In markdown, this will be displayed inside a code block.
+   */
+  example?: string;
+}
+
 export interface Subcommand {
   /**
    * - The subcommand name
@@ -31,37 +54,19 @@ export interface Subcommand {
   name: string;
 
   /**
-   * - The description of the subcommand.
-   * - Used for generating the help message.
-   */
-  description?: string;
-
-  /** - The usage message in the help message. */
-  usage?: string;
-
-  /** - Used for generating the help message. */
-  placeholder?: string;
-
-  /**
-   * - Provide an example to show to the user.
-   * - Used for generating the help message.
-   */
-  example?: string;
-
-  /**
    * - The aliases of the subcommand.
    * - Make sure to not duplicate aliases and commands.
    */
   aliases?: string[];
 
   /**
-   * - Allows positional arguments for this subcommand.
-   * - Unlike `arguments`, which are strictly typed, positional arguments are untyped and represented as a string array of
-   *   variable length.
+   * - Allows positionals arguments for this subcommand.
+   * - Unlike `arguments`, which are strictly typed, positionals arguments are untyped and represented as a string array
+   *   of variable length.
    * - When enabled and `arguments` are provided, `arguments` will be parsed first. Any remaining arguments will be
-   *   considered positional arguments and added to the `positional` property in the result.
+   *   considered positionals arguments and added to the `positionals` property in the result.
    */
-  allowPositional?: boolean;
+  allowPositionals?: boolean;
 
   /**
    * - The options of the command.
@@ -96,14 +101,50 @@ export interface Subcommand {
    *   helpCommand.setPreValidationHook(ctx => console.log(ctx));
    */
   preValidation?: (context?: any) => any;
+
+  /** - Metadata for the subcommand. */
+  meta?: SubcommandMeta;
 }
 
 export type Cli = Prettify<
-  Omit<Subcommand, "name" | "aliases" | "placeholder"> & {
+  Omit<Subcommand, "name" | "aliases" | "meta"> & {
     /** - The name of the CLI program. */
     cliName: string;
+
+    /** - Metadata for the CLI. */
+    meta?: Omit<SubcommandMeta, "placeholder">;
   }
 >;
+
+export interface OptionMeta {
+  /** Text to display as a placeholder for the expected value (e.g. `<path>`, `<value>`). */
+  placeholder?: string;
+
+  /**
+   * Short explanation of what this option does.
+   *
+   * - Supports multi-line text.
+   * - Console color styles (like `chalk`) can be used; they will be stripped out in markdown.
+   */
+  description?: string;
+
+  /**
+   * Example value shown to the user.
+   *
+   * - In markdown, this will be displayed inside a code block.
+   */
+  example?: string;
+
+  /**
+   * Custom default value.
+   *
+   * - Use an empty string to intentionally show no default.
+   */
+  default?: string;
+
+  /** Override whether this option is considered optional. */
+  optional?: boolean;
+}
 
 export interface Option {
   /**
@@ -118,38 +159,11 @@ export interface Option {
   name: string;
 
   /**
-   * - The will be used to validate the user input.
-   *
-   * @see https://zod.dev/api
-   */
-  type: Schema;
-
-  /**
-   * - The description of the option.
-   * - Used for generating the help message.
-   */
-  description?: string;
-
-  /** - Used for generating the help message. */
-  placeholder?: string;
-
-  /**
-   * - The example of using the option.
-   * - Used for generating the help message.
-   */
-  example?: string;
-
-  /**
    * - The aliases of the option, use `CamelCase`.
    * - Here you can specify short names or flags.
    * - Make sure to not duplicate aliases.
    */
   aliases?: [string, ...string[]];
-}
-
-export interface Argument {
-  /** - The name of the argument. */
-  name: string;
 
   /**
    * - The will be used to validate the user input.
@@ -158,17 +172,50 @@ export interface Argument {
    */
   type: Schema;
 
+  /** Used for help message and documentation generation. */
+  meta?: OptionMeta;
+}
+
+export interface ArgumentMeta {
+  /** - The name of the argument. */
+  name?: string;
+
   /**
-   * - The description of the argument.
-   * - Used for generating the help message.
+   * Short explanation of what this argument does.
+   *
+   * - Supports multi-line text.
+   * - Console color styles (like `chalk`) can be used; they will be stripped out in markdown.
    */
   description?: string;
 
   /**
-   * - The example of using the argument.
-   * - Used for generating the help message.
+   * Example value shown to the user.
+   *
+   * - In markdown, this will be displayed inside a code block.
    */
   example?: string;
+
+  /**
+   * Custom default value.
+   *
+   * - Use an empty string to intentionally show no default.
+   */
+  default?: string;
+
+  /** Override whether this option is considered optional. */
+  optional?: boolean;
+}
+
+export interface Argument {
+  /**
+   * - The will be used to validate the user input.
+   *
+   * @see https://zod.dev/api
+   */
+  type: Schema;
+
+  /** Used for help message and documentation generation. */
+  meta?: ArgumentMeta;
 }
 
 export type ColorFunctionType = (...text: unknown[]) => string;
@@ -319,7 +366,7 @@ type IsDuplicatesInArray<Input extends any[]> = Input extends [infer Item, ...in
  */
 export type CheckDuplicatedOptions<T extends { options?: Option[] }> = T["options"] extends infer O extends Option[]
   ? IsDuplicatesInArray<MapNameAndAliasesToStringArray<O>> extends infer Name extends string
-    ? `>>> Error: Duplicated Options. Check the options with the name \`${Name}\` <<<`
+    ? `❌>>> Error: Duplicated Options. Check the options with the name \`${Name}\` <<<❌`
     : undefined
   : undefined;
 
@@ -330,36 +377,24 @@ export type CheckDuplicatedOptions<T extends { options?: Option[] }> = T["option
  */
 type CheckDuplicatedSubcommands<T extends Partial<Subcommand>[]> =
   IsDuplicatesInArray<MapNameAndAliasesToStringArray<T>> extends infer Name extends string
-    ? `>>> Error: Duplicated Subcommand. Check the subcommands with the name \`${Name}\` <<<`
+    ? `❌>>> Error: Duplicated Subcommand. Check the subcommands with the name \`${Name}\` <<<❌`
     : undefined;
-
-/**
- * - Check for duplicated arguments
- * - Return an error message if duplicated is found
- * - Return the `undefined` if no error
- */
-export type CheckDuplicatedArguments<T extends { arguments?: Argument[] }> = T["arguments"] extends infer A extends
-  Argument[]
-  ? IsDuplicatesInArray<MapNameAndAliasesToStringArray<A>> extends infer Name extends string
-    ? `>>> Error: Duplicated Arguments. Check the arguments with the name \`${Name}\` <<<`
-    : undefined
-  : undefined;
 
 type OptionalUnion = Z3.ZodOptional<Z3.ZodAny> | Z4.$ZodOptional | Z3.ZodDefault<Z3.ZodAny> | Z4.$ZodDefault;
 
 /**
  * - Insures that only the last argument is optional
- * - Insures no optional arguments are allowed when `allowPositional` is enabled
+ * - Insures no optional arguments are allowed when `allowPositionals` is enabled
  */
-export type CheckArgumentsOptional<T extends { allowPositional?: boolean; arguments?: readonly Argument[] }> =
+export type CheckArgumentsOptional<T extends { allowPositionals?: boolean; arguments?: readonly Argument[] }> =
   T["arguments"] extends readonly [...infer Rest, infer Last]
     ? Last extends { type: OptionalUnion }
-      ? T["allowPositional"] extends true
-        ? `>>> Error: Cannot have optional arguments when \`allowPositional\` is enabled. The argument \`${Last extends { name: string } ? Last["name"] : ""}\` should not be optional <<<`
+      ? T["allowPositionals"] extends true
+        ? `❌>>> Error: Cannot have optional arguments when \`allowPositionals\` is enabled. The argument \`${Last extends { meta: { name: string } } ? Last["meta"]["name"] : ""}\` should not be optional <<<❌`
         : T
       : Extract<Rest[number], { type: OptionalUnion }> extends never
         ? T
-        : T["allowPositional"] extends true
-          ? `>>> Error: Cannot have optional arguments when \`allowPositional\` is enabled. The argument \`${Rest[number] extends { name: string } ? Rest[number]["name"] : ""}\` should not be optional <<<`
-          : `>>> Error: Only the last argument may be optional. The argument \`${Rest[number] extends { name: string } ? Rest[number]["name"] : ""}\` should not be optional <<<`
+        : T["allowPositionals"] extends true
+          ? `❌>>> Error: Cannot have optional arguments when \`allowPositionals\` is enabled. The argument \`${Rest[number] extends { name: string } ? Rest[number]["name"] : ""}\` should not be optional <<<❌`
+          : `❌>>> Error: Only the last argument may be optional. The argument \`${Rest[number] extends { meta: { name: string } } ? Rest[number]["meta"]["name"] : ""}\` should not be optional <<<❌`
     : T;

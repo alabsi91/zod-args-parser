@@ -13,7 +13,7 @@ export type ValidateResult<S extends Partial<Subcommand>[]> = {
   [K in keyof S]: Prettify<{
     subcommand: S[K]["name"] extends string ? S[K]["name"] : undefined;
     arguments: ArgumentsArray2ArrayType<S[K]["arguments"]>;
-    positional: S[K]["allowPositional"] extends true ? string[] : never;
+    positionals: S[K]["allowPositionals"] extends true ? string[] : never;
     options: S[K]["options"] extends Option[] ? OptionsArray2RecordType<S[K]["options"]> : never;
     ctx: ParseResult<S>;
   }>;

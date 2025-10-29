@@ -29,7 +29,7 @@ export function formatCliHelpMessage(
       metadata.subcommands.length > 0 ? c.command("[command]") : "",
       metadata.options.length > 0 ? c.option("[options]") : "",
       metadata.arguments.length > 0 ? c.argument("<arguments>") : "",
-      metadata.allowPositional ? c.argument("<positionals>") : "",
+      metadata.allowPositionals ? c.argument("<positionals>") : "",
     );
   message += formatTitle("Usage") + ln(1);
   message += indent(2) + usage + ln(2);
@@ -117,17 +117,19 @@ export function formatSubcommandHelpMessage(
   const c = helpMessageStyles.default;
   if (printStyle) Object.assign(c, printStyle);
 
+  const meta = subcommand.meta ?? {};
+
   const usage =
-    subcommand.usage ||
+    meta.usage ||
     concat(
       c.punctuation("$"),
       cliName,
       c.command(subcommand.name),
       subcommand.options?.length ? c.option("[options]") : "",
-      subcommand.arguments?.length || subcommand.allowPositional ? c.argument("<arguments>") : "",
+      subcommand.arguments?.length || subcommand.allowPositionals ? c.argument("<arguments>") : "",
     );
 
-  const asCli: Cli = { cliName, usage, ...subcommand };
+  const asCli: Cli = { cliName, meta: { ...meta, usage }, ...subcommand };
 
   return formatCliHelpMessage([asCli], c);
 }

@@ -2,7 +2,6 @@ import type {
   ActionsFunctions,
   Argument,
   CheckArgumentsOptional,
-  CheckDuplicatedArguments,
   CheckDuplicatedOptions,
   Cli,
   Option,
@@ -12,61 +11,74 @@ import type {
 
 /**
  * - Insures that there are no duplicated options
- * - Insures that there are no duplicated arguments
  * - Insures that only the last argument is optional
- * - Insures no optional arguments are allowed when `allowPositional` is enabled
+ * - Insures no optional arguments are allowed when `allowPositionals` is enabled
  */
 type CheckCliSubcommandInput<T extends Cli | Subcommand> =
   CheckDuplicatedOptions<T> extends infer Error extends string
     ? Error
-    : CheckDuplicatedArguments<T> extends infer Error extends string
+    : CheckArgumentsOptional<T> extends infer Error extends string
       ? Error
-      : CheckArgumentsOptional<T> extends infer Error extends string
-        ? Error
-        : T;
+      : T;
 
-export function createCli<const T extends Cli>(input: CheckCliSubcommandInput<T>) {
+type KeyOnlyInFirst<First, Second> = Exclude<keyof First, keyof Second>;
+
+type Exact<Actual extends Wanted, Wanted> = {
+  [Key in keyof Actual]: Key extends KeyOnlyInFirst<Actual, Wanted> ? never : Actual[Key];
+};
+
+export function createCli<const T extends Cli>(input: T & NoInfer<Cli & CheckCliSubcommandInput<Exact<T, Cli>>>) {
+  const inputSchema = input as T;
+
   const setAction = (action: (data: any) => any) => {
-    if (typeof input === "string") return;
-    input.action = action;
+    if (typeof inputSchema === "string") return;
+    inputSchema.action = action;
   };
 
   const setPreValidationHook = (hook: (context: any) => any) => {
     if (typeof input === "string") return;
-    input.preValidation = hook;
+    inputSchema.preValidation = hook;
   };
 
-  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFunctions<T>>;
+  return Object.assign(inputSchema, { setAction, setPreValidationHook }) as Prettify<T & ActionsFunctions<T>>;
 }
 
-export function createSubcommand<const T extends Subcommand>(input: CheckCliSubcommandInput<T>) {
+export function createSubcommand<const T extends Subcommand>(
+  input: T & NoInfer<Subcommand & CheckCliSubcommandInput<Exact<T, Subcommand>>>,
+) {
+  const inputSchema = input as T;
+
   const setAction = (action: (data: any) => any) => {
-    if (typeof input === "string") return;
-    input.action = action as T["action"];
+    if (typeof inputSchema === "string") return;
+    inputSchema.action = action as T["action"];
   };
 
   const setPreValidationHook = (hook: (context: any) => any) => {
-    if (typeof input === "string") return;
-    input.preValidation = hook;
+    if (typeof inputSchema === "string") return;
+    inputSchema.preValidation = hook;
   };
 
-  return Object.assign(input, { setAction, setPreValidationHook }) as Prettify<typeof input & ActionsFunctions<T>>;
+  return Object.assign(inputSchema, { setAction, setPreValidationHook }) as Prettify<T & ActionsFunctions<T>>;
 }
 
 /** - Insures that there are no duplicated options */
 type CheckOptionsInput<T extends Option[]> =
   CheckDuplicatedOptions<{ options: T }> extends infer Error extends string ? Error : T;
 
-export function createOptions<const T extends [Option, ...Option[]]>(options: CheckOptionsInput<T>) {
-  return options;
+export function createOptions<const T extends [Option, ...Option[]]>(
+  options: T & NoInfer<[Option, ...Option[]] & CheckOptionsInput<T>>,
+) {
+  return options as T;
 }
 
 /** - Insures that only the last argument is optional */
 type CheckArgumentsInput<T extends Argument[]> =
   CheckArgumentsOptional<{ arguments: T }> extends infer Error extends string ? Error : T;
 
-export function createArguments<const T extends [Argument, ...Argument[]]>(arguments_: CheckArgumentsInput<T>) {
-  return arguments_;
+export function createArguments<const T extends [Argument, ...Argument[]]>(
+  arguments_: T & NoInfer<[Argument, ...Argument[]] & CheckArgumentsInput<T>>,
+) {
+  return arguments_ as T;
 }
 
 export {

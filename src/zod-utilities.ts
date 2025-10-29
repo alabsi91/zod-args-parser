@@ -127,26 +127,6 @@ function schemaV3DefaultValue(schema: SchemaV3): unknown {
   return;
 }
 
-/** - Get the description of a schema */
-export function schemaDescription(schema: Schema): string | undefined {
-  if (isV4Schema(schema)) {
-    if (!("meta" in schema) || typeof schema.meta !== "function") {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const metaResult = schema.meta() as { description?: string } | undefined;
-
-    if (!metaResult || typeof metaResult !== "object" || !("description" in metaResult)) {
-      return;
-    }
-
-    return metaResult.description;
-  }
-
-  return schema.description;
-}
-
 /** - Check if a schema is optional */
 export function isOptionalSchema(schema: Schema): schema is Z4.$ZodOptional {
   if (isV4Schema(schema)) {
