@@ -1,22 +1,4 @@
-import { SubcommandMetadata } from "./metadata/metadata-types.js";
-
-/**
- * Converts a string to its corresponding boolean value if the string is "true" or "false" (case-insensitive).
- *
- * @param string - The input string to convert.
- * @returns `true` if the input is "true", `false` if the input is "false", or the original string otherwise.
- */
-export function stringToBoolean(string: string): boolean | string {
-  if (string.toLowerCase() === "true") {
-    return true;
-  }
-
-  if (string.toLowerCase() === "false") {
-    return false;
-  }
-
-  return string;
-}
+import type { SubcommandMetadata } from "./metadata/metadata-types.ts";
 
 /**
  * Converts a zero-based index into its human-readable ordinal form.
@@ -68,10 +50,9 @@ export function indent(count: number) {
   return " ".repeat(count);
 }
 
-/** Concat strings */
-export function concat(...messages: string[]) {
-  // messages = messages.filter(Boolean);
-  return messages.join(" ");
+/** Indents every line in the given text by the provided number of spaces. Empty lines are preserved. */
+export function indentLines(text: string, spaces: number): string {
+  return text.replace(/\n/g, "\n" + indent(spaces));
 }
 
 export function stringifyValue(value: unknown): string {
@@ -93,7 +74,7 @@ export function stringifyValue(value: unknown): string {
 /** Insert text at the end of the first line */
 export function insertAtEndOfFirstLine(string: string, insert: string) {
   const lines = string.split("\n");
-  lines[0] += " " + insert;
+  lines[0] += (lines[0] ? " " : "") + insert;
   return lines.join("\n");
 }
 
@@ -101,12 +82,16 @@ export function insertAtEndOfFirstLine(string: string, insert: string) {
 export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
   let placeholder = metadata.placeholder;
 
-  if (!placeholder && metadata.options.length > 0) {
-    placeholder = "[options]";
+  if (placeholder) {
+    return placeholder;
   }
 
-  if (!placeholder && metadata.arguments.length > 0) {
-    placeholder = "<arguments>";
+  if (metadata.options.length > 0) {
+    placeholder += (placeholder ? " " : "") + "[options]";
+  }
+
+  if (metadata.arguments.length > 0) {
+    placeholder += (placeholder ? " " : "") + "<arguments>";
   }
 
   if (metadata.allowPositionals) {
@@ -118,4 +103,78 @@ export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
   }
 
   return placeholder;
+}
+
+export function parseArgv(input: string): string[] {
+  const argv = [];
+
+  let currentQuote: string | undefined = undefined;
+  let currentArgument: string | undefined = undefined;
+
+  for (let index = 0; index < input.length; index++) {
+    const char = input[index];
+    const previousChar = input[index - 1];
+    const nextChar = input[index + 1];
+    const end = index === input.length - 1;
+
+    // entering/leaving quote
+    if ((char === '"' || char === "'") && previousChar !== "\\") {
+      // leaving quote
+      if (currentQuote === char) {
+        currentQuote = undefined;
+        continue;
+      }
+
+      // entering quote
+      if (currentQuote === undefined) {
+        currentQuote = char;
+        continue;
+      }
+
+      // error
+      continue;
+    }
+
+    // new line
+    if (char === "\\" && nextChar === "\n") {
+      index++;
+      continue;
+    }
+
+    // Add to argv
+    if (currentArgument !== undefined && currentQuote === undefined) {
+      if (char === " ") {
+        argv.push(currentArgument);
+        currentArgument = undefined;
+        continue;
+      }
+
+      if (end) {
+        currentArgument += char;
+        argv.push(currentArgument);
+        currentArgument = undefined;
+        continue;
+      }
+    }
+
+    // Ignore spaces outside of quotes
+    if (char === " " && currentQuote === undefined) {
+      continue;
+    }
+
+    // Ignore escaped characters
+    if (char === "\\" && (nextChar === "'" || nextChar === '"')) {
+      continue;
+    }
+
+    currentArgument ??= "";
+    currentArgument += char;
+  }
+
+  // Add last argument
+  if (currentArgument !== undefined) {
+    argv.push(currentArgument);
+  }
+
+  return argv;
 }

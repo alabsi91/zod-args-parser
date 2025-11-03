@@ -1,43 +1,84 @@
-import { getCliMetadata } from "../metadata/get-cli-metadata.js";
-import { concat, indent, ln, subcommandPlaceholder } from "../utilities.js";
-import { formatHelpMessageArguments } from "./format-arguments.js";
-import { formatHelpMessageOptions } from "./format-options.js";
-import { formatHelpMessageCommands } from "./format-subcommands.js";
-import { helpMessageStyles } from "./styles.js";
+import { getCliMetadata } from "../metadata/get-cli-metadata.ts";
+import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts";
+import { formatHelpMessageArguments } from "./format-arguments.ts";
+import { formatHelpMessageOptions } from "./format-options.ts";
+import { formatHelpMessageCommands } from "./format-subcommands.ts";
+import { helpMessageStyles } from "./styles.ts";
 
-import type { Cli, HelpMessageStyle, Subcommand } from "../types.js";
+import type { Cli, Subcommand } from "../schemas/schema-types.ts";
+import type { HelpMessageStyle, PrintHelpOptions } from "../types.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
-export function formatCliHelpMessage(
-  parameters: readonly [Cli, ...Subcommand[]],
-  style?: Partial<HelpMessageStyle>,
-): string {
-  const c = helpMessageStyles.default;
-  if (style) Object.assign(c, style);
+export interface FormatOptions extends Required<PrintHelpOptions> {
+  style: HelpMessageStyle;
+  longest: number;
+}
 
-  const metadata = getCliMetadata(parameters);
+function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
+  const copy = { ...options };
 
-  const formatTitle = (title: string) => c.title(` ${title.toUpperCase()}`);
+  copy.style ??= helpMessageStyles.default;
+
+  copy.indentBeforeName ??= 2;
+  copy.indentAfterName ??= 4;
+  copy.indentBeforePlaceholder ??= 1;
+  copy.newLineIndent ??= 0;
+
+  copy.emptyLines ??= 0;
+  copy.emptyLinesBeforeTitle ??= 1;
+  copy.emptyLinesAfterTitle ??= 0;
+
+  copy.exampleKeyword ??= "Example";
+  copy.optionalKeyword ??= "(optional)";
+  copy.defaultKeyword ??= "(default: {{ value }})";
+
+  copy.usageTitle ??= "USAGE";
+  copy.descriptionTitle ??= "DESCRIPTION";
+  copy.commandsTitle ??= "COMMANDS";
+  copy.optionsTitle ??= "OPTIONS";
+  copy.argumentsTitle ??= "ARGUMENTS";
+  copy.exampleTitle ??= "EXAMPLE";
+
+  return copy as Required<FormatOptions>;
+}
+
+export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = {}): string {
+  const options = setPrintHelpOptionsDefaults(printOptions);
+
+  const style = helpMessageStyles.default;
+  Object.assign(style, options.style);
+
+  const metadata = getCliMetadata(cli);
+
+  const formatTitle = (title: string) => indent(1) + style.title(title);
 
   let message = "";
 
   // CLI usage
-  const usage =
-    metadata.usage ||
-    concat(
-      c.punctuation("$"),
-      c.description(metadata.name),
-      metadata.subcommands.length > 0 ? c.command("[command]") : "",
-      metadata.options.length > 0 ? c.option("[options]") : "",
-      metadata.arguments.length > 0 ? c.argument("<arguments>") : "",
-      metadata.allowPositionals ? c.argument("<positionals>") : "",
-    );
-  message += formatTitle("Usage") + ln(1);
-  message += indent(2) + usage + ln(2);
+  let usage = metadata.usage;
+  if (!usage) {
+    usage += style.punctuation("$");
+    usage += metadata.name ? style.description("", metadata.name) : "";
+    usage += metadata.subcommands.length > 0 ? style.command("", "[command]") : "";
+    usage += metadata.options.length > 0 ? style.option("", "[options]") : "";
+    usage += metadata.arguments.length > 0 ? style.argument("", "<arguments>") : "";
+    usage += metadata.allowPositionals ? style.argument("", "<positionals>") : "";
+  }
+
+  message += formatTitle(options.usageTitle) + ln(1 + options.emptyLinesAfterTitle);
+  message += indent(options.indentBeforeName) + usage + ln(1);
 
   // CLI description
-  if (metadata.description) {
-    message += formatTitle("Description") + ln(1);
-    message += indent(2) + c.description(metadata.description).replace(/\n+/g, "\n" + indent(2)) + ln(2);
+  if (metadata.description || metadata.descriptionMarkdown) {
+    message +=
+      ln(options.emptyLinesBeforeTitle) + formatTitle(options.descriptionTitle) + ln(1 + options.emptyLinesAfterTitle);
+
+    const normalizedDesc = indentLines(
+      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
+      options.indentBeforeName,
+    );
+
+    message += indent(options.indentBeforeName) + style.description(normalizedDesc) + ln(1);
   }
 
   let longest = 0;
@@ -49,14 +90,10 @@ export function formatCliHelpMessage(
   for (const metadata of optionsMetadata) {
     const names = [...metadata.aliasesAsArgs, metadata.nameAsArg].join(", ");
     const optLength = names.length + metadata.placeholder.length;
-    if (optLength > longestOptionTitle) {
-      longestOptionTitle = optLength;
-    }
+    longestOptionTitle = Math.max(optLength, longestOptionTitle);
   }
 
-  if (longestOptionTitle > longest) {
-    longest = longestOptionTitle;
-  }
+  longest = Math.max(longestOptionTitle, longest);
 
   // Prepare CLI commands
   const subcommandsMetadata = metadata.subcommands;
@@ -66,78 +103,62 @@ export function formatCliHelpMessage(
     const names = [...metadata.aliases, metadata.name].join(", ");
     const placeholder = subcommandPlaceholder(metadata);
     const optLength = names.length + placeholder.length;
-    if (optLength > longestSubcommandTitle) {
-      longestSubcommandTitle = optLength;
-    }
+    longestSubcommandTitle = Math.max(optLength, longestSubcommandTitle);
   }
 
-  if (longestSubcommandTitle > longest) {
-    longest = longestSubcommandTitle;
-  }
+  longest = Math.max(longestSubcommandTitle, longest);
 
   // Prepare CLI arguments
   const argumentsMetadata = metadata.arguments;
 
   let longestArgumentTitle = 0;
   for (const argument of argumentsMetadata) {
-    if (argument.name.length > longestArgumentTitle) {
-      longestArgumentTitle = argument.name.length;
-    }
+    longestArgumentTitle = Math.max(argument.name.length, longestArgumentTitle);
   }
 
-  if (longestArgumentTitle > longest) {
-    longest = longestArgumentTitle;
-  }
+  longest = Math.max(longestArgumentTitle, longest);
+
+  const formatOptions = Object.assign({ ...options }, { style, longest }) as FormatOptions;
 
   // CLI options
-  message += formatHelpMessageOptions(optionsMetadata, c, longest);
+  message += formatHelpMessageOptions(optionsMetadata, formatOptions);
 
   // CLI commands
-  message += formatHelpMessageCommands(subcommandsMetadata, c, longest);
+  message += formatHelpMessageCommands(subcommandsMetadata, formatOptions);
 
   // CLI arguments
-  message += formatHelpMessageArguments(argumentsMetadata, c, longest);
+  message += formatHelpMessageArguments(argumentsMetadata, formatOptions);
 
   // CLI example
   if (metadata.example) {
-    message += formatTitle("Example");
-    message += ln(1);
-    const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(3));
-    message += concat(indent(2), c.example(normalizeExample), ln(2));
+    message +=
+      ln(options.emptyLinesBeforeTitle) + formatTitle(options.exampleTitle) + ln(1 + options.emptyLinesAfterTitle);
+    const normalizeExample = indentLines(metadata.example, options.indentBeforeName);
+    message += indent(options.indentBeforeName) + style.example(normalizeExample);
   }
 
   return message;
 }
 
-export function formatSubcommandHelpMessage(
-  subcommand: Subcommand,
-  printStyle?: Partial<HelpMessageStyle>,
-  cliName = "",
-) {
-  const c = helpMessageStyles.default;
-  if (printStyle) Object.assign(c, printStyle);
+export function formatSubcommandHelpMessage(subcommand: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
+  setPrintHelpOptionsDefaults(options);
+
+  const style = helpMessageStyles.default;
+  Object.assign(style, options.style);
 
   const meta = subcommand.meta ?? {};
 
-  const usage =
-    meta.usage ||
-    concat(
-      c.punctuation("$"),
-      cliName,
-      c.command(subcommand.name),
-      subcommand.options?.length ? c.option("[options]") : "",
-      subcommand.arguments?.length || subcommand.allowPositionals ? c.argument("<arguments>") : "",
-    );
+  let usage = meta.usage;
+  if (!usage) {
+    usage += style.punctuation("$");
+    usage += cliName ? ` ${cliName}` : "";
+    usage += style.command("", subcommand.name);
+    usage += subcommand.options ? style.option(" [options]") : "";
+    usage += subcommand.arguments || subcommand.allowPositionals ? style.argument(" <arguments>") : "";
+  }
 
-  const asCli: Cli = { cliName, meta: { ...meta, usage }, ...subcommand };
+  // convert to cli object without subcommands
+  const asCli: Cli = { ...subcommand, cliName: subcommand.name, meta: { usage, ...meta } };
 
-  return formatCliHelpMessage([asCli], c);
-}
-
-export function printCliHelp(parameters: readonly [Cli, ...Subcommand[]], style?: Partial<HelpMessageStyle>) {
-  console.log(formatCliHelpMessage(parameters, style));
-}
-
-export function printSubcommandHelp(subcommand: Subcommand, style?: Partial<HelpMessageStyle>, cliName = "") {
-  console.log(formatSubcommandHelpMessage(subcommand, style, cliName));
+  return formatCliHelpMessage(asCli, options);
 }

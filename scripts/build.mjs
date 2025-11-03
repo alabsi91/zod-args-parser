@@ -44,7 +44,12 @@ const babelOptions = (filename, sourceRoot, commonjs = false) => ({
     ["@babel/preset-env", { targets: "defaults", modules: commonjs ? "commonjs" : false }],
     "@babel/preset-typescript",
   ],
-  plugins: [["replace-import-extension", { extMapping: { ".js": commonjs ? ".cjs" : ".mjs" } }]],
+  plugins: [
+    [
+      "replace-import-extension",
+      { extMapping: { ".js": commonjs ? ".cjs" : ".mjs", ".ts": commonjs ? ".cjs" : ".mjs" } },
+    ],
+  ],
   filename,
   sourceRoot,
   minified: true,

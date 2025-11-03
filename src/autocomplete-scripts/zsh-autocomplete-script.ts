@@ -1,6 +1,6 @@
-import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
 
-import type { Cli, Option, Subcommand } from "../types.js";
+import type { Cli, Subcommand } from "../schemas/schema-types.ts";
 
 /**
  * - Generates a ZSH autocomplete script for your CLI.
@@ -10,21 +10,25 @@ import type { Cli, Option, Subcommand } from "../types.js";
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-export function generateZshAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = parameters;
+export function generateZshAutocompleteScript(cli: Cli): string {
+  const subcommands = cli.subcommands ?? [];
 
-  const genArguments = (options: Option[]) => {
-    return options
-      ?.map(option => `'${transformOptionToArgument(option.name)}[${option.meta?.description ?? ""}]'`)
-      .join(" \\\n            ");
+  const genArguments = (command: Subcommand) => {
+    const optionsNameDesc = command.options
+      ? Object.entries(command.options).map(
+          ([name, value]) => `'${transformOptionToArgument(name)}[${value.meta?.description ?? ""}]'`,
+        )
+      : [];
+
+    return optionsNameDesc.join(" \\\n            ");
   };
 
   const genSubCommand = (subcommand: Subcommand) => {
     const options = subcommand.options;
-    if (!options || options.length === 0) return "";
+    if (!options) return "";
     return `${subcommand.name})
           _arguments \\
-            ${genArguments(options)} \\
+            ${genArguments(subcommand)} \\
             '*: :_files' \\
             && ret=0
           ;;`;

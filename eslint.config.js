@@ -1,11 +1,11 @@
 import pluginJs from "@eslint/js";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default defineConfig({
+export default defineConfig(globalIgnores(["test/"]), {
   files: ["src/**/*.ts", "example/**/*.ts"],
   extends: [
     pluginJs.configs.recommended,
@@ -27,6 +27,7 @@ export default defineConfig({
 
   rules: {
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/consistent-type-definitions": "error",
     "unicorn/prefer-spread": "off",
     "unicorn/prefer-string-replace-all": "off",
     "unicorn/no-nested-ternary": "off",

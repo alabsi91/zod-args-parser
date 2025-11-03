@@ -1,6 +1,6 @@
-import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
 
-import type { Cli, Subcommand } from "../types.js";
+import type { Cli } from "../schemas/schema-types.ts";
 
 /**
  * - Generates a PowerShell autocomplete script for your CLI.
@@ -13,15 +13,15 @@ import type { Cli, Subcommand } from "../types.js";
  *   - Add the following line: `. "<generated script path>"`
  *   - Save and reopen powershell to take effect
  */
-export function generatePowerShellAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = parameters;
+export function generatePowerShellAutocompleteScript(cli: Cli): string {
+  const subcommands = cli.subcommands ?? [];
 
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
   const mappedCommands: MappedCommands = {};
   for (const subcommand of subcommands) {
     mappedCommands[subcommand.name] = {
-      options: subcommand.options?.map(option => transformOptionToArgument(option.name)) ?? [],
+      options: subcommand.options ? Object.keys(subcommand.options).map(key => transformOptionToArgument(key)) : [],
       aliases: subcommand.aliases ?? [],
     };
   }
@@ -29,7 +29,9 @@ export function generatePowerShellAutocompleteScript(...parameters: [Cli, ...Sub
   const subcommandsString = Object.keys(mappedCommands)
     .map(key => `'${key}'`)
     .join(", ");
-  const cliOptionsString = cli.options?.map(option => `'${transformOptionToArgument(option.name)}'`).join(", ") || "";
+
+  const optionsNames = cli.options ? Object.keys(cli.options).map(key => transformOptionToArgument(key)) : [];
+  const cliOptionsString = optionsNames.join(", ");
 
   let switchCase = "switch ($subcommand) {\n";
   for (const [key, { options, aliases }] of Object.entries(mappedCommands)) {

@@ -1,24 +1,25 @@
-import { generateOrdinalSuffix, stringifyValue } from "../utilities.js";
-import { isOptionalSchema, schemaDefaultValue } from "../zod-utilities.js";
+import { generateOrdinalSuffix, stringifyValue } from "../utilities.ts";
 
-import type { Argument } from "../types.js";
-import type { ArgumentMetadata } from "./metadata-types.js";
+import type { Argument } from "../schemas/schema-types.ts";
+import type { ArgumentMetadata } from "./metadata-types.ts";
 
 export function getArgumentsMetadata(arguments_: Argument[]): ArgumentMetadata[] {
   const outputMetadata: ArgumentMetadata[] = [];
 
   for (const argument of arguments_) {
-    const defaultValue = schemaDefaultValue(argument.type);
+    const defaultValue = argument.type.defaultValue;
     const meta = argument.meta ?? {};
 
     outputMetadata.push({
       name: meta.name ?? generateOrdinalSuffix(outputMetadata.length) + " argument",
       description: meta.description ?? "",
+      descriptionMarkdown: meta.descriptionMarkdown ?? "",
       defaultValue,
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",
-      optional: meta.optional ?? isOptionalSchema(argument.type),
+      optional: meta.optional ?? argument.type.isOptional,
       example: meta.example ?? "",
-      type: argument.type,
+      schema: argument.type.schema,
+      hidden: meta.hidden ?? false,
     });
   }
 

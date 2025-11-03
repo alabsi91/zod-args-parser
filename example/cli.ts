@@ -1,46 +1,68 @@
+import * as v from "valibot";
 import * as z from "zod";
-import { createCli, helpMessageStyles } from "zod-args-parser";
+import { coerce, createCli } from "zod-args-parser";
+import * as Schema from "effect/Schema";
 
-import { configureSchema } from "./commands/configure-cmd.js";
-import { convertSchema } from "./commands/convert-cmd.js";
-import { countSchema } from "./commands/count-cmd.js";
-import { helpCommandSchema } from "./commands/help-cmd.js";
-import { precessSchema } from "./commands/process-cmd.js";
+import { addItemsSubcommandSchema } from "./commands/add-items.ts";
+import { createListSubcommandSchema } from "./commands/create-list.ts";
+import { deleteListSubcommandSchema } from "./commands/delete-list.ts";
+import { helpSubcommandSchema } from "./commands/help-cmd.js";
+import { removeItemsSubcommandSchema } from "./commands/remove-items.ts";
+import { sharedArguments, sharedOptions } from "./shared.js";
 
-// Create a CLI schema
-// This will be used when no subcommands are provided. E.g. `argplay --help`
-const cliSchema = createCli({
-  cliName: "argplay",
+export const cliSchema = createCli({
+  cliName: "listy",
   meta: {
-    description: "A CLI to test argument parsing",
-    example: "example of how to use argplay\nargplay --help",
+    descriptionMarkdown: "**Listy** is a simple CLI to showcase arguments **parsing** and **validation**.",
+    example:
+      "listy --help" +
+      "\nlisty help add-items" +
+      "\nlisty add-items --list groceries --items egg,milk,bread --tags food" +
+      "\nlisty remove-items --list todos clean cook" +
+      '\nlisty create-list groceries "List of groceries"' +
+      "\nlisty delete-list groceries",
   },
-  options: [
-    {
-      name: "help",
-      aliases: ["h"],
-      type: z.boolean().optional(),
-      meta: {
-        description: "Show this help message",
-      },
-    },
-    {
-      name: "version",
-      aliases: ["v"],
-      type: z.boolean().optional(),
-      meta: {
-        description: "Show version",
-      },
-    },
+
+  subcommands: [
+    addItemsSubcommandSchema,
+    removeItemsSubcommandSchema,
+    createListSubcommandSchema,
+    deleteListSubcommandSchema,
+    helpSubcommandSchema,
   ],
+
+  options: {
+    help: {
+      aliases: ["h"],
+      type: coerce.boolean(z.boolean().optional()),
+      meta: {
+        description: "Show help message.",
+      },
+    },
+    version: {
+      aliases: ["v"],
+
+      // Zod: `z.boolean().optional()` | `z.boolean().default(false)`
+      // Arktype: `type("boolean|undefined")` default and optional are not supported for primitive types
+      type: coerce.boolean(Schema.standardSchemaV1(Schema.Boolean)),
+      meta: {
+        description: "Show listy version.",
+      },
+    },
+
+    ...sharedOptions,
+  },
+
+  arguments: sharedArguments,
 });
+
 
 // Execute this function when the CLI is run
 cliSchema.setAction(results => {
   const { help, version } = results.options;
 
   if (help) {
-    results.printCliHelp(helpMessageStyles.default);
+    cliSchema.printCliHelp?.();
     return;
   }
 
@@ -51,12 +73,3 @@ cliSchema.setAction(results => {
 
   console.error("Please try `argplay --help`");
 });
-
-export const cliSchemas = [
-  cliSchema,
-  precessSchema,
-  convertSchema,
-  configureSchema,
-  countSchema,
-  helpCommandSchema,
-] as const;

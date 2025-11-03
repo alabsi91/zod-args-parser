@@ -1,34 +1,35 @@
-import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
-import { stringifyValue } from "../utilities.js";
-import { isOptionalSchema, schemaDefaultValue } from "../zod-utilities.js";
+import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
+import { stringifyValue } from "../utilities.ts";
 
-import type { Option } from "../types.js";
-import type { OptionMetadata } from "./metadata-types.js";
+import type { Option } from "../schemas/schema-types.ts";
+import type { OptionMetadata } from "./metadata-types.ts";
 
-export function getOptionsMetadata(options: Option[]): OptionMetadata[] {
+export function getOptionsMetadata(options: Record<string, Option>): OptionMetadata[] {
   const outputMetadata: OptionMetadata[] = [];
 
-  if (!options || options.length === 0) {
+  if (!options) {
     return outputMetadata;
   }
 
-  for (const option of options) {
-    const defaultValue = schemaDefaultValue(option.type);
+  for (const [optionName, option] of Object.entries(options)) {
+    const defaultValue = option.type.defaultValue;
     const aliases = option.aliases ?? [];
     const meta = option.meta ?? {};
 
     outputMetadata.push({
-      name: option.name,
-      nameAsArg: transformOptionToArgument(option.name),
+      name: optionName,
+      nameAsArg: transformOptionToArgument(optionName),
       aliases,
       aliasesAsArgs: aliases.map(alias => transformOptionToArgument(alias)),
       placeholder: meta.placeholder ?? "",
       description: meta.description ?? "",
-      optional: meta.optional ?? isOptionalSchema(option.type),
+      descriptionMarkdown: meta.descriptionMarkdown ?? "",
+      optional: meta.optional ?? option.type.isOptional,
       example: meta.example ?? "",
       defaultValue,
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",
-      type: option.type,
+      schema: option.type.schema,
+      hidden: meta.hidden ?? false,
     });
   }
 

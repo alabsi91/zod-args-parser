@@ -1,36 +1,56 @@
-import { concat, indent, ln, subcommandPlaceholder } from "../utilities.js";
+import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts";
 
-import type { SubcommandMetadata } from "../metadata/metadata-types.js";
-import type { HelpMessageStyle } from "../types.js";
+import type { SubcommandMetadata } from "../metadata/metadata-types.ts";
+import type { FormatOptions } from "./format-cli.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
-export function formatHelpMessageCommands(
-  subcommandsMetadata: SubcommandMetadata[],
-  c: HelpMessageStyle,
-  longest: number,
-): string {
+export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadata[], options: FormatOptions): string {
   if (subcommandsMetadata.length === 0) return "";
 
-  let message = c.title(" COMMANDS") + ln(1);
+  const {
+    style,
+    indentBeforeName,
+    indentAfterName,
+    indentBeforePlaceholder,
+    newLineIndent,
+    longest,
+    commandsTitle,
+    emptyLines,
+    emptyLinesBeforeTitle,
+    emptyLinesAfterTitle,
+  } = options;
+
+  let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(commandsTitle) + ln(1 + emptyLinesAfterTitle);
+
+  // the space from the beginning to the start of the next column.
+  const totalSpacing = longest + indentBeforeName + indentAfterName + indentBeforePlaceholder + newLineIndent;
 
   for (const metadata of subcommandsMetadata) {
+    if (metadata.hidden) continue;
+
     const names = metadata.aliases.concat([metadata.name]);
     const placeholder = subcommandPlaceholder(metadata);
-    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
+
+    const normalizedDesc = indentLines(
+      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
+      totalSpacing,
+    );
 
     const optLength = names.join(", ").length + placeholder.length;
-    const spacing = longest + 1 - optLength;
+    const spacing = longest - optLength;
 
-    const coloredNames = names.map(name => c.command(name)).join(c.punctuation(", "));
+    const coloredNames = names.map(name => style.command(name)).join(style.punctuation(", "));
 
-    message += concat(
-      indent(2) + coloredNames,
-      c.placeholder(placeholder),
-      indent(spacing),
-      c.description(normalizeDesc) + ln(1),
-    );
+    message +=
+      indent(indentBeforeName) +
+      coloredNames +
+      indent(indentBeforePlaceholder) +
+      style.placeholder(placeholder) +
+      indent(indentAfterName) +
+      indent(spacing) +
+      style.description(normalizedDesc) +
+      ln(1 + emptyLines);
   }
-
-  message += ln(1);
 
   return message;
 }

@@ -1,6 +1,6 @@
-import { transformOptionToArgument } from "../parser/parse/parser-helpers.js";
+import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
 
-import type { Cli, Subcommand } from "../types.js";
+import type { Cli } from "../schemas/schema-types.ts";
 
 /**
  * - Generate bash autocomplete script for your CLI
@@ -10,15 +10,15 @@ import type { Cli, Subcommand } from "../types.js";
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen bash to take effect
  */
-export function generateBashAutocompleteScript(...parameters: [Cli, ...Subcommand[]]): string {
-  const [cli, ...subcommands] = parameters;
+export function generateBashAutocompleteScript(cli: Cli): string {
+  const subcommands = cli.subcommands ?? [];
 
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
   const mappedCommands: MappedCommands = {};
   for (const subcommand of subcommands) {
     mappedCommands[subcommand.name] = {
-      options: subcommand.options?.map(option => transformOptionToArgument(option.name)) ?? [],
+      options: subcommand.options ? Object.keys(subcommand.options).map(key => transformOptionToArgument(key)) : [],
       aliases: subcommand.aliases ?? [],
     };
   }
@@ -31,8 +31,9 @@ export function generateBashAutocompleteScript(...parameters: [Cli, ...Subcomman
   }
 
   if (cli.options?.length) {
+    const optionsNames = cli.options ? Object.keys(cli.options).map(key => transformOptionToArgument(key)) : [];
     switchCase += `    "-"*)\n`;
-    switchCase += `      opts="${cli.options.map(option => transformOptionToArgument(option.name)).join(" ")}"\n`;
+    switchCase += `      opts="${optionsNames.join(" ")}"\n`;
     switchCase += "      ;;\n";
   }
 

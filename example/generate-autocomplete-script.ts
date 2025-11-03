@@ -5,28 +5,28 @@ import {
   generateZshAutocompleteScript,
 } from "zod-args-parser";
 
-import { cliSchemas } from "./cli.js";
+import { cliSchema } from "./cli.js";
 
 /*
-- Generate bash autocomplete script for `argplay`.
+- Generate bash autocomplete script for `listy`.
 - The generated script should be added to user `.bash_profile` or `.bashrc` file:
   - Run: `nano $HOME/.bash_profile` or `nano $HOME/.bashrc`
-  - Add the following line: `source <path to argplay-autocomplete.sh>`
+  - Add the following line: `source <path to listy-autocomplete.sh>`
   - Save and reopen bash to take effect
 */
-const bashScript = generateBashAutocompleteScript(...cliSchemas);
+const bashScript = generateBashAutocompleteScript(cliSchema);
 await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf8" });
 
 /*
-- Generates a PowerShell autocomplete script for `argplay`.
-- The script assumes that the CLI is available as a `argplay.ps1` file in the environment variable. 
-- The following should return a path: `(Get-Command argplay.ps1).Source`
+- Generates a PowerShell autocomplete script for `listy`.
+- The script assumes that the CLI is available as a `listy.ps1` file in the environment variable. 
+- The following should return a path: `(Get-Command listy.ps1).Source`
 - The generated script should be added to user `profile.ps1` file:
     - Run: `notepad $profile`
-    - Add the following line: `. "<path to argplay-autocomplete.ps1>"`
+    - Add the following line: `. "<path to listy-autocomplete.ps1>"`
     - Save and reopen powershell to take effect
 */
-const powershellScript = generatePowerShellAutocompleteScript(...cliSchemas);
+const powershellScript = generatePowerShellAutocompleteScript(cliSchema);
 await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf8" });
 
 /**
@@ -37,5 +37,5 @@ await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-const zshScript = generateZshAutocompleteScript(...cliSchemas);
+const zshScript = generateZshAutocompleteScript(cliSchema);
 await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf8" });

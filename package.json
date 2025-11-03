@@ -1,6 +1,6 @@
 {
-  "name": "zod-args-parser",
-  "version": "2.0.0-alpha.0",
+  "name": "typed-args-parser",
+  "version": "1.0.0-alpha.0",
   "description": "A strictly typed command-line arguments parser powered by Zod.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",
@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "tsx watch example/index.ts",
     "build": "node scripts/build.mjs",
-    "test": "eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
+    "test": "node --test && eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
     "prepare": "npm run test && npm run build"
   },
   "types": "./lib/typescript/index.d.ts",
@@ -43,7 +43,9 @@
     "@eslint/js": "^9.38.0",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^24.9.1",
+    "arktype": "^2.1.25",
     "babel-plugin-replace-import-extension": "^1.1.5",
+    "effect": "^3.18.4",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -55,10 +57,14 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
+    "valibot": "^1.1.0",
     "zod": "^4.1.12"
   },
   "peerDependencies": {
-    "chalk": "*",
-    "zod": "^3.25.0 || ^4.0.0"
+    "chalk": "*"
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.0.0",
+    "marked": "^16.4.1"
   }
 }

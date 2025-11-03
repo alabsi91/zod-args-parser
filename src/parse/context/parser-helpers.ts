@@ -1,4 +1,4 @@
-import type { Option, Subcommand } from "../../types.js";
+import type { Cli, Option, Subcommand } from "../../schemas/schema-types.ts";
 
 /**
  * Retrieves a subcommand object from an array of subcommands by matching the provided subcommand name against the
@@ -8,8 +8,16 @@ import type { Option, Subcommand } from "../../types.js";
  * @param subcommandArr - An array of `Subcommand` objects to search within.
  * @returns The matching `Subcommand` object if found; otherwise, `undefined`.
  */
-export function findSubcommand(subCmdName: string | undefined, subcommandArray: Subcommand[]): Subcommand | undefined {
-  return subcommandArray.find(c => {
+export function findSubcommand(subCmdName: string | undefined, cli: Cli): Subcommand | undefined {
+  if (subCmdName === undefined) {
+    return cli as unknown as Subcommand;
+  }
+
+  if (!cli.subcommands) {
+    return undefined;
+  }
+
+  return cli.subcommands.find(c => {
     // match for undefined too
     if (c.name === subCmdName) {
       return true;
@@ -29,28 +37,28 @@ export function findSubcommand(subCmdName: string | undefined, subcommandArray: 
  * @param options - An array of `Option` objects to search through.
  * @returns The matching `Option` object if found; otherwise, `undefined`.
  */
-export function findOption(optionArgument: string, options: [Option, ...Option[]]): Option | undefined {
+export function findOption(optionArgument: string, options: Record<string, Option>): [string, Option] | undefined {
   const validVariableNames = optionArgumentToVariableNames(optionArgument);
   const isNegative = optionArgument.startsWith("--no-");
 
-  const option = options.find(o => {
-    if (validVariableNames.has(o.name)) {
+  const option = Object.entries(options).find(([optionName, option]) => {
+    if (validVariableNames.has(optionName)) {
       return true;
     }
 
-    if (isNegative && validVariableNames.has(negateOption(o.name))) {
+    if (isNegative && validVariableNames.has(negateOption(optionName))) {
       return true;
     }
 
-    if (!o.aliases) {
+    if (!option.aliases) {
       return false;
     }
 
-    if (o.aliases.some(a => validVariableNames.has(a))) {
+    if (option.aliases.some(a => validVariableNames.has(a))) {
       return true;
     }
 
-    if (isNegative && o.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
+    if (isNegative && option.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
       return true;
     }
 

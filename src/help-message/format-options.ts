@@ -1,54 +1,74 @@
-import { concat, indent, insertAtEndOfFirstLine, ln } from "../utilities.js";
+import { terminalMarkdown } from "./terminal-markdown.ts";
+import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
 
-import type { OptionMetadata } from "../metadata/metadata-types.js";
-import type { HelpMessageStyle } from "../types.js";
+import type { OptionMetadata } from "../metadata/metadata-types.ts";
+import type { FormatOptions } from "./format-cli.ts";
 
-export function formatHelpMessageOptions(
-  optionsMetadata: OptionMetadata[],
-  c: HelpMessageStyle,
-  longest: number,
-): string {
+export function formatHelpMessageOptions(optionsMetadata: OptionMetadata[], options: FormatOptions): string {
   if (optionsMetadata.length === 0) return "";
 
-  let message = c.title(" OPTIONS") + ln(1);
+  const {
+    style,
+    indentBeforeName,
+    indentAfterName,
+    indentBeforePlaceholder,
+    newLineIndent,
+    emptyLines,
+    longest,
+    exampleKeyword,
+    optionalKeyword,
+    defaultKeyword,
+    optionsTitle,
+    emptyLinesBeforeTitle,
+    emptyLinesAfterTitle,
+  } = options;
+
+  let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(optionsTitle) + ln(1 + emptyLinesAfterTitle);
+
+  // the space from the beginning to the start of the next column.
+  const totalSpacing = longest + indentBeforeName + indentAfterName + indentBeforePlaceholder + newLineIndent;
 
   for (const metadata of optionsMetadata) {
-    const names = metadata.aliasesAsArgs.concat([metadata.nameAsArg]);
-    const coloredNames = names.map(name => c.option(name)).join(c.punctuation(", "));
+    if (metadata.hidden) continue;
 
-    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
+    const names = [...metadata.aliasesAsArgs, metadata.nameAsArg];
+    const coloredNames = names.map(name => style.option(name)).join(style.punctuation(", "));
+
+    const normalizedDesc = indentLines(
+      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
+      totalSpacing,
+    );
 
     let defaultOrOptional = "";
 
     if (metadata.defaultValueAsString) {
-      defaultOrOptional = c.default(`(default: ${metadata.defaultValueAsString})`);
+      defaultOrOptional = style.default(defaultKeyword.replace("{{ value }}", metadata.defaultValueAsString));
     }
 
     if (metadata.optional && !defaultOrOptional) {
-      defaultOrOptional = c.optional("(optional)");
+      defaultOrOptional = style.optional(optionalKeyword);
     }
 
+    // space between the option and the description
     const optLength = names.join(", ").length + metadata.placeholder.length;
-    const spacing = longest + 1 - optLength;
+    const spacing = longest - optLength;
 
-    message += concat(
-      indent(2) + coloredNames,
-      c.placeholder(metadata.placeholder),
-      indent(spacing),
-      insertAtEndOfFirstLine(c.description(normalizeDesc), defaultOrOptional),
-      ln(1),
-    );
+    message +=
+      indent(indentBeforeName) +
+      coloredNames +
+      indent(indentBeforePlaceholder) +
+      style.placeholder(metadata.placeholder) +
+      indent(indentAfterName) +
+      indent(spacing) +
+      insertAtEndOfFirstLine(style.description(normalizedDesc), defaultOrOptional) +
+      ln(1 + emptyLines);
 
     if (metadata.example) {
-      const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(longest + 16));
-      message += concat(
-        indent(longest + 6) + c.punctuation("└") + c.exampleTitle("Example:"),
-        c.example(normalizeExample) + ln(1),
-      );
+      const normalizeExample = indentLines(metadata.example, totalSpacing + exampleKeyword.length + 1); // + 1 for the space after the keyword
+      message +=
+        indent(totalSpacing) + style.exampleTitle(exampleKeyword) + indent(1) + style.example(normalizeExample) + ln(1);
     }
   }
-
-  message += ln(1);
 
   return message;
 }

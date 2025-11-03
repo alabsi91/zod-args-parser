@@ -1,18 +1,19 @@
-import { getArgumentsMetadata } from "./get-arguments-metadata.js";
-import { getOptionsMetadata } from "./get-options-metadata.js";
-import { getSubcommandsMetadata } from "./get-subcommands-metadata.js";
+import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
+import { getOptionsMetadata } from "./get-options-metadata.ts";
+import { getSubcommandsMetadata } from "./get-subcommands-metadata.ts";
 
-import type { Cli, Subcommand } from "../types.js";
-import type { CliMetadata } from "./metadata-types.js";
+import type { Cli } from "../schemas/schema-types.ts";
+import type { CliMetadata } from "./metadata-types.ts";
 
-export function getCliMetadata(inputData: readonly [Cli, ...Subcommand[]]): CliMetadata {
-  const [cli, ...subcommands] = inputData;
+export function getCliMetadata(cli: Cli): CliMetadata {
+  const subcommands = cli.subcommands ?? [];
 
   const meta = cli.meta ?? {};
 
   const outputMetadata: CliMetadata = {
     name: cli.cliName,
     description: meta.description ?? "",
+    descriptionMarkdown: meta.descriptionMarkdown ?? "",
     usage: meta.usage ?? "",
     example: meta.example ?? "",
     allowPositionals: cli.allowPositionals ?? false,

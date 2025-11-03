@@ -1,46 +1,67 @@
-import { concat, indent, insertAtEndOfFirstLine, ln } from "../utilities.js";
+import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
 
-import type { ArgumentMetadata } from "../metadata/metadata-types.js";
-import type { HelpMessageStyle } from "../types.js";
+import type { ArgumentMetadata } from "../metadata/metadata-types.ts";
+import type { FormatOptions } from "./format-cli.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
-export function formatHelpMessageArguments(
-  argumentsMetadata: ArgumentMetadata[],
-  c: HelpMessageStyle,
-  longest: number,
-): string {
+export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[], options: FormatOptions): string {
   if (argumentsMetadata.length === 0) return "";
 
-  let message = c.title(" ARGUMENTS") + ln(1);
+  const {
+    style,
+    indentBeforeName,
+    indentAfterName,
+    indentBeforePlaceholder,
+    newLineIndent,
+    longest,
+    argumentsTitle,
+    defaultKeyword,
+    optionalKeyword,
+    exampleKeyword,
+    emptyLines,
+    emptyLinesBeforeTitle,
+    emptyLinesAfterTitle,
+  } = options;
+
+  let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(argumentsTitle) + ln(1 + emptyLinesAfterTitle);
+
+  // the space from the beginning to the start of the next column.
+  const totalSpacing = longest + indentBeforeName + indentAfterName + indentBeforePlaceholder + newLineIndent;
 
   for (const metadata of argumentsMetadata) {
-    const defaultString = metadata.defaultValue === undefined ? "" : `(default: ${metadata.defaultValueAsString})`;
+    if (metadata.hidden) continue;
 
-    const spacing = longest + 2 - metadata.name.length;
-    const normalizeDesc = metadata.description.replace(/\n+/g, "\n" + indent(longest + 6) + c.punctuation("└"));
-    const defaultOrOptional = defaultString
-      ? c.default(defaultString)
-      : metadata.optional
-        ? c.optional("(optional)")
-        : "";
-
-    message += concat(
-      indent(2) + c.argument(metadata.name),
-      indent(spacing),
-      insertAtEndOfFirstLine(c.description(normalizeDesc), defaultOrOptional),
-      ln(1),
+    const normalizedDesc = indentLines(
+      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
+      totalSpacing,
     );
 
+    let defaultOrOptional = "";
+
+    if (metadata.defaultValueAsString) {
+      defaultOrOptional = style.default(defaultKeyword.replace("{{ value }}", metadata.defaultValueAsString));
+    }
+
+    if (metadata.optional && !defaultOrOptional) {
+      defaultOrOptional = style.optional(optionalKeyword);
+    }
+
+    const spacing = longest - metadata.name.length;
+
+    message +=
+      indent(indentBeforeName) +
+      style.argument(metadata.name) +
+      indent(indentBeforePlaceholder + indentAfterName) +
+      indent(spacing) +
+      insertAtEndOfFirstLine(style.description(normalizedDesc), defaultOrOptional) +
+      ln(1 + emptyLines);
+
     if (metadata.example) {
-      const normalizeExample = metadata.example.replace(/\n+/g, "\n" + indent(longest + 16));
-      message += concat(
-        indent(longest + 5),
-        c.punctuation("└") + c.exampleTitle("Example:"),
-        c.example(normalizeExample) + ln(1),
-      );
+      const normalizeExample = indentLines(metadata.example, totalSpacing + exampleKeyword.length + 1); // +1 for the space after the keyword
+      message +=
+        indent(totalSpacing) + style.exampleTitle(exampleKeyword) + indent(1) + style.example(normalizeExample) + ln(1);
     }
   }
-
-  message += ln(1);
 
   return message;
 }

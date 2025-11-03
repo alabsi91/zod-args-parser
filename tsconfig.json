@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
+    "paths": {
+      "zod-args-parser": ["./src/index.ts"]
+    },
+
     "target": "ESNext",
     "moduleDetection": "force",
     "types": ["node"],
 
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": ".",
-    "paths": {
-      "zod-args-parser": ["./src/index.ts"]
-    },
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
 
-    "allowJs": true,
-    "checkJs": true,
+    "allowJs": false,
+    "checkJs": false,
 
     "declaration": true,
     "declarationMap": true,

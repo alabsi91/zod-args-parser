@@ -1,10 +1,10 @@
-import { getArgumentsMetadata } from "./get-arguments-metadata.js";
-import { getOptionsMetadata } from "./get-options-metadata.js";
+import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
+import { getOptionsMetadata } from "./get-options-metadata.ts";
 
-import type { Subcommand } from "../types.js";
-import type { SubcommandMetadata } from "./metadata-types.js";
+import type { Subcommand } from "../schemas/schema-types.ts";
+import type { SubcommandMetadata } from "./metadata-types.ts";
 
-export function getSubcommandsMetadata(subcommands: Subcommand[]): SubcommandMetadata[] {
+export function getSubcommandsMetadata(subcommands: readonly Subcommand[]): SubcommandMetadata[] {
   const outputMetadata: SubcommandMetadata[] = [];
 
   if (!subcommands || subcommands.length === 0) {
@@ -20,12 +20,14 @@ export function getSubcommandsMetadata(subcommands: Subcommand[]): SubcommandMet
       name: subcommand.name,
       aliases: subcommand.aliases ?? [],
       description: meta.description ?? "",
+      descriptionMarkdown: meta.descriptionMarkdown ?? "",
       placeholder: meta.placeholder ?? "",
       usage: meta.usage ?? "",
       example: meta.example ?? "",
       allowPositionals: subcommand.allowPositionals ?? false,
       options: optionsMetadata,
       arguments: argumentsMetadata,
+      hidden: meta.hidden ?? false,
     });
   }
 

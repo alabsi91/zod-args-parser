@@ -1,24 +1,30 @@
 import * as z from "zod";
-import { createArguments, createOptions } from "zod-args-parser";
+import { createArguments, createOptions, coerce } from "zod-args-parser";
 
-export const sharedOptions = createOptions([
-  {
-    name: "verbose",
-    aliases: ["v"],
-    type: z.boolean().optional(),
+export const sharedOptions = createOptions({
+  verbose: {
+    type: coerce.boolean(z.boolean().default(true)),
     meta: {
-      description: "Enable verbose mode",
+      description: "Enable verbose mode.",
     },
   },
-]);
 
-export const sharedArguments = createArguments([
-  {
+  debug: {
+    type: coerce.boolean(z.boolean().optional()),
+    meta: {
+      description: "Enable debug mode.",
+
+      // Only for internal use
+      hidden: true,
+    },
+  },
+});
+
+export const sharedArguments = createArguments({
+  type: coerce.string(z.string().optional()),
+  meta: {
     name: "input-path",
     description: "The path to the input file",
-    type: z.string().optional(),
-    meta: {
-      description: "<string>",
-    },
+    example: "input.txt\ninput.json\ninput.csv",
   },
-]);
+});

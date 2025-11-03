@@ -1,0 +1,233 @@
+import { generateOrdinalSuffix } from "../../utilities.ts";
+import {
+  decoupleFlags,
+  findOption,
+  findSubcommand,
+  isFlagArgument,
+  isOptionArgument,
+  transformOptionToArgument,
+} from "./parser-helpers.ts";
+
+import type { Cli } from "../../schemas/schema-types.ts";
+import type { ContextWide } from "./context-types.ts";
+
+/**
+ * Parse argv and create a cli context
+ *
+ * @throws {Error}
+ */
+export function createCliContext(argv: string[], cli: Cli) {
+  const subcommandArray = cli.subcommands ?? [];
+  const allSubcommands = new Set<string>(subcommandArray.flatMap(c => [c.name, ...(c.aliases || [])]));
+
+  // decouple flags E.g. `-rf` -> `-r, -f`
+  argv = decoupleFlags(argv);
+
+  const results: ContextWide = {
+    subcommand: undefined,
+  };
+
+  /** Get the current subcommand object */
+  const getSubcommandObject = () => findSubcommand(results.subcommand, cli);
+
+  for (let index = 0; index < argv.length; index++) {
+    const argument_ = argv[index];
+
+    // * Subcommand check
+    if (index === 0) {
+      results.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
+
+      // First argument is a subcommand. Skip to the next argument
+      if (results.subcommand) continue;
+    }
+
+    // * Option check
+
+    // Check for `--option=value` or `--option value`
+    const argumentAndValue = argument_.split("=").filter(Boolean);
+    const argumentWithEquals = argument_.includes("=");
+    const argument = argumentAndValue[0];
+    const argumentValue: string | undefined = argumentAndValue[1];
+
+    if (isOptionArgument(argument)) {
+      if (isFlagArgument(argument) && argumentWithEquals) {
+        throw new Error(`Flag arguments cannot be assigned using "=": "${argument_}"`);
+      }
+
+      const subcommandObject = getSubcommandObject();
+      if (!subcommandObject) {
+        throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+      }
+
+      if (!subcommandObject.options) {
+        if (!results.subcommand) {
+          throw new Error(`Error: options are not allowed here: "${argument}"`);
+        }
+
+        throw new Error(`Error: subcommand "${results.subcommand}" does not allow options: "${argument}"`);
+      }
+
+      const nameOptionTuple = findOption(argument, subcommandObject.options);
+      if (!nameOptionTuple) {
+        throw new Error(`Unknown option: "${argument}"`);
+      }
+
+      const [optionName, option] = nameOptionTuple;
+
+      if (results.options && optionName in results.options) {
+        throw new Error(`Duplicated option: "${argument}"`);
+      }
+
+      const isTypeBoolean = option.type.isBoolean;
+      const nextArgument = argv[index + 1];
+
+      let optionValue: string | boolean = argumentWithEquals ? argumentValue : nextArgument;
+
+      // infer value for boolean options
+      if (isTypeBoolean) {
+        if (!argumentWithEquals) {
+          optionValue = "true";
+        }
+
+        const isNegated = argument.startsWith("--no-");
+
+        if (isNegated && ["true", "false"].includes(optionValue)) {
+          optionValue = optionValue === "true" ? "false" : "true";
+        }
+      }
+
+      // ? If the option is a string but no value was provided (e.g. user typed `--option` only):
+      // ? We have 3 choices:
+      // ?  1) Throw an error because the value is missing.
+      // ?  2) Treat it as an empty string ("") and let the schema validator validate it.
+      // ?  3) Leave it undefined without throwing an error.
+      // ? Analogy: it's like a form asking for your name. If the user leaves it blank,
+      // ? do we reject the form immediately, or send it to validation and let the validator decide?
+      if (optionValue === undefined) {
+        throw new Error(`Expected a value for "${argument}" but got nothing`);
+      }
+
+      if (!argumentWithEquals && isOptionArgument(optionValue)) {
+        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`);
+      }
+
+      results.options ??= {};
+
+      results.options[optionName] = {
+        name: optionName,
+        schema: option.type.schema,
+        flag: argument,
+        stringValue: optionValue,
+        source: "cli",
+      };
+
+      // Skip to the next argument if it is the current option’s value.
+      if (!argumentWithEquals && !isTypeBoolean) {
+        index++;
+      }
+
+      continue;
+    }
+
+    const subcommandObject = getSubcommandObject();
+
+    // * Arguments check
+    if (subcommandObject?.arguments) {
+      results.arguments ??= [];
+
+      const currentArgumentCount = results.arguments.length;
+
+      // Any extra arguments are possibly positionals
+      if (currentArgumentCount < subcommandObject.arguments.length) {
+        const argumentType = subcommandObject.arguments[currentArgumentCount].type;
+        results.arguments.push({
+          schema: argumentType.schema,
+          stringValue: argument_,
+          source: "cli",
+        });
+        continue;
+      }
+    }
+
+    // * Positional check
+    if (subcommandObject?.allowPositionals) {
+      results.positionals ??= [];
+      results.positionals.push(argument_);
+      continue;
+    }
+
+    // * Unexpected
+    if (!results.subcommand) {
+      throw new Error(`Unexpected argument "${argument_}": positionals arguments are not allowed here`);
+    }
+
+    throw new Error(
+      `Unexpected argument "${argument_}": positionals arguments are not allowed for subcommand "${results.subcommand}"`,
+    );
+  }
+
+  // * Check for missing options - set defaults - add `source`
+  const subcommandObject = getSubcommandObject();
+  if (!subcommandObject) {
+    throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+  }
+
+  // Options
+  if (subcommandObject.options) {
+    results.options ??= {};
+
+    for (const [schemaOptionName, schemaOption] of Object.entries(subcommandObject.options)) {
+      // option already exists
+      if (results.options && schemaOptionName in results.options) continue;
+
+      if (schemaOption.type.isOptional) {
+        if (schemaOption.type.defaultValue === undefined) {
+          continue;
+        }
+
+        results.options[schemaOptionName] = {
+          name: schemaOptionName,
+          schema: schemaOption.type.schema,
+          source: "default",
+        };
+        continue;
+      }
+
+      throw new Error(`Missing required option: ${transformOptionToArgument(schemaOptionName)}`);
+    }
+  }
+
+  // Arguments
+  if (subcommandObject.arguments) {
+    results.arguments ??= [];
+
+    const currentArgumentCount = results.arguments.length ?? 0;
+    const subcommandArgumentCount = subcommandObject.arguments.length;
+
+    // missing arguments
+    if (currentArgumentCount < subcommandArgumentCount) {
+      for (let index = currentArgumentCount; index < subcommandArgumentCount; index++) {
+        const schemaArgument = subcommandObject.arguments[index];
+
+        if (schemaArgument.type.isOptional) {
+          if (schemaArgument.type.defaultValue === undefined) {
+            continue;
+          }
+
+          if (!results.arguments) results.arguments = [];
+
+          results.arguments.push({ schema: schemaArgument.type.schema, source: "default" });
+          continue;
+        }
+
+        throw new Error(`The ${generateOrdinalSuffix(index)} argument is required: ${schemaArgument.meta?.name ?? ""}`);
+      }
+    }
+  }
+
+  if (subcommandObject.allowPositionals) {
+    results.positionals ??= [];
+  }
+
+  return results;
+}
