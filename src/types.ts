@@ -279,15 +279,6 @@ export type HelpMessageStyle = Record<
   ColorFunctionType
 >;
 
-export type SafeParseResult<S extends Cli> =
-  | { success: false; error: Error }
-  | {
-      success: true;
-      data:
-        | OutputType<[S]>
-        | (S["subcommands"] extends readonly [Subcommand, ...Subcommand[]] ? OutputType<S["subcommands"]> : never);
-    };
-
 export interface AttachedMethods<T extends Cli | Subcommand> {
   setAction: (actions: (data: OutputType<[T]>) => void) => void;
 
@@ -310,6 +301,19 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
     subcommandName: GetSubcommandsNames<T> | (string & {}),
     options?: PrintHelpOptions,
   ) => string;
+}
+
+export type CliOutputType<S extends Cli> =
+  | OutputType<[S]>
+  | (S["subcommands"] extends readonly [Subcommand, ...Subcommand[]] ? OutputType<S["subcommands"]> : never);
+
+export type CliParseResult<S extends Cli> =
+  | { value: CliOutputType<S>; error?: undefined }
+  | { value?: never; error: Error };
+
+export interface ValidateMethods<S extends Cli> {
+  validate(input: string | string[], schema?: S): CliParseResult<S>;
+  validateAsync(input: string | string[], schema?: S): Promise<CliParseResult<S>>;
 }
 
 type GetSubcommandsNames<T extends Partial<Subcommand>> = T extends Cli

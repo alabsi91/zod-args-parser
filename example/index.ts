@@ -1,25 +1,24 @@
-import { parse } from "../src/index.ts";
 import { cliSchema } from "./cli.ts";
 
 // * Test different inputs 👇
 
-const arguments_ = "-h";
-// const arguments_ = "--version";
+const input = "-h sdf";
+// const input = "--version";
 
-// const arguments_ = "help help";
-// const arguments_ = "help add-items";
-// const arguments_ = "help create-list";
-// const arguments_ = "help delete-list";
-// const arguments_ = "help remove-items";
+// const input = "help help";
+// const input = "help add-items";
+// const input = "help create-list";
+// const input = "help delete-list";
+// const input = "help remove-items";
 
-// const arguments_ = "add --list groceries --items egg,milk,bread --tags food";
+// const input = "add --list groceries --items egg,milk,bread --tags food";
 
-// const arguments_ = process.argv.slice(2); // 👈 use this in production
+// const input = process.argv.slice(2); // 👈 use this in production
 
-const results = parse(arguments_, cliSchema);
+const results = cliSchema.validate(input);
 
 // ! Error
-if (!results.success) {
+if (results.error) {
   console.error(results.error.message);
   console.log("\n`listy --help` for more information, or `listy help <command>` for command-specific help\n");
 }

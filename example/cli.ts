@@ -6,7 +6,8 @@ import { createListSubcommandSchema } from "./commands/create-list.ts";
 import { deleteListSubcommandSchema } from "./commands/delete-list.ts";
 import { helpSubcommandSchema } from "./commands/help-cmd.ts";
 import { removeItemsSubcommandSchema } from "./commands/remove-items.ts";
-import { sharedArguments, sharedOptions } from "./shared.ts";
+import { logCliContext } from "./log-verbose.ts";
+import { sharedOptions } from "./shared.ts";
 
 export const cliSchema = createCli({
   cliName: "listy",
@@ -50,13 +51,15 @@ export const cliSchema = createCli({
 
     ...sharedOptions,
   },
-
-  arguments: sharedArguments,
 });
 
 // Execute this function when the CLI is run
 cliSchema.setAction(results => {
-  const { help, version } = results.options;
+  const { help, version, verbose } = results.options;
+
+  if (verbose) {
+    logCliContext(results.context);
+  }
 
   if (help) {
     if (!cliSchema.formatCliHelpMessage) {

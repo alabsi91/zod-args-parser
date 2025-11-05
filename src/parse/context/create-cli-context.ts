@@ -64,7 +64,7 @@ export function createCliContext(argv: string[], cli: Cli) {
           throw new Error(`Error: options are not allowed here: "${argument}"`);
         }
 
-        throw new Error(`Error: subcommand "${results.subcommand}" does not allow options: "${argument}"`);
+        throw new Error(`Error: subcommand "${results.subcommand}" does not have options: "${argument}"`);
       }
 
       const nameOptionTuple = findOption(argument, subcommandObject.options);

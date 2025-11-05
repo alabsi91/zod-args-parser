@@ -137,5 +137,7 @@ export function terminalMarkdown(text: string, renderer: "terminal" | "html" = "
     return terminalMarked.parse(text) as string;
   }
 
-  return (marked.parse(text) as string).trim();
+  const htmlString = marked.parse(text) as string;
+
+  return htmlString.trim();
 }

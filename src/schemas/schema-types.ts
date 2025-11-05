@@ -113,16 +113,6 @@ export interface Subcommand {
    */
   action?: (data: OutputTypeWide) => any;
 
-  /**
-   * - The preValidation hook is executed before the action.
-   * - To get typescript types use `setPreValidationHook` instead of this.
-   *
-   * @example
-   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
-   *   helpCommand.setPreValidationHook(ctx => console.log(ctx));
-   */
-  preValidation?: (context?: any) => any;
-
   /** - Metadata for the subcommand. */
   meta?: SubcommandMeta;
 }

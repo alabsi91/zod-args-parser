@@ -2,8 +2,6 @@ export { formatCliHelpMessage, formatSubcommandHelpMessage } from "./help-messag
 export { printCliHelp, printSubcommandHelp } from "./help-message/print-help.ts";
 export { helpMessageStyles } from "./help-message/styles.ts";
 
-export { safeParse as parse, safeParseAsync as parseAsync } from "./parse/safe-parse.ts";
-
 export { generateMarkdown } from "./markdown/generate-markdown.ts";
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.ts";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.ts";
@@ -14,7 +12,11 @@ export { getCliMetadata } from "./metadata/get-cli-metadata.ts";
 export { getOptionsMetadata } from "./metadata/get-options-metadata.ts";
 export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.ts";
 
-export { createArguments, createCli, createOptions, createSubcommand } from "./schemas/create-schemas.ts";
+export { createCli } from "./schemas/create-cli-schema.ts";
+export { createSubcommand } from "./schemas/create-subcommand-schema.ts";
+export { createOptions } from "./schemas/create-options-schema.ts";
+export { createArguments } from "./schemas/create-arguments-schema.ts";
+
 export { coerce } from "./schemas/coerce.ts";
 
 export type * from "./metadata/metadata-types.ts";
