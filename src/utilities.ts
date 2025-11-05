@@ -178,3 +178,25 @@ export function parseArgv(input: string): string[] {
 
   return argv;
 }
+
+/**
+ * Escape HTML characters inside HTML tags in a Markdown string, but leave code blocks, inline code, and HTML comments
+ * unchanged.
+ */
+export function escapeHtmlTags(markdown: string): string {
+  const escapeMap: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
+
+  // Captures:
+  // 1) fenced code blocks or inline code
+  // 2) HTML comments <!-- ... -->
+  // 3) other HTML tags like <b>, <div attr="x">, etc.
+  const re = /(```[\s\S]*?```|`[^`]*`)|(<!--[\s\S]*?-->)|(<[^>]+>)/g;
+
+  return markdown.replace(re, (fullMatch: string, code?: string, comment?: string, tag?: string) => {
+    if (code) return code;
+    if (comment) return comment;
+    if (!tag) return fullMatch;
+
+    return tag.replace(/[&<>]/g, ch => escapeMap[ch]);
+  });
+}

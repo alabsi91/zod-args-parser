@@ -4,10 +4,10 @@ import { formatHelpMessageArguments } from "./format-arguments.ts";
 import { formatHelpMessageOptions } from "./format-options.ts";
 import { formatHelpMessageCommands } from "./format-subcommands.ts";
 import { helpMessageStyles } from "./styles.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { Cli, Subcommand } from "../schemas/schema-types.ts";
 import type { HelpMessageStyle, PrintHelpOptions } from "../types.ts";
-import { terminalMarkdown } from "./terminal-markdown.ts";
 
 export interface FormatOptions extends Required<PrintHelpOptions> {
   style: HelpMessageStyle;
@@ -15,37 +15,38 @@ export interface FormatOptions extends Required<PrintHelpOptions> {
 }
 
 function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
-  const copy = { ...options };
+  const clone = { ...options };
 
-  copy.style ??= helpMessageStyles.default;
+  clone.style ??= helpMessageStyles.default;
+  clone.markdownRenderer ??= "terminal";
 
-  copy.indentBeforeName ??= 2;
-  copy.indentAfterName ??= 4;
-  copy.indentBeforePlaceholder ??= 1;
-  copy.newLineIndent ??= 0;
+  clone.indentBeforeName ??= 2;
+  clone.indentAfterName ??= 4;
+  clone.indentBeforePlaceholder ??= 1;
+  clone.newLineIndent ??= 0;
 
-  copy.emptyLines ??= 0;
-  copy.emptyLinesBeforeTitle ??= 1;
-  copy.emptyLinesAfterTitle ??= 0;
+  clone.emptyLines ??= 0;
+  clone.emptyLinesBeforeTitle ??= 1;
+  clone.emptyLinesAfterTitle ??= 0;
 
-  copy.exampleKeyword ??= "Example";
-  copy.optionalKeyword ??= "(optional)";
-  copy.defaultKeyword ??= "(default: {{ value }})";
+  clone.exampleKeyword ??= "Example";
+  clone.optionalKeyword ??= "(optional)";
+  clone.defaultKeyword ??= "(default: {{ value }})";
 
-  copy.usageTitle ??= "USAGE";
-  copy.descriptionTitle ??= "DESCRIPTION";
-  copy.commandsTitle ??= "COMMANDS";
-  copy.optionsTitle ??= "OPTIONS";
-  copy.argumentsTitle ??= "ARGUMENTS";
-  copy.exampleTitle ??= "EXAMPLE";
+  clone.usageTitle ??= "USAGE";
+  clone.descriptionTitle ??= "DESCRIPTION";
+  clone.commandsTitle ??= "COMMANDS";
+  clone.optionsTitle ??= "OPTIONS";
+  clone.argumentsTitle ??= "ARGUMENTS";
+  clone.exampleTitle ??= "EXAMPLE";
 
-  return copy as Required<FormatOptions>;
+  return clone as Required<FormatOptions>;
 }
 
 export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = {}): string {
   const options = setPrintHelpOptionsDefaults(printOptions);
 
-  const style = helpMessageStyles.default;
+  const style = { ...helpMessageStyles.default };
   Object.assign(style, options.style);
 
   const metadata = getCliMetadata(cli);
@@ -57,7 +58,7 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
   // CLI usage
   let usage = metadata.usage;
   if (!usage) {
-    usage += style.punctuation("$");
+    usage = style.punctuation("$");
     usage += metadata.name ? style.description("", metadata.name) : "";
     usage += metadata.subcommands.length > 0 ? style.command("", "[command]") : "";
     usage += metadata.options.length > 0 ? style.option("", "[options]") : "";
@@ -73,12 +74,13 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
     message +=
       ln(options.emptyLinesBeforeTitle) + formatTitle(options.descriptionTitle) + ln(1 + options.emptyLinesAfterTitle);
 
-    const normalizedDesc = indentLines(
-      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
-      options.indentBeforeName,
-    );
+    let description = metadata.description
+      ? style.description(metadata.description)
+      : terminalMarkdown(style.description(metadata.descriptionMarkdown), options.markdownRenderer);
 
-    message += indent(options.indentBeforeName) + style.description(normalizedDesc) + ln(1);
+    description = indentLines(description, options.indentBeforeName);
+
+    message += indent(options.indentBeforeName) + description + ln(1);
   }
 
   let longest = 0;
@@ -143,14 +145,14 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
 export function formatSubcommandHelpMessage(subcommand: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
   setPrintHelpOptionsDefaults(options);
 
-  const style = helpMessageStyles.default;
+  const style = { ...helpMessageStyles.default };
   Object.assign(style, options.style);
 
   const meta = subcommand.meta ?? {};
 
   let usage = meta.usage;
   if (!usage) {
-    usage += style.punctuation("$");
+    usage = style.punctuation("$");
     usage += cliName ? ` ${cliName}` : "";
     usage += style.command("", subcommand.name);
     usage += subcommand.options ? style.option(" [options]") : "";

@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
+
 import { coerce, createCli, parse } from "../src/index.ts";
 import { err, expectsSuccess, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
@@ -57,19 +58,19 @@ describe("[string, number, boolean?]".padEnd(spaceToColumn + spaceColumnEnd + 2)
     }
 
     const [stringArg, numberArg, booleanOptionalArg] = result.data.arguments;
-    
+
     assert.equal(
       stringArg,
       "hello world",
       err('Invalid value for argument `stringArg`. Expected `"hello world"`, but received:', stringArg),
     );
-    
+
     assert.equal(
       numberArg,
       123,
       err("Invalid value for argument `numberArg`. Expected `123`, but received:", numberArg),
     );
-    
+
     assert(
       booleanOptionalArg,
       err("Invalid value for argument `booleanOptionalArg`. Expected `true`, but received:", booleanOptionalArg),

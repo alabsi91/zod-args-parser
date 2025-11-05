@@ -78,13 +78,12 @@ export function createCliContext(argv: string[], cli: Cli) {
         throw new Error(`Duplicated option: "${argument}"`);
       }
 
-      const isTypeBoolean = option.type.isBoolean;
       const nextArgument = argv[index + 1];
 
       let optionValue: string | boolean = argumentWithEquals ? argumentValue : nextArgument;
 
       // infer value for boolean options
-      if (isTypeBoolean) {
+      if (option.type.coerceTo === "boolean") {
         if (!argumentWithEquals) {
           optionValue = "true";
         }
@@ -111,18 +110,21 @@ export function createCliContext(argv: string[], cli: Cli) {
         throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`);
       }
 
-      results.options ??= {};
+      const { schema, optional, defaultValue } = option.type;
 
+      results.options ??= {};
       results.options[optionName] = {
         name: optionName,
-        schema: option.type.schema,
+        schema,
+        optional,
+        defaultValue,
         flag: argument,
         stringValue: optionValue,
-        source: "cli",
+        source: "terminal",
       };
 
       // Skip to the next argument if it is the current option’s value.
-      if (!argumentWithEquals && !isTypeBoolean) {
+      if (!argumentWithEquals && !(option.type.coerceTo === "boolean")) {
         index++;
       }
 
@@ -140,10 +142,13 @@ export function createCliContext(argv: string[], cli: Cli) {
       // Any extra arguments are possibly positionals
       if (currentArgumentCount < subcommandObject.arguments.length) {
         const argumentType = subcommandObject.arguments[currentArgumentCount].type;
+
         results.arguments.push({
           schema: argumentType.schema,
+          optional: argumentType.optional,
+          defaultValue: argumentType.defaultValue,
           stringValue: argument_,
-          source: "cli",
+          source: "terminal",
         });
         continue;
       }
@@ -180,14 +185,18 @@ export function createCliContext(argv: string[], cli: Cli) {
       // option already exists
       if (results.options && schemaOptionName in results.options) continue;
 
-      if (schemaOption.type.isOptional) {
-        if (schemaOption.type.defaultValue === undefined) {
+      const { schema, optional, defaultValue } = schemaOption.type;
+
+      if (optional) {
+        if (defaultValue === undefined) {
           continue;
         }
 
         results.options[schemaOptionName] = {
           name: schemaOptionName,
-          schema: schemaOption.type.schema,
+          schema,
+          optional,
+          defaultValue,
           source: "default",
         };
         continue;
@@ -208,15 +217,16 @@ export function createCliContext(argv: string[], cli: Cli) {
     if (currentArgumentCount < subcommandArgumentCount) {
       for (let index = currentArgumentCount; index < subcommandArgumentCount; index++) {
         const schemaArgument = subcommandObject.arguments[index];
+        const { schema, optional, defaultValue } = schemaArgument.type;
 
-        if (schemaArgument.type.isOptional) {
-          if (schemaArgument.type.defaultValue === undefined) {
+        if (optional) {
+          if (defaultValue === undefined) {
             continue;
           }
 
           if (!results.arguments) results.arguments = [];
 
-          results.arguments.push({ schema: schemaArgument.type.schema, source: "default" });
+          results.arguments.push({ schema, optional, defaultValue, source: "default" });
           continue;
         }
 

@@ -10,20 +10,21 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "tsx watch example/index.ts",
-    "build": "node scripts/build.mjs",
-    "test": "node --test && eslint src/** --fix && tsc --noEmit && tsx test/test.ts",
+    "dev": "node --watch example/index.ts",
+    "build": "node scripts/build.ts",
+    "test": "node --test && eslint src/** --fix && tsgo --noEmit && tsx test/test.ts",
     "prepare": "npm run test && npm run build"
   },
-  "types": "./lib/typescript/index.d.ts",
   "exports": {
     ".": {
-      "import": "./lib/module/index.mjs",
-      "require": "./lib/commonjs/index.cjs",
-      "default": "./lib/module/index.mjs",
-      "types": "./lib/typescript/index.d.ts"
+      "types": "./lib/typescript/index.d.ts",
+      "browser": "./lib/esm/index.js",
+      "import": "./lib/mjs/index.mjs",
+      "require": "./lib/cjs/index.cjs"
     }
   },
+  "jsdelivr": "./lib/iife/index.js",
+  "unpkg": "./lib/iife/index.js",
   "files": [
     "lib",
     "src"
@@ -37,15 +38,13 @@
     "typescript"
   ],
   "devDependencies": {
-    "@babel/core": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
-    "@babel/preset-typescript": "^7.28.5",
     "@eslint/js": "^9.38.0",
-    "@types/babel__core": "^7.20.5",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/node": "^24.9.1",
+    "@typescript/native-preview": "^7.0.0-dev.20251104.1",
     "arktype": "^2.1.25",
-    "babel-plugin-replace-import-extension": "^1.1.5",
     "effect": "^3.18.4",
+    "esbuild": "^0.25.12",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -54,17 +53,14 @@
     "globals": "^16.4.0",
     "prettier": "^3.6.2",
     "prettier-plugin-jsdoc": "^1.3.3",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
     "valibot": "^1.1.0",
     "zod": "^4.1.12"
   },
-  "peerDependencies": {
-    "chalk": "*"
-  },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
+    "chalk": "^5.6.2",
     "marked": "^16.4.1"
   }
 }

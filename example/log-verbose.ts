@@ -1,4 +1,4 @@
-import type { ContextWide } from "zod-args-parser";
+import type { ContextWide } from "../src/index.ts";
 
 export function logCliContext(context: ContextWide) {
   if (context.subcommand) {

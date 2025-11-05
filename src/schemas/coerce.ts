@@ -1,157 +1,89 @@
 import { defaultValueAndIsOptional, validateSync } from "./schema-utilities.ts";
 
+import type { Coerce } from "../types.ts";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
+interface CoerceMethod<Value, separator extends string = never> {
+  <T extends StandardSchemaV1>(
+    schema: StandardSchemaV1.InferOutput<T> extends Value | undefined ? T : never,
+    separator?: separator,
+  ): Coerce<T>;
+}
+
+function createCoerceObject<T extends StandardSchemaV1>(
+  schema: T,
+  coerceHandler: (value: string) => unknown,
+  coerceTo: Coerce["coerceTo"],
+): Coerce<T> {
+  const { optional, defaultValue } = defaultValueAndIsOptional(schema);
+
+  return {
+    schema,
+    optional,
+    defaultValue,
+    coerceTo,
+    validate: (value?: string) => validateSync(schema, value && coerceHandler(value)),
+  };
+}
+
+const string: CoerceMethod<string> = schema => createCoerceObject(schema, value => value, "string");
+const boolean: CoerceMethod<boolean> = schema => createCoerceObject(schema, stringToBoolean, "boolean");
+const number: CoerceMethod<number> = schema => createCoerceObject(schema, stringToNumber, "number");
+const json: CoerceMethod<unknown> = schema => createCoerceObject(schema, value => JSON.parse(value), "json");
+
+const arrayOfStrings: CoerceMethod<string[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToArrayOfStrings(value, separator), "array");
+};
+
+const arrayOfNumbers: CoerceMethod<number[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToArrayOfNumbers(value, separator), "array");
+};
+
+const arrayOfBooleans: CoerceMethod<boolean[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToArrayOfBooleans(value, separator), "array");
+};
+
+const setOfStrings: CoerceMethod<Set<string>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToSetOfStrings(value, separator), "set");
+};
+
+const setOfNumbers: CoerceMethod<Set<number>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToSetOfNumbers(value, separator), "set");
+};
+
+const setOfBooleans: CoerceMethod<Set<boolean>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToSetOfBooleans(value, separator), "set");
+};
+
+const custom = <T extends StandardSchemaV1>(
+  schema: T,
+  coerceHandler: (value: string) => StandardSchemaV1.InferOutput<T>,
+) => {
+  return createCoerceObject(schema, coerceHandler, "custom");
+};
+
 export const coerce = {
-  string<T extends StandardSchemaV1>(schema: StandardSchemaV1.InferOutput<T> extends string | undefined ? T : never) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value),
-    };
-  },
-
-  boolean<T extends StandardSchemaV1>(schema: StandardSchemaV1.InferOutput<T> extends boolean | undefined ? T : never) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      isBoolean: true,
-      validate: (value?: string) => validateSync(schema, value && stringToBoolean(value)),
-    };
-  },
-
-  number<T extends StandardSchemaV1>(schema: StandardSchemaV1.InferOutput<T> extends number | undefined ? T : never) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToNumber(value)),
-    };
-  },
-
+  string,
+  boolean,
+  number,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfStrings<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends string[] | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToArrayOfStrings(value, separator)),
-    };
-  },
-
+  arrayOfStrings,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfNumbers<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends number[] | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToArrayOfNumbers(value, separator)),
-    };
-  },
-
+  arrayOfNumbers,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfBooleans<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends boolean[] | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToArrayOfBooleans(value, separator)),
-    };
-  },
-
+  arrayOfBooleans,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  setOfStrings<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends Set<string> | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToSetOfStrings(value, separator)),
-    };
-  },
-
+  setOfStrings,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  setOfNumbers<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends Set<number> | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToSetOfNumbers(value, separator)),
-    };
-  },
-
+  setOfNumbers,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  stringToSetOfBooleans<T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends Set<boolean> | undefined ? T : never,
-    separator?: string,
-  ) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && stringToSetOfBooleans(value, separator)),
-    };
-  },
-
-  json<T extends StandardSchemaV1>(schema: T) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && JSON.parse(value)),
-    };
-  },
-
-  custom<T extends StandardSchemaV1>(schema: T, coerceHandler: (value: string) => StandardSchemaV1.InferOutput<T>) {
-    const { defaultValue, isOptional } = defaultValueAndIsOptional(schema);
-
-    return {
-      schema,
-      defaultValue,
-      isOptional,
-      validate: (value?: string) => validateSync(schema, value && coerceHandler(value)),
-    };
-  },
+  setOfBooleans,
+  json,
+  custom,
 };
 
 /** @throws {TypeError} */
-export function stringToNumber(string: string): number {
+function stringToNumber(string: string): number {
   const trimmed = string.trim();
 
   // Reject empty, whitespace-only, or signs without digits
@@ -170,7 +102,7 @@ export function stringToNumber(string: string): number {
 }
 
 /** @throws {TypeError} */
-export function stringToBoolean(string: string): boolean {
+function stringToBoolean(string: string): boolean {
   if (string.toLowerCase() === "true") {
     return true;
   }
@@ -182,7 +114,7 @@ export function stringToBoolean(string: string): boolean {
   throw new TypeError(`Invalid boolean value: ${string}`, { cause: "zod-args-parser" });
 }
 
-export function stringToArrayOfStrings(stringValue: string, separator: string = ","): string[] {
+function stringToArrayOfStrings(stringValue: string, separator: string = ","): string[] {
   return stringValue
     .split(separator)
     .map(s => s.trim())
@@ -190,25 +122,25 @@ export function stringToArrayOfStrings(stringValue: string, separator: string = 
 }
 
 /** @throws {TypeError} - Because of `stringToNumber` */
-export function stringToArrayOfNumbers(stringValue: string, separator: string = ","): number[] {
+function stringToArrayOfNumbers(stringValue: string, separator: string = ","): number[] {
   return stringToArrayOfStrings(stringValue, separator).map(element => stringToNumber(element));
 }
 
 /** @throws {TypeError} - Because of `stringToBoolean` */
-export function stringToArrayOfBooleans(stringValue: string, separator: string = ","): boolean[] {
+function stringToArrayOfBooleans(stringValue: string, separator: string = ","): boolean[] {
   return stringToArrayOfStrings(stringValue, separator).map(element => stringToBoolean(element));
 }
 
-export function stringToSetOfStrings(stringValue: string, separator: string = ","): Set<string> {
+function stringToSetOfStrings(stringValue: string, separator: string = ","): Set<string> {
   return new Set(stringToArrayOfStrings(stringValue, separator));
 }
 
 /** @throws {TypeError} - Because of `stringToNumber` */
-export function stringToSetOfNumbers(stringValue: string, separator: string = ","): Set<number> {
+function stringToSetOfNumbers(stringValue: string, separator: string = ","): Set<number> {
   return new Set(stringToArrayOfNumbers(stringValue, separator));
 }
 
 /** @throws {TypeError} - Because of `stringToBoolean` */
-export function stringToSetOfBooleans(stringValue: string, separator: string = ","): Set<boolean> {
+function stringToSetOfBooleans(stringValue: string, separator: string = ","): Set<boolean> {
   return new Set(stringToArrayOfBooleans(stringValue, separator));
 }

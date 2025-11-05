@@ -1,5 +1,6 @@
 import * as z from "zod";
-import { coerce, createSubcommand, type InferInputType } from "zod-args-parser";
+
+import { coerce, createSubcommand, type InferInputType } from "../../src/index.ts";
 import { lists } from "../lists.ts";
 import { logCliContext } from "../log-verbose.ts";
 import { sharedOptions } from "../shared.ts";

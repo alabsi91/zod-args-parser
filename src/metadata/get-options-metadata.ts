@@ -1,4 +1,5 @@
 import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
+import { defaultValueAndIsOptional } from "../schemas/schema-utilities.ts";
 import { stringifyValue } from "../utilities.ts";
 
 import type { Option } from "../schemas/schema-types.ts";
@@ -12,9 +13,10 @@ export function getOptionsMetadata(options: Record<string, Option>): OptionMetad
   }
 
   for (const [optionName, option] of Object.entries(options)) {
-    const defaultValue = option.type.defaultValue;
     const aliases = option.aliases ?? [];
     const meta = option.meta ?? {};
+
+    const { optional, defaultValue } = defaultValueAndIsOptional(option.type.schema);
 
     outputMetadata.push({
       name: optionName,
@@ -24,7 +26,7 @@ export function getOptionsMetadata(options: Record<string, Option>): OptionMetad
       placeholder: meta.placeholder ?? "",
       description: meta.description ?? "",
       descriptionMarkdown: meta.descriptionMarkdown ?? "",
-      optional: meta.optional ?? option.type.isOptional,
+      optional: meta.optional ?? optional,
       example: meta.example ?? "",
       defaultValue,
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",

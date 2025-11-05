@@ -1,4 +1,5 @@
 import chalk from "chalk";
+
 import type { HelpMessageStyle } from "../types.ts";
 
 export const helpMessageStyles = Object.freeze({
@@ -54,6 +55,11 @@ export const helpMessageStyles = Object.freeze({
     placeholder: chalk.hex("#D08770"),
     punctuation: chalk.hex("#4C566A"),
   },
+
+  /**
+   * - Wrap the output in a <pre> element to preserve whitespace.
+   * - If using `descriptionMarkdown`, set `markdownRenderer` to `html` instead of `terminal`.
+   */
   html: {
     title: (...string) => `<span style="color: #89dceb; font-weight: bold;">${escapeHTML(string.join(" "))}</span>`,
     description: (...string) => `<span style="color: #cdd6e8;">${escapeHTML(string.join(" "))}</span>`,

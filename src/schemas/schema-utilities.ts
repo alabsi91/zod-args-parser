@@ -14,12 +14,12 @@ export function validateSync(schema: StandardSchemaV1, value?: unknown) {
 //   return await schema["~standard"].validate(value);
 // }
 
-export function defaultValueAndIsOptional(schema: StandardSchemaV1): { defaultValue: unknown; isOptional: boolean } {
+export function defaultValueAndIsOptional(schema: StandardSchemaV1): { defaultValue: unknown; optional: boolean } {
   const results = validateSync(schema);
 
   if (results.issues) {
-    return { defaultValue: undefined, isOptional: false };
+    return { defaultValue: undefined, optional: false };
   }
 
-  return { defaultValue: results.value, isOptional: true };
+  return { defaultValue: results.value, optional: true };
 }

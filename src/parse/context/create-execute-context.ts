@@ -1,71 +1,73 @@
 import { generateOrdinalSuffix } from "../../utilities.ts";
 
 import type { Cli, Subcommand } from "../../schemas/schema-types.ts";
-import type { ContextWide } from "./context-types.ts";
 import type { InputTypeWide } from "../../types.ts";
+import type { ContextWide } from "./context-types.ts";
 
 /** @throws {Error} */
-export function createExecuteContext(inputValues: InputTypeWide, schema: Subcommand | Cli) {
+export function createExecuteContext(inputValues: InputTypeWide, inputSchema: Subcommand | Cli) {
   const context: ContextWide = {
-    subcommand: "cliName" in schema ? undefined : schema.name,
+    subcommand: "cliName" in inputSchema ? undefined : inputSchema.name,
   };
 
-  if (schema.options) {
-    for (const [optionName, schemaOptions] of Object.entries(schema.options)) {
-      const optionType = schemaOptions.type;
+  if (inputSchema.options) {
+    for (const [optionName, schemaOptions] of Object.entries(inputSchema.options)) {
+      const { schema, optional, defaultValue } = schemaOptions.type;
 
       // Case the value is passed
       if (inputValues.options && optionName in inputValues.options) {
-        const passedOptionValue = inputValues.options[optionName];
+        const passedValue = inputValues.options[optionName];
 
         context.options ??= {};
         context.options[optionName] =
-          passedOptionValue === undefined
-            ? { name: optionName, schema: optionType.schema, source: "default" }
-            : { name: optionName, schema: optionType.schema, passedValue: passedOptionValue, source: "programmatic" };
+          passedValue === undefined
+            ? { name: optionName, schema, optional, defaultValue, source: "default" }
+            : { name: optionName, schema, optional, defaultValue, passedValue, source: "programmatic" };
 
         continue;
       }
 
       // case the value is not passed
-      if (!optionType.isOptional) {
+      if (!optional) {
         throw new Error(`Option "${optionName}" is required`);
       }
 
       // case the value is optional
       context.options ??= {};
-      context.options[optionName] = { name: optionName, schema: optionType.schema, source: "default" };
+      context.options[optionName] = { name: optionName, schema, optional, defaultValue, source: "default" };
     }
   }
 
-  if (schema.arguments) {
-    for (let index = 0; index < schema.arguments.length; index++) {
-      const schemaArgument = schema.arguments[index];
-      const passedArgumentValue = inputValues.arguments?.[index];
+  if (inputSchema.arguments) {
+    for (let index = 0; index < inputSchema.arguments.length; index++) {
+      const schemaArgument = inputSchema.arguments[index];
+      const passedValue = inputValues.arguments?.[index];
+
+      const { schema, optional, defaultValue } = schemaArgument.type;
 
       // case the value is passed
-      if (passedArgumentValue) {
+      if (passedValue) {
         context.arguments ??= [];
         context.arguments[index] =
-          passedArgumentValue === undefined
-            ? { schema: schemaArgument.type.schema, source: "default" }
-            : { schema: schemaArgument.type.schema, passedValue: passedArgumentValue, source: "programmatic" };
+          passedValue === undefined
+            ? { schema, optional, defaultValue, source: "default" }
+            : { schema, optional, defaultValue, passedValue, source: "programmatic" };
 
         continue;
       }
 
       // case the value is not passed
-      if (!schemaArgument.type.isOptional) {
+      if (!optional) {
         throw new Error(`The ${generateOrdinalSuffix(index)} argument is required: ${schemaArgument.meta?.name ?? ""}`);
       }
 
       // case the value is optional
       context.arguments ??= [];
-      context.arguments[index] = { schema: schemaArgument.type.schema, source: "default" };
+      context.arguments[index] = { schema, optional, defaultValue, source: "default" };
     }
   }
 
-  if (schema.allowPositionals) {
+  if (inputSchema.allowPositionals) {
     context.positionals ??= inputValues.positionals;
   }
 

@@ -1,5 +1,5 @@
-import { terminalMarkdown } from "./terminal-markdown.ts";
 import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { OptionMetadata } from "../metadata/metadata-types.ts";
 import type { FormatOptions } from "./format-cli.ts";
@@ -21,6 +21,7 @@ export function formatHelpMessageOptions(optionsMetadata: OptionMetadata[], opti
     optionsTitle,
     emptyLinesBeforeTitle,
     emptyLinesAfterTitle,
+    markdownRenderer,
   } = options;
 
   let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(optionsTitle) + ln(1 + emptyLinesAfterTitle);
@@ -34,10 +35,11 @@ export function formatHelpMessageOptions(optionsMetadata: OptionMetadata[], opti
     const names = [...metadata.aliasesAsArgs, metadata.nameAsArg];
     const coloredNames = names.map(name => style.option(name)).join(style.punctuation(", "));
 
-    const normalizedDesc = indentLines(
-      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
-      totalSpacing,
-    );
+    let description = metadata.description
+      ? style.description(metadata.description)
+      : terminalMarkdown(style.description(metadata.descriptionMarkdown), markdownRenderer);
+
+    description = indentLines(description, totalSpacing);
 
     let defaultOrOptional = "";
 
@@ -60,7 +62,7 @@ export function formatHelpMessageOptions(optionsMetadata: OptionMetadata[], opti
       style.placeholder(metadata.placeholder) +
       indent(indentAfterName) +
       indent(spacing) +
-      insertAtEndOfFirstLine(style.description(normalizedDesc), defaultOrOptional) +
+      insertAtEndOfFirstLine(description, defaultOrOptional) +
       ln(1 + emptyLines);
 
     if (metadata.example) {

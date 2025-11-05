@@ -1,14 +1,12 @@
-import * as v from "valibot";
 import * as z from "zod";
-import { coerce, createCli } from "zod-args-parser";
-import * as Schema from "effect/Schema";
 
+import { coerce, createCli } from "../src/index.ts";
 import { addItemsSubcommandSchema } from "./commands/add-items.ts";
 import { createListSubcommandSchema } from "./commands/create-list.ts";
 import { deleteListSubcommandSchema } from "./commands/delete-list.ts";
-import { helpSubcommandSchema } from "./commands/help-cmd.js";
+import { helpSubcommandSchema } from "./commands/help-cmd.ts";
 import { removeItemsSubcommandSchema } from "./commands/remove-items.ts";
-import { sharedArguments, sharedOptions } from "./shared.js";
+import { sharedArguments, sharedOptions } from "./shared.ts";
 
 export const cliSchema = createCli({
   cliName: "listy",
@@ -44,7 +42,7 @@ export const cliSchema = createCli({
 
       // Zod: `z.boolean().optional()` | `z.boolean().default(false)`
       // Arktype: `type("boolean|undefined")` default and optional are not supported for primitive types
-      type: coerce.boolean(Schema.standardSchemaV1(Schema.Boolean)),
+      type: coerce.boolean(z.boolean().optional()),
       meta: {
         description: "Show listy version.",
       },
@@ -56,13 +54,18 @@ export const cliSchema = createCli({
   arguments: sharedArguments,
 });
 
-
 // Execute this function when the CLI is run
 cliSchema.setAction(results => {
   const { help, version } = results.options;
 
   if (help) {
-    cliSchema.printCliHelp?.();
+    if (!cliSchema.formatCliHelpMessage) {
+      console.error("Cli schema is not initialized.");
+      return;
+    }
+
+    const helpMessage = cliSchema.formatCliHelpMessage();
+    console.log(helpMessage);
     return;
   }
 
@@ -71,5 +74,5 @@ cliSchema.setAction(results => {
     return;
   }
 
-  console.error("Please try `argplay --help`");
+  console.error("Please try `listy --help`");
 });

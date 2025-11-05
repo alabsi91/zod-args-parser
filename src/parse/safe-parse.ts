@@ -1,11 +1,11 @@
 import { validateCliSchema } from "../schemas/validate-cli-schema.ts";
+import { parseArgv } from "../utilities.ts";
 import { createCliContext } from "./context/create-cli-context.ts";
 import { findSubcommand } from "./context/parser-helpers.ts";
 import { validate } from "./validate/validate.ts";
 
 import type { Cli } from "../schemas/schema-types.ts";
 import type { SafeParseResult } from "../types.ts";
-import { parseArgv } from "../utilities.ts";
 
 export function safeParse<T extends Cli>(stringOrArgv: string | string[], cli: T): SafeParseResult<T> {
   const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;

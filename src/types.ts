@@ -1,6 +1,6 @@
-import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type { Argument, Cli, Option, Subcommand } from "./schemas/schema-types.ts";
 import type { Context, ContextWide } from "./parse/context/context-types.ts";
+import type { Argument, Cli, Option, Subcommand } from "./schemas/schema-types.ts";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 
 /** `{ some props } & { other props }` => `{ some props, other props }` */
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
@@ -10,6 +10,13 @@ type UndefinedProperties<T> = { [P in keyof T]-?: undefined extends T[P] ? P : n
 
 /** Make undefined properties optional? */
 type ToOptional<T> = Partial<Pick<T, UndefinedProperties<T>>> & Pick<T, Exclude<keyof T, UndefinedProperties<T>>>;
+
+/** Make the tail of a tuple optional if it extends undefined */
+type MakeTailOptional<T extends readonly unknown[]> = T extends [...infer H, infer L]
+  ? undefined extends L
+    ? [...MakeTailOptional<H>, L?]
+    : T
+  : T;
 
 /** If every property in a record is optional, widen the type to `T | undefined`. */
 type WidenIfAllPropertiesOptional<T> = {
@@ -23,13 +30,6 @@ type WidenIfAllItemsOptional<T extends any[]> = {
   [Index in keyof T]-?: undefined extends T[Index] ? never : T[Index];
 }[number] extends never
   ? T | undefined
-  : T;
-
-/** Make the tail of a tuple optional if it extends undefined */
-type MakeTailOptional<T extends readonly unknown[]> = T extends [...infer H, infer L]
-  ? undefined extends L
-    ? [...MakeTailOptional<H>, L?]
-    : T
   : T;
 
 /** Output options type */
@@ -79,14 +79,27 @@ export type InferOutputType<T extends Cli | Subcommand> = Prettify<{
  *   type OptionsType = InferInputType<typeof subcommand>["options"];
  */
 export type InferInputType<T extends Cli | Subcommand> = Prettify<
+  // Add undefined if all properties are optional
   WidenIfAllPropertiesOptional<
+    // Make properties that can be undefined optional
     ToOptional<{
       positionals: T["allowPositionals"] extends true ? string[] : undefined;
       options: T["options"] extends Record<string, Option>
-        ? WidenIfAllPropertiesOptional<OptionsInputType<T["options"]>>
+        ? // Add undefined if all properties are optional
+          WidenIfAllPropertiesOptional<
+            // Options types as record
+            OptionsInputType<T["options"]>
+          >
         : undefined;
       arguments: T["arguments"] extends [Argument, ...Argument[]]
-        ? WidenIfAllItemsOptional<MakeTailOptional<ArgumentsInputType<T["arguments"]>>>
+        ? // Add undefined if all items are optional
+          WidenIfAllItemsOptional<
+            // Make the tail of a tuple optional if it extends undefined
+            MakeTailOptional<
+              // Arguments types as tuple
+              ArgumentsInputType<T["arguments"]>
+            >
+          >
         : undefined;
     }>
   >
@@ -112,9 +125,9 @@ export interface InputTypeWide {
 
 export interface Coerce<Schema extends StandardSchemaV1 = StandardSchemaV1> {
   schema: Schema;
-  defaultValue: unknown;
-  isOptional: boolean;
-  isBoolean?: boolean;
+  coerceTo: "string" | "number" | "boolean" | "json" | "array" | "set" | "custom";
+  optional: boolean;
+  defaultValue: StandardSchemaV1.InferOutput<Schema> | undefined;
   validate: (value: string | undefined) => StandardSchemaV1.Result<unknown>;
 }
 
@@ -123,14 +136,22 @@ export interface PrintHelpOptions {
   style?: Partial<HelpMessageStyle>;
 
   /**
-   * The number of spaces to put before the name.
+   * The renderer to use for the markdown.
+   *
+   * @default terminal
+   */
+  markdownRenderer?: "terminal" | "html";
+
+  /**
+   * The number of spaces to put before the name of (option/argument/subcommand).
    *
    * @default 2
    */
   indentBeforeName?: number;
 
   /**
-   * The number of spaces to put after the name between the name and the description (space between columns).
+   * The number of spaces to put after the name of (option/argument/subcommand), between the name and the description
+   * (space between columns).
    *
    * @default 4
    */
@@ -278,14 +299,17 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
     : never;
 
   /** **WARNING**: This will only be available after the CLI schema has been created */
-  printCliHelp?: (options?: PrintHelpOptions) => void;
+  formatCliHelpMessage?: (options?: PrintHelpOptions) => string;
 
   /**
    * **WARNING**: This will only be available after the CLI schema has been created
    *
    * @throws {Error} - When the subcommand is not found
    */
-  printSubcommandHelp?: (subcommandName: GetSubcommandsNames<T> | (string & {}), options?: PrintHelpOptions) => void;
+  formatSubcommandHelpMessage?: (
+    subcommandName: GetSubcommandsNames<T> | (string & {}),
+    options?: PrintHelpOptions,
+  ) => string;
 }
 
 type GetSubcommandsNames<T extends Partial<Subcommand>> = T extends Cli

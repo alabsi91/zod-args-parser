@@ -1,9 +1,5 @@
 {
   "compilerOptions": {
-    "paths": {
-      "zod-args-parser": ["./src/index.ts"]
-    },
-
     "target": "ESNext",
     "moduleDetection": "force",
     "types": ["node"],

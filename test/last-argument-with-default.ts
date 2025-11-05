@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
+
 import { coerce, createCli, parse } from "../src/index.ts";
 import { err, expectsSuccess, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 

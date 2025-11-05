@@ -1,10 +1,12 @@
 {
-  "plugins": ["prettier-plugin-jsdoc"],
+  "plugins": ["prettier-plugin-jsdoc", "@trivago/prettier-plugin-sort-imports"],
   "arrowParens": "avoid",
   "printWidth": 120,
   "semi": true,
   "bracketSpacing": true,
   "bracketSameLine": false,
   "endOfLine": "auto",
-  "singleQuote": false
+  "singleQuote": false,
+  "importOrder": ["<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "<SEPARATOR>", "^[./]", "<SEPARATOR>", "<TS_TYPES>"],
+  "importOrderSeparation": true
 }

@@ -1,8 +1,8 @@
-import { printCliHelp, printSubcommandHelp } from "../help-message/print-help.ts";
+import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-message/format-cli.ts";
 import { createExecuteContext } from "../parse/context/create-execute-context.ts";
 import { validate } from "../parse/validate/validate.ts";
 
-import type { AttachedMethods, ActionsFunctionsWide, PrintHelpOptions } from "../types.ts";
+import type { ActionsFunctionsWide, AttachedMethods, PrintHelpOptions } from "../types.ts";
 import type { Argument, Cli, Option, Subcommand } from "./schema-types.ts";
 
 type Exact<Actual extends Wanted, Wanted> = {
@@ -13,7 +13,7 @@ export function createCli<T extends Cli>(
   input: {
     [K in keyof T]: K extends keyof Cli
       ? T[K] extends Record<string, Option>
-        ? { [I in keyof T[K]]: Option<T[K][I]["type"]["schema"]> }
+        ? { [OptionName in keyof T[K]]: Option<T[K][OptionName]["type"]["schema"]> }
         : T[K]
       : never;
   } & Cli,
@@ -35,13 +35,13 @@ export function createCli<T extends Cli>(
   // Add print methods for CLI schema and its subcommands
   if ("cliName" in cliSchema) {
     const printMethods = {
-      printCliHelp(options?: PrintHelpOptions) {
-        printCliHelp(cliSchema, options);
+      formatCliHelpMessage(options?: PrintHelpOptions) {
+        return formatCliHelpMessage(cliSchema, options);
       },
-      printSubcommandHelp(subcommandName: string, options?: PrintHelpOptions) {
+      formatSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
         const foundSubcommand = cliSchema.subcommands?.find(s => s.name === subcommandName);
         if (!foundSubcommand) throw new Error(`Subcommand ${subcommandName} not found`);
-        printSubcommandHelp(foundSubcommand, options, cliSchema.cliName);
+        return formatSubcommandHelpMessage(foundSubcommand, options, cliSchema.cliName);
       },
     };
 
@@ -68,13 +68,8 @@ export function createSubcommand<T extends Subcommand>(
 ) {
   return createCli(input as unknown as Cli) as unknown as T & AttachedMethods<T>;
 }
-// export function createSubcommand<O extends Record<string, Option>, T extends Subcommand<O>>(
-//   input: T,
-// ): T & AttachedMethods<T> {
-//   return createCli(input as unknown as Cli) as unknown as T & AttachedMethods<T>;
-// }
 
-export function createOptions<T extends Record<string, Option>>(options: { [K in keyof T]: T[K] }): {
+export function createOptions<T extends Record<string, Option>>(options: { [K in keyof T]: T[K] & Option }): {
   [K in keyof T]: Option<T[K]["type"]["schema"]>;
 } {
   return options;

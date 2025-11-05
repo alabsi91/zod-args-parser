@@ -1,11 +1,11 @@
 import { writeFile } from "node:fs/promises";
+
 import {
   generateBashAutocompleteScript,
   generatePowerShellAutocompleteScript,
   generateZshAutocompleteScript,
-} from "zod-args-parser";
-
-import { cliSchema } from "./cli.js";
+} from "../src/index.ts";
+import { cliSchema } from "./cli.ts";
 
 /*
 - Generate bash autocomplete script for `listy`.

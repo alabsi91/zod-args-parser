@@ -12,4 +12,3 @@ export const expectsString = c.yellow("expects `string`".padEnd(spaceColumnEnd))
 export const expectsNumber = c.yellow("expects `number`".padEnd(spaceColumnEnd));
 
 export const err = (...message: unknown[]) => c.bold.red(...message);
-

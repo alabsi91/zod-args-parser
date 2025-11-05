@@ -1,15 +1,15 @@
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { Coerce, Prettify, OutputTypeWide } from "../types.ts";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 
 export type Cli = Prettify<
   Omit<Subcommand, "name" | "aliases" | "meta"> & {
-    /** - The name of the CLI program. */
+    /** The name of the CLI program. */
     readonly cliName: string;
 
-    /** - Subcommands of the CLI. */
+    /** Array of subcommands. Do not pass them directly instead use `createSubcommand` */
     subcommands?: readonly [Subcommand, ...Subcommand[]];
 
-    /** - Metadata for the CLI. */
+    /** The metadata for the CLI. */
     meta?: Omit<SubcommandMeta, "placeholder" | "hidden">;
   }
 >;
@@ -18,8 +18,7 @@ export interface MetaBase {
   /**
    * Short explanation.
    *
-   * - Supports multi-line text.
-   * - Console color styles (like `chalk`) can be used; they will be stripped out in markdown.
+   * Supports multi-line text and ansi color styles (like `chalk`).
    *
    * **Note:** For terminal markdown, use `descriptionMarkdown` instead.
    */
@@ -41,16 +40,13 @@ export interface MetaBase {
   descriptionMarkdown?: string;
 
   /**
-   * Example value shown to the user.
+   * Example to shown to the user.
    *
    * - In markdown, this will be displayed inside a code block.
    */
   example?: string;
 
-  /**
-   * - Hide this argument from being documented (help message / markdown).
-   * - This is useful for internal commands.
-   */
+  /** Hide this argument from being documented (help message / markdown). This is useful for internal use. */
   hidden?: boolean;
 }
 

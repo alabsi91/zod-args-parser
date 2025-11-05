@@ -1,8 +1,8 @@
 import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { ArgumentMetadata } from "../metadata/metadata-types.ts";
 import type { FormatOptions } from "./format-cli.ts";
-import { terminalMarkdown } from "./terminal-markdown.ts";
 
 export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[], options: FormatOptions): string {
   if (argumentsMetadata.length === 0) return "";
@@ -21,6 +21,7 @@ export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[]
     emptyLines,
     emptyLinesBeforeTitle,
     emptyLinesAfterTitle,
+    markdownRenderer,
   } = options;
 
   let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(argumentsTitle) + ln(1 + emptyLinesAfterTitle);
@@ -31,10 +32,11 @@ export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[]
   for (const metadata of argumentsMetadata) {
     if (metadata.hidden) continue;
 
-    const normalizedDesc = indentLines(
-      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
-      totalSpacing,
-    );
+    let description = metadata.description
+      ? style.description(metadata.description)
+      : terminalMarkdown(style.description(metadata.descriptionMarkdown), markdownRenderer);
+
+    description = indentLines(description, totalSpacing);
 
     let defaultOrOptional = "";
 
@@ -53,7 +55,7 @@ export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[]
       style.argument(metadata.name) +
       indent(indentBeforePlaceholder + indentAfterName) +
       indent(spacing) +
-      insertAtEndOfFirstLine(style.description(normalizedDesc), defaultOrOptional) +
+      insertAtEndOfFirstLine(description, defaultOrOptional) +
       ln(1 + emptyLines);
 
     if (metadata.example) {

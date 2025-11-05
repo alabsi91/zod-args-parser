@@ -70,7 +70,7 @@ function validateArguments(schema: Cli | Subcommand) {
         throw createError(`argument's "type" property is required.`);
       }
 
-      if (!argument.type.isOptional) continue; // ok
+      if (!argument.type.optional) continue; // ok
 
       if (schema.allowPositionals) {
         throw createError(`optional arguments are not allowed when "allowPositionals" is enabled.`);

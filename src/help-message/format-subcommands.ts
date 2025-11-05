@@ -1,8 +1,8 @@
 import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts";
+import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { SubcommandMetadata } from "../metadata/metadata-types.ts";
 import type { FormatOptions } from "./format-cli.ts";
-import { terminalMarkdown } from "./terminal-markdown.ts";
 
 export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadata[], options: FormatOptions): string {
   if (subcommandsMetadata.length === 0) return "";
@@ -18,6 +18,7 @@ export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadat
     emptyLines,
     emptyLinesBeforeTitle,
     emptyLinesAfterTitle,
+    markdownRenderer,
   } = options;
 
   let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(commandsTitle) + ln(1 + emptyLinesAfterTitle);
@@ -31,10 +32,11 @@ export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadat
     const names = metadata.aliases.concat([metadata.name]);
     const placeholder = subcommandPlaceholder(metadata);
 
-    const normalizedDesc = indentLines(
-      metadata.description || terminalMarkdown(metadata.descriptionMarkdown),
-      totalSpacing,
-    );
+    let description = metadata.description
+      ? style.description(metadata.description)
+      : terminalMarkdown(style.description(metadata.descriptionMarkdown), markdownRenderer);
+
+    description = indentLines(description, totalSpacing);
 
     const optLength = names.join(", ").length + placeholder.length;
     const spacing = longest - optLength;
@@ -48,7 +50,7 @@ export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadat
       style.placeholder(placeholder) +
       indent(indentAfterName) +
       indent(spacing) +
-      style.description(normalizedDesc) +
+      description +
       ln(1 + emptyLines);
   }
 
