@@ -1,11 +1,14 @@
-import { writeFile } from "node:fs/promises";
+import { writeFileSync } from "node:fs";
+import path from "node:path";
 
 import {
   generateBashAutocompleteScript,
   generatePowerShellAutocompleteScript,
   generateZshAutocompleteScript,
-} from "../src/index.ts";
-import { cliSchema } from "./cli.ts";
+} from "../../src/index.ts";
+import { listCli } from "../cli.ts";
+
+const outdir = path.join(import.meta.dirname, "..", "autocomplete-scripts");
 
 /*
 - Generate bash autocomplete script for `listy`.
@@ -14,8 +17,8 @@ import { cliSchema } from "./cli.ts";
   - Add the following line: `source <path to listy-autocomplete.sh>`
   - Save and reopen bash to take effect
 */
-const bashScript = generateBashAutocompleteScript(cliSchema);
-await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf8" });
+const bashScript = generateBashAutocompleteScript(listCli);
+writeFileSync(path.join(outdir, "bash-autocomplete.sh"), bashScript, { encoding: "utf8" });
 
 /*
 - Generates a PowerShell autocomplete script for `listy`.
@@ -26,8 +29,8 @@ await writeFile("./bash-autocomplete.sh", bashScript, { encoding: "utf8" });
     - Add the following line: `. "<path to listy-autocomplete.ps1>"`
     - Save and reopen powershell to take effect
 */
-const powershellScript = generatePowerShellAutocompleteScript(cliSchema);
-await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "utf8" });
+const powershellScript = generatePowerShellAutocompleteScript(listCli);
+writeFileSync(path.join(outdir, "powershell-autocomplete.ps1"), powershellScript, { encoding: "utf8" });
 
 /**
  * - Generates a ZSH autocomplete script for your CLI.
@@ -37,5 +40,5 @@ await writeFile("./powershell-autocomplete.ps1", powershellScript, { encoding: "
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-const zshScript = generateZshAutocompleteScript(cliSchema);
-await writeFile("./zsh-autocomplete.zsh", zshScript, { encoding: "utf8" });
+const zshScript = generateZshAutocompleteScript(listCli);
+writeFileSync(path.join(outdir, "zsh-autocomplete.zsh"), zshScript, { encoding: "utf8" });

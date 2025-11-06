@@ -1,10 +1,10 @@
 import * as z from "zod";
 
-import { coerce, createSubcommand, type InferInputType } from "../../src/index.ts";
-import { logCliContext } from "../log-verbose.ts";
+import { coerce, createSubcommand, type InferArgumentsInputType } from "../../src/index.ts";
 import { sharedOptions } from "../shared.ts";
+import { logCliContext } from "../utilities.ts";
 
-const helpSubcommandSchema = createSubcommand({
+const helpCommand = createSubcommand({
   name: "help",
   meta: {
     placeholder: "<command>",
@@ -26,7 +26,7 @@ const helpSubcommandSchema = createSubcommand({
   ],
 });
 
-helpSubcommandSchema.setAction(results => {
+helpCommand.onExecute(results => {
   const { verbose } = results.options;
   const [command] = results.arguments;
 
@@ -34,25 +34,23 @@ helpSubcommandSchema.setAction(results => {
     logCliContext(results.context);
   }
 
-  if (!helpSubcommandSchema.formatSubcommandHelpMessage || !helpSubcommandSchema.formatCliHelpMessage) {
+  if (!helpCommand.formatSubcommandHelpMessage || !helpCommand.formatCliHelpMessage) {
     console.error("Print help methods are not initialized yet.");
     return;
   }
 
   if (command) {
-    const helpMessage = helpSubcommandSchema.formatSubcommandHelpMessage(command);
+    const helpMessage = helpCommand.formatSubcommandHelpMessage(command);
     console.log(helpMessage);
     return;
   }
 
-  const helpMessage = helpSubcommandSchema.formatCliHelpMessage();
+  const helpMessage = helpCommand.formatCliHelpMessage();
   console.log(helpMessage);
 });
 
-type InputType = InferInputType<typeof helpSubcommandSchema>;
-
-function executeHelpCommand(commandName?: NonNullable<NonNullable<InputType>["arguments"]>[0]) {
-  helpSubcommandSchema.execute({ arguments: [commandName] });
+function executeHelpCommand(commandName?: InferArgumentsInputType<typeof helpCommand>[0]) {
+  helpCommand.execute({ arguments: [commandName] });
 }
 
-export { helpSubcommandSchema, executeHelpCommand };
+export { executeHelpCommand, helpCommand };

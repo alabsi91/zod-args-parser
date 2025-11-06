@@ -1,4 +1,4 @@
-import type { Cli, Option, Subcommand } from "../../schemas/schema-types.ts";
+import type { Cli, Option, Subcommand } from "../schemas/schema-types.ts";
 
 /**
  * Retrieves a subcommand object from an array of subcommands by matching the provided subcommand name against the

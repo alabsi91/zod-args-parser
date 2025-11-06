@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, createCli, parse } from "../src/index.ts";
+import { coerce, createCli } from "../src/index.ts";
 import {
   err,
   expectsFalse,
@@ -26,14 +26,14 @@ describe("-h, --help (default: false)".padEnd(spaceToColumn + spaceColumnEnd + 2
   });
 
   it("No arguments provided".padEnd(spaceToColumn) + expectsFalse, () => {
-    const result = parse([], cli);
-    if (!result.success) {
+    const result = cli.run([]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      !result.data.options.help,
-      err("Invalid value for option `help`. Expected `false`, but received:", result.data.options.help),
+      !result.value.options.help,
+      err("Invalid value for option `help`. Expected `false`, but received:", result.value.options.help),
     );
   });
 });
@@ -50,14 +50,14 @@ describe("-n, --number (optional: number)".padEnd(spaceToColumn + spaceColumnEnd
   });
 
   it("No arguments provided".padEnd(spaceToColumn) + expectsUndefined, () => {
-    const result = parse([], cli);
-    if (!result.success) {
+    const result = cli.run([]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      result.data.options.number === undefined,
-      err("Invalid value for option `number`. Expected `undefined`, but received:", result.data.options.number),
+      result.value.options.number === undefined,
+      err("Invalid value for option `number`. Expected `undefined`, but received:", result.value.options.number),
     );
   });
 });
@@ -74,14 +74,14 @@ describe("-n, --number (default: 0.1)".padEnd(spaceToColumn + spaceColumnEnd + 2
   });
 
   it("No arguments provided".padEnd(spaceToColumn) + expectsNumber, () => {
-    const result = parse([], cli);
-    if (!result.success) {
+    const result = cli.run([]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      result.data.options.number === 0.1,
-      err("Invalid value for option `number`. Expected `0.1`, but received:", result.data.options.number),
+      result.value.options.number === 0.1,
+      err("Invalid value for option `number`. Expected `0.1`, but received:", result.value.options.number),
     );
   });
 });
@@ -98,14 +98,14 @@ describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd
   });
 
   it("No arguments provided".padEnd(spaceToColumn) + expectsUndefined, () => {
-    const result = parse([], cli);
-    if (!result.success) {
+    const result = cli.run([]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      result.data.options.string === undefined,
-      err("Invalid value for option `string`. Expected `undefined`, but received:", result.data.options.string),
+      result.value.options.string === undefined,
+      err("Invalid value for option `string`. Expected `undefined`, but received:", result.value.options.string),
     );
   });
 });
@@ -122,16 +122,16 @@ describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceCol
   });
 
   it("No arguments provided".padEnd(spaceToColumn) + expectsString, () => {
-    const result = parse([], cli);
-    if (!result.success) {
+    const result = cli.run([]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      result.data.options.string === "hello world",
+      result.value.options.string === "hello world",
       err(
         'Invalid default value for option `string`. Expected `"hello world"`, but received:',
-        result.data.options.string,
+        result.value.options.string,
       ),
     );
   });
@@ -149,26 +149,26 @@ describe("-abcd, booleans flags".padEnd(spaceToColumn + spaceColumnEnd + 2), () 
   });
 
   it("-abcd".padEnd(spaceToColumn) + expectsSuccess, () => {
-    const result = parse(["-abcd"], cli);
-    if (!result.success) {
+    const result = cli.run(["-abcd"]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
     assert(
-      result.data.options.a,
-      err("Invalid value for option `-a`. Expected `true`, but received:", result.data.options.a),
+      result.value.options.a,
+      err("Invalid value for option `-a`. Expected `true`, but received:", result.value.options.a),
     );
     assert(
-      result.data.options.b,
-      err("Invalid value for option `-b`. Expected `true`, but received:", result.data.options.b),
+      result.value.options.b,
+      err("Invalid value for option `-b`. Expected `true`, but received:", result.value.options.b),
     );
     assert(
-      result.data.options.c,
-      err("Invalid value for option `-c`. Expected `true`, but received:", result.data.options.c),
+      result.value.options.c,
+      err("Invalid value for option `-c`. Expected `true`, but received:", result.value.options.c),
     );
     assert(
-      result.data.options.d,
-      err("Invalid value for option `-d`. Expected `true`, but received:", result.data.options.d),
+      result.value.options.d,
+      err("Invalid value for option `-d`. Expected `true`, but received:", result.value.options.d),
     );
   });
 });

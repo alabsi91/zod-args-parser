@@ -15,4 +15,17 @@ const defaultList: List = {
   items: [],
 };
 
-export const lists: Map<string, List> = new Map([["default", defaultList]]);
+const exampleList: List = {
+  name: "groceries",
+  description: "List of groceries",
+  items: [
+    { name: "Egg", tags: ["food"] },
+    { name: "Milk", tags: ["food"] },
+    { name: "Bread", tags: ["food"] },
+  ],
+};
+
+export const lists: Map<string, List> = new Map([
+  ["default", defaultList],
+  ["groceries", exampleList],
+]);

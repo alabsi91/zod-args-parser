@@ -2,10 +2,10 @@ import * as z from "zod";
 
 import { coerce, createSubcommand } from "../../src/index.ts";
 import { lists } from "../lists.ts";
-import { logCliContext } from "../log-verbose.ts";
 import { sharedOptions } from "../shared.ts";
+import { logCliContext } from "../utilities.ts";
 
-const deleteListSubcommandSchema = createSubcommand({
+const deleteListCommand = createSubcommand({
   name: "delete-list",
   aliases: ["dl"],
   meta: {
@@ -26,7 +26,7 @@ const deleteListSubcommandSchema = createSubcommand({
   ],
 });
 
-deleteListSubcommandSchema.setAction(results => {
+deleteListCommand.onExecute(results => {
   const { verbose } = results.options;
   const [listName] = results.arguments;
 
@@ -46,7 +46,7 @@ deleteListSubcommandSchema.setAction(results => {
 
 // Provide a programmatic way to execute the command
 function executeDeleteListCommand(listName: string) {
-  deleteListSubcommandSchema.execute({ arguments: [listName] });
+  deleteListCommand.execute({ arguments: [listName] });
 }
 
-export { deleteListSubcommandSchema, executeDeleteListCommand };
+export { deleteListCommand, executeDeleteListCommand };

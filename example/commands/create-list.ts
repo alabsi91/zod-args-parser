@@ -1,11 +1,11 @@
 import * as z from "zod";
 
-import { coerce, createSubcommand, type InferInputType } from "../../src/index.ts";
+import { coerce, createSubcommand, type InferArgumentsInputType } from "../../src/index.ts";
 import { lists } from "../lists.ts";
-import { logCliContext } from "../log-verbose.ts";
 import { sharedOptions } from "../shared.ts";
+import { logCliContext } from "../utilities.ts";
 
-const createListSubcommandSchema = createSubcommand({
+const createListCommand = createSubcommand({
   name: "create-list",
   aliases: ["cl"],
   meta: {
@@ -42,7 +42,7 @@ const createListSubcommandSchema = createSubcommand({
   ],
 });
 
-createListSubcommandSchema.setAction(results => {
+createListCommand.onExecute(results => {
   const { overwrite, verbose } = results.options;
   const [listName, listDescription] = results.arguments;
 
@@ -66,10 +66,8 @@ createListSubcommandSchema.setAction(results => {
 });
 
 // Provide a programmatic way to execute the command
-function executeCreateListCommand(
-  ...[name, description]: InferInputType<typeof createListSubcommandSchema>["arguments"]
-) {
-  createListSubcommandSchema.execute({ arguments: [name, description] });
+function executeCreateList(...[name, description]: InferArgumentsInputType<typeof createListCommand>) {
+  createListCommand.execute({ arguments: [name, description] });
 }
 
-export { createListSubcommandSchema, executeCreateListCommand };
+export { createListCommand, executeCreateList };

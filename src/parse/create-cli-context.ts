@@ -1,4 +1,4 @@
-import { generateOrdinalSuffix } from "../../utilities.ts";
+import { generateOrdinalSuffix } from "../utilities.ts";
 import {
   decoupleFlags,
   findOption,
@@ -8,7 +8,7 @@ import {
   transformOptionToArgument,
 } from "./parser-helpers.ts";
 
-import type { Cli } from "../../schemas/schema-types.ts";
+import type { Cli } from "../schemas/schema-types.ts";
 import type { ContextWide } from "./context-types.ts";
 
 /**

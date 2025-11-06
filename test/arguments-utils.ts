@@ -6,7 +6,7 @@ import {
   isOptionArgument,
   optionArgumentToVariableNames,
   transformOptionToArgument,
-} from "../src/parse/context/parser-helpers.ts";
+} from "../src/parse/parser-helpers.ts";
 import { err, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
 describe("Testing Arguments Utils".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {

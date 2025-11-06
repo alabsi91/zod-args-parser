@@ -1,4 +1,25 @@
 import type { SubcommandMetadata } from "./metadata/metadata-types.ts";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
+/** @throws */
+export function validateSync(schema: StandardSchemaV1, value?: unknown) {
+  const results = schema["~standard"].validate(value);
+  if (results instanceof Promise) {
+    throw new TypeError("async schema validation not supported");
+  }
+
+  return results;
+}
+
+export function defaultValueAndIsOptional(schema: StandardSchemaV1): { defaultValue: unknown; optional: boolean } {
+  const results = validateSync(schema);
+
+  if (results.issues) {
+    return { defaultValue: undefined, optional: false };
+  }
+
+  return { defaultValue: results.value, optional: true };
+}
 
 /**
  * Converts a zero-based index into its human-readable ordinal form.
@@ -105,6 +126,7 @@ export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
   return placeholder;
 }
 
+/** Parse a string into an argv (array of arguments) */
 export function parseArgv(input: string): string[] {
   const argv = [];
 
@@ -199,4 +221,26 @@ export function escapeHtmlTags(markdown: string): string {
 
     return tag.replace(/[&<>]/g, ch => escapeMap[ch]);
   });
+}
+
+/** Credits: https://github.com/chalk/ansi-regex */
+function ansiRegex({ onlyFirst = false } = {}) {
+  // Valid string terminator sequences are BEL, ESC\, and 0x9c
+  const ST = String.raw`(?:\u0007|\u001B\u005C|\u009C)`;
+
+  // OSC sequences only: ESC ] ... ST (non-greedy until the first ST)
+  const osc = `(?:\\u001B\\][\\s\\S]*?${ST})`;
+
+  // CSI and related: ESC/C1, optional intermediates, optional params (supports ; and :) then final byte
+  const csi = String.raw`[\u001B\u009B][[\]()#;?]*(?:\d{1,4}(?:[;:]\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]`;
+
+  const pattern = `${osc}|${csi}`;
+
+  return new RegExp(pattern, onlyFirst ? undefined : "g");
+}
+
+const regex = ansiRegex();
+
+export function stripAnsi(string: string): string {
+  return string.replace(regex, "");
 }

@@ -1,5 +1,5 @@
 import { getCliMetadata } from "../metadata/get-cli-metadata.ts";
-import { escapeHtmlTags } from "../utilities.ts";
+import { escapeHtmlTags, stripAnsi } from "../utilities.ts";
 
 import type { ArgumentMetadata, OptionMetadata, SubcommandMetadata } from "../metadata/metadata-types.ts";
 import type { Cli } from "../schemas/schema-types.ts";
@@ -14,12 +14,12 @@ export function generateMarkdown(cli: Cli): string {
 
   // Description
   if (metadata.description && !metadata.descriptionMarkdown) {
-    md += `${metadata.description}\n`;
+    md += `${forceLineBreak(metadata.description)}\n`;
   }
 
   // Description Markdown
   if (metadata.descriptionMarkdown) {
-    md += `${metadata.descriptionMarkdown}\n`;
+    md += `${forceLineBreak(metadata.descriptionMarkdown)}\n`;
   }
 
   // Examples
@@ -84,11 +84,11 @@ function renderOptions(optionsMetadata: OptionMetadata[] = [], h: number) {
     outString += "\n\n";
 
     if (metadata.description && !metadata.descriptionMarkdown) {
-      outString += `${metadata.description.replace(/(\n+)/g, "  $1 ")}\n`;
+      outString += `${forceLineBreak(metadata.description)}\n`;
     }
 
     if (metadata.descriptionMarkdown) {
-      outString += `${metadata.descriptionMarkdown}\n`;
+      outString += `${forceLineBreak(metadata.descriptionMarkdown)}\n`;
     }
 
     if (metadata.defaultValue !== undefined) {
@@ -123,11 +123,11 @@ function renderArguments(argumentsMetadata: ArgumentMetadata[] = [], h: number) 
     outString += "\n\n";
 
     if (metadata.description && !metadata.descriptionMarkdown) {
-      outString += `${metadata.description.replace(/(\n+)/g, "  $1 ")}\n`;
+      outString += `${forceLineBreak(metadata.description)}\n`;
     }
 
     if (metadata.descriptionMarkdown) {
-      outString += `${metadata.descriptionMarkdown}\n`;
+      outString += `${forceLineBreak(metadata.descriptionMarkdown)}\n`;
     }
 
     if (metadata.defaultValue !== undefined) {
@@ -160,11 +160,11 @@ function renderSubcommands(subcommandsMetadata: SubcommandMetadata[]) {
     outString += `### ${aliases + placeholder}\n\n`;
 
     if (metadata.description && !metadata.descriptionMarkdown) {
-      outString += `${metadata.description}\n`;
+      outString += `${forceLineBreak(metadata.description)}\n`;
     }
 
     if (metadata.descriptionMarkdown) {
-      outString += `${metadata.descriptionMarkdown}\n`;
+      outString += `${forceLineBreak(metadata.descriptionMarkdown)}\n`;
     }
 
     if (metadata.example) {
@@ -189,24 +189,7 @@ function renderSubcommands(subcommandsMetadata: SubcommandMetadata[]) {
   return outString;
 }
 
-/** Credits: https://github.com/chalk/ansi-regex */
-function ansiRegex({ onlyFirst = false } = {}) {
-  // Valid string terminator sequences are BEL, ESC\, and 0x9c
-  const ST = String.raw`(?:\u0007|\u001B\u005C|\u009C)`;
-
-  // OSC sequences only: ESC ] ... ST (non-greedy until the first ST)
-  const osc = `(?:\\u001B\\][\\s\\S]*?${ST})`;
-
-  // CSI and related: ESC/C1, optional intermediates, optional params (supports ; and :) then final byte
-  const csi = String.raw`[\u001B\u009B][[\]()#;?]*(?:\d{1,4}(?:[;:]\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]`;
-
-  const pattern = `${osc}|${csi}`;
-
-  return new RegExp(pattern, onlyFirst ? undefined : "g");
-}
-
-const regex = ansiRegex();
-
-function stripAnsi(string: string): string {
-  return string.replace(regex, "");
+/** Inserts two trailing spaces before newline. In Markdown, a newline that ends with two spaces forces a line break. */
+function forceLineBreak(string: string): string {
+  return string.replace(/(\n+)/g, "  $1");
 }

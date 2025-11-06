@@ -1,4 +1,4 @@
-import { transformOptionToArgument } from "../parse/context/parser-helpers.ts";
+import { transformOptionToArgument } from "../parse/parser-helpers.ts";
 
 import type { Cli, Subcommand } from "../schemas/schema-types.ts";
 

@@ -1,8 +1,8 @@
 import { validateCliSchema } from "../schemas/validate-cli-schema.ts";
 import { parseArgv } from "../utilities.ts";
-import { createCliContext } from "./context/create-cli-context.ts";
-import { findSubcommand } from "./context/parser-helpers.ts";
-import { validate } from "./validate/validate.ts";
+import { createCliContext } from "./create-cli-context.ts";
+import { findSubcommand } from "./parser-helpers.ts";
+import { validate } from "./validate-context.ts";
 
 import type { Cli } from "../schemas/schema-types.ts";
 import type { CliParseResult } from "../types.ts";
@@ -40,8 +40,10 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cli: T
   }
 
   // Fire action (throw errors caused by the usage of the action hook)
-  if (subcommandObject.action) {
-    subcommandObject.action(validateResult);
+  if (subcommandObject._onExecute) {
+    for (const handler of subcommandObject._onExecute) {
+      handler(validateResult);
+    }
   }
 
   return { error: undefined, value: validateResult } as CliParseResult<T>;
@@ -63,7 +65,7 @@ export async function safeParseAsync<T extends Cli>(
 
   const subcommandObject = findSubcommand(parsedData.subcommand, cli);
   if (!subcommandObject) {
-    const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`, { cause: "zod-args-parser" });
+    const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
     return { error };
   }
 
@@ -76,8 +78,11 @@ export async function safeParseAsync<T extends Cli>(
   }
 
   // Fire action (throw errors caused by the usage of the action hook)
-  if (subcommandObject.action) {
-    await subcommandObject.action(validateResult);
+  if (subcommandObject._onExecute) {
+    for (const handler of subcommandObject._onExecute) {
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      await handler(validateResult);
+    }
   }
 
   return { error: undefined, value: validateResult } as CliParseResult<T>;

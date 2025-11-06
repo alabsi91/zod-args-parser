@@ -10,9 +10,9 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "node --watch example/index.ts",
+    "dev": "node --watch-path src --watch-path example example/index.ts",
     "build": "node scripts/build.ts",
-    "test": "node --test && eslint src/** --fix && tsgo --noEmit && tsx test/test.ts",
+    "test": "node --test && eslint \"src/**\" --fix && tsgo --noEmit",
     "prepare": "npm run test && npm run build"
   },
   "exports": {

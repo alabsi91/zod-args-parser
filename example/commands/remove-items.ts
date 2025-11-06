@@ -2,10 +2,10 @@ import * as z from "zod";
 
 import { coerce, createSubcommand, type InferInputType } from "../../src/index.ts";
 import { lists } from "../lists.ts";
-import { logCliContext } from "../log-verbose.ts";
 import { sharedOptions } from "../shared.ts";
+import { logCliContext } from "../utilities.ts";
 
-const removeItemsSubcommandSchema = createSubcommand({
+const removeItemsCommand = createSubcommand({
   name: "remove-items",
   aliases: ["r", "remove"],
   meta: {
@@ -30,7 +30,7 @@ const removeItemsSubcommandSchema = createSubcommand({
   allowPositionals: true,
 });
 
-removeItemsSubcommandSchema.setAction(results => {
+removeItemsCommand.onExecute(results => {
   const { list, verbose } = results.options;
   const items = results.positionals;
 
@@ -54,11 +54,11 @@ removeItemsSubcommandSchema.setAction(results => {
   console.log(`Removed ${items.length} items from the list`);
 });
 
-type InputType = InferInputType<typeof removeItemsSubcommandSchema>;
+type InputType = InferInputType<typeof removeItemsCommand>;
 
 // Provide a programmatic way to execute the command
 function executeRemoveItemsCommand(listName: InputType["options"]["list"], ...items: InputType["positionals"]) {
-  removeItemsSubcommandSchema.execute({ options: { list: listName }, positionals: items });
+  removeItemsCommand.execute({ options: { list: listName }, positionals: items });
 }
 
-export { removeItemsSubcommandSchema, executeRemoveItemsCommand };
+export { removeItemsCommand, executeRemoveItemsCommand };

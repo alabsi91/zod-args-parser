@@ -1,15 +1,16 @@
 import * as z from "zod";
 
 import { coerce, createCli } from "../src/index.ts";
-import { addItemsSubcommandSchema } from "./commands/add-items.ts";
-import { createListSubcommandSchema } from "./commands/create-list.ts";
-import { deleteListSubcommandSchema } from "./commands/delete-list.ts";
-import { helpSubcommandSchema } from "./commands/help-cmd.ts";
-import { removeItemsSubcommandSchema } from "./commands/remove-items.ts";
-import { logCliContext } from "./log-verbose.ts";
+import { addItemsCommand } from "./commands/add-items.ts";
+import { createListCommand } from "./commands/create-list.ts";
+import { deleteListCommand } from "./commands/delete-list.ts";
+import { helpCommand } from "./commands/help-cmd.ts";
+import { removeItemsCommand } from "./commands/remove-items.ts";
+import { viewListCommand } from "./commands/view-list.ts";
 import { sharedOptions } from "./shared.ts";
+import { logCliContext } from "./utilities.ts";
 
-export const cliSchema = createCli({
+export const listCli = createCli({
   cliName: "listy",
   meta: {
     descriptionMarkdown: "**Listy** is a simple CLI to showcase arguments **parsing** and **validation**.",
@@ -23,11 +24,12 @@ export const cliSchema = createCli({
   },
 
   subcommands: [
-    addItemsSubcommandSchema,
-    removeItemsSubcommandSchema,
-    createListSubcommandSchema,
-    deleteListSubcommandSchema,
-    helpSubcommandSchema,
+    addItemsCommand,
+    removeItemsCommand,
+    createListCommand,
+    deleteListCommand,
+    viewListCommand,
+    helpCommand,
   ],
 
   options: {
@@ -54,7 +56,7 @@ export const cliSchema = createCli({
 });
 
 // Execute this function when the CLI is run
-cliSchema.setAction(results => {
+listCli.onExecute(results => {
   const { help, version, verbose } = results.options;
 
   if (verbose) {
@@ -62,12 +64,12 @@ cliSchema.setAction(results => {
   }
 
   if (help) {
-    if (!cliSchema.formatCliHelpMessage) {
+    if (!listCli.formatCliHelpMessage) {
       console.error("Cli schema is not initialized.");
       return;
     }
 
-    const helpMessage = cliSchema.formatCliHelpMessage();
+    const helpMessage = listCli.formatCliHelpMessage();
     console.log(helpMessage);
     return;
   }

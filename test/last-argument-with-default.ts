@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, createCli, parse } from "../src/index.ts";
+import { coerce, createCli } from "../src/index.ts";
 import { err, expectsSuccess, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
 const cli = createCli({
@@ -25,12 +25,12 @@ const cli = createCli({
 
 describe("[string, number, boolean=true]".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
   it('["hello world", 123]'.padEnd(spaceToColumn) + expectsSuccess, () => {
-    const result = parse(["hello world", "123"], cli);
-    if (!result.success) {
+    const result = cli.run(["hello world", "123"]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    const [stringArg, numberArg, booleanDefaultArg] = result.data.arguments;
+    const [stringArg, numberArg, booleanDefaultArg] = result.value.arguments;
 
     assert.equal(
       stringArg,
@@ -51,12 +51,12 @@ describe("[string, number, boolean=true]".padEnd(spaceToColumn + spaceColumnEnd 
   });
 
   it('["hello world", 123, true]'.padEnd(spaceToColumn) + expectsSuccess, () => {
-    const result = parse(["hello world", "123", "false"], cli);
-    if (!result.success) {
+    const result = cli.run(["hello world", "123", "false"]);
+    if (result.error) {
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    const [stringArg, numberArg, booleanDefaultArg] = result.data.arguments;
+    const [stringArg, numberArg, booleanDefaultArg] = result.value.arguments;
 
     assert.equal(
       stringArg,

@@ -1,4 +1,4 @@
-import type { Context, ContextWide } from "./parse/context/context-types.ts";
+import type { Context, ContextWide } from "./parse/context-types.ts";
 import type { Argument, Cli, Option, Subcommand } from "./schemas/schema-types.ts";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
@@ -57,11 +57,32 @@ type ArgumentsInputType<T extends [Argument, ...Argument[]]> = Prettify<{
 }>;
 
 /**
+ * - Infer options output type.
+ *
+ * @example
+ *   const myCommand = createSubcommand({ name: "my-command", options: [...] });
+ *   type MyCommandOptionsOutput = InferOutputType<typeof myCommand>;
+ */
+export type InferOptionsOutputType<T extends Cli | Subcommand> =
+  T["options"] extends Record<string, Option> ? OptionsOutputType<T["options"]> : undefined;
+
+/**
+ * - Infer arguments output type.
+ *
+ * @example
+ *   const myCommand = createSubcommand({ name: "my-command", arguments: [...] });
+ *   type MyCommandArgumentsOutput = InferOutputType<typeof myCommand>;
+ */
+export type InferArgumentsOutputType<T extends Cli | Subcommand> = T["arguments"] extends [Argument, ...Argument[]]
+  ? ArgumentsOutputType<T["arguments"]>
+  : undefined;
+
+/**
  * - Infer schema output type.
  *
  * @example
- *   const subcommand = createSubcommand({ name: "build", options: [...] });
- *   type OptionsType = InferOutputType<typeof subcommand>["options"];
+ *   const myCommand = createSubcommand({ name: "my-command", ... });
+ *   type MyCommandOutput = InferOutputType<typeof myCommand>;
  */
 export type InferOutputType<T extends Cli | Subcommand> = Prettify<{
   subcommand: "name" extends keyof T ? T["name"] : undefined;
@@ -71,12 +92,42 @@ export type InferOutputType<T extends Cli | Subcommand> = Prettify<{
   context: Context<[T]>;
 }>;
 
+export interface OutputTypeWide {
+  subcommand: string | undefined;
+  positionals?: string[];
+  arguments?: unknown[];
+  options?: Record<string, unknown>;
+  context: ContextWide;
+}
+
+/**
+ * - Infer arguments input type.
+ *
+ * @example
+ *   const myCommand = createSubcommand({ name: "my-command", arguments: [...] });
+ *   type MyCommandArgumentsInput = InferArgumentsInputType<typeof myCommand>;
+ */
+export type InferArgumentsInputType<T extends Cli | Subcommand> = T["arguments"] extends [Argument, ...Argument[]]
+  ? // Make the tail of a tuple optional if it extends undefined
+    MakeTailOptional<ArgumentsInputType<T["arguments"]>>
+  : undefined;
+
+/**
+ * - Infer options input type.
+ *
+ * @example
+ *   const myCommand = createSubcommand({ name: "my-command", options: [...] });
+ *   type MyCommandOptionsInput = inferOptionsInputType<typeof myCommand>;
+ */
+export type inferOptionsInputType<T extends Cli | Subcommand> =
+  T["options"] extends Record<string, Option> ? OptionsInputType<T["options"]> : undefined;
+
 /**
  * - Infer schema input type.
  *
  * @example
- *   const subcommand = createSubcommand({ name: "build", options: [...] });
- *   type OptionsType = InferInputType<typeof subcommand>["options"];
+ *   const myCommand = createSubcommand({ name: "my-command", ... });
+ *   type MyCommandInput = InferInputType<typeof myCommand>;
  */
 export type InferInputType<T extends Cli | Subcommand> = Prettify<
   // Add undefined if all properties are optional
@@ -108,14 +159,6 @@ export type InferInputType<T extends Cli | Subcommand> = Prettify<
 export type OutputType<S extends readonly (Cli | Subcommand)[]> = {
   [K in keyof S]: InferOutputType<S[K]>;
 }[number];
-
-export interface OutputTypeWide {
-  subcommand: string | undefined;
-  positionals?: string[];
-  arguments?: unknown[];
-  options?: Record<string, unknown>;
-  context: ContextWide;
-}
 
 export interface InputTypeWide {
   arguments?: unknown[];
@@ -279,8 +322,22 @@ export type HelpMessageStyle = Record<
   ColorFunctionType
 >;
 
+type GetSubcommandsNames<T extends Partial<Subcommand>> = T extends Cli
+  ? T["subcommands"] extends infer S extends readonly [Subcommand, ...Subcommand[]]
+    ? { [Index in keyof S]: S[Index] extends { name: string } ? S[Index]["name"] : never }[number]
+    : never
+  : never;
+
+type Unsubscribe = () => void;
+
 export interface AttachedMethods<T extends Cli | Subcommand> {
-  setAction: (actions: (data: OutputType<[T]>) => void) => void;
+  /**
+   * Add a handler to be called when the subcommand/cli is executed.
+   *
+   * @example
+   *   const unsubscribe = cli.onExecute(result => console.log(result));
+   */
+  onExecute: (handler: (data: OutputType<[T]>) => void) => Unsubscribe;
 
   // Make the argument optional if it has undefined type
   execute: InferInputType<T> extends infer InputType
@@ -303,6 +360,13 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
   ) => string;
 }
 
+export interface AttachedMethodsWide {
+  onExecute: (handler: (data: OutputTypeWide) => void) => Unsubscribe;
+  execute: (input?: InputTypeWide) => void;
+  printCliHelp?: (options?: PrintHelpOptions) => void;
+  printSubcommandHelp?: (subcommandName: string, options?: PrintHelpOptions) => void;
+}
+
 export type CliOutputType<S extends Cli> =
   | OutputType<[S]>
   | (S["subcommands"] extends readonly [Subcommand, ...Subcommand[]] ? OutputType<S["subcommands"]> : never);
@@ -312,19 +376,6 @@ export type CliParseResult<S extends Cli> =
   | { value?: never; error: Error };
 
 export interface ValidateMethods<S extends Cli> {
-  validate(input: string | string[], schema?: S): CliParseResult<S>;
-  validateAsync(input: string | string[], schema?: S): Promise<CliParseResult<S>>;
-}
-
-type GetSubcommandsNames<T extends Partial<Subcommand>> = T extends Cli
-  ? T["subcommands"] extends infer S extends readonly [Subcommand, ...Subcommand[]]
-    ? { [Index in keyof S]: S[Index] extends { name: string } ? S[Index]["name"] : never }[number]
-    : never
-  : never;
-
-export interface ActionsFunctionsWide {
-  setAction: (actions: (data: OutputTypeWide) => void) => void;
-  execute: (input?: InputTypeWide) => void;
-  printCliHelp?: (options?: PrintHelpOptions) => void;
-  printSubcommandHelp?: (subcommandName: string, options?: PrintHelpOptions) => void;
+  run(input: string | string[]): CliParseResult<S>;
+  runAsync(input: string | string[]): Promise<CliParseResult<S>>;
 }

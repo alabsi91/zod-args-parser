@@ -103,18 +103,22 @@ export interface Subcommand {
    */
   arguments?: [Argument, ...Argument[]];
 
-  /**
-   * - The action is executed with the result of the parsed arguments.
-   * - To get typescript types use `setAction` instead of this.
-   *
-   * @example
-   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
-   *   helpCommand.setAction(res => console.log(res));
-   */
-  action?: (data: OutputTypeWide) => any;
-
   /** - Metadata for the subcommand. */
   meta?: SubcommandMeta;
+
+  /**
+   * - A list of functions to execute when the subcommand/main is executed.
+   * - Do not use this directly instead use `onExecute` after creating the subcommand/cli.
+   *
+   * @deprecated For internal use only
+   * @example
+   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
+   *   helpCommand.onExecute((result) => console.log(result));
+   *
+   *   const myCli = createCli({ name: "my-cli", subcommands: [helpCommand] });
+   *   myCli.onExecute((result) => console.log(result));
+   */
+  _onExecute?: ((result: OutputTypeWide) => void)[];
 }
 
 export interface OptionMeta extends MetaBase {

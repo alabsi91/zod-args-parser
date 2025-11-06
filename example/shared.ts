@@ -4,7 +4,7 @@ import { createArguments, createOptions, coerce } from "../src/index.ts";
 
 export const sharedOptions = createOptions({
   verbose: {
-    type: coerce.boolean(z.boolean().default(true)),
+    type: coerce.boolean(z.boolean().optional()),
     meta: {
       description: "Enable verbose mode.",
     },

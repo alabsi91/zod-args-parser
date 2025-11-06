@@ -1,9 +1,8 @@
-import { validateSync } from "../../schemas/schema-utilities.ts";
-import { generateOrdinalSuffix } from "../../utilities.ts";
+import { generateOrdinalSuffix, validateSync } from "../utilities.ts";
 
-import type { Cli, Subcommand } from "../../schemas/schema-types.ts";
-import type { OutputTypeWide } from "../../types.ts";
-import type { ContextWide } from "../context/context-types.ts";
+import type { Cli, Subcommand } from "../schemas/schema-types.ts";
+import type { OutputTypeWide } from "../types.ts";
+import type { ContextWide } from "./context-types.ts";
 
 /** @throws {Error} */
 export function validate(parsedData: ContextWide, subcommand: Subcommand | Cli) {

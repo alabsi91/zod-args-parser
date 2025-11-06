@@ -30,4 +30,6 @@ export function logCliContext(context: ContextWide) {
       console.log("[verbose]", "Positional arguments:", context.positionals.join(", "));
     }
   }
+
+  console.log();
 }

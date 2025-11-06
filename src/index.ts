@@ -20,5 +20,6 @@ export { createArguments } from "./schemas/create-arguments-schema.ts";
 export { coerce } from "./schemas/coerce.ts";
 
 export type * from "./metadata/metadata-types.ts";
-export type { ContextWide } from "./parse/context/context-types.ts";
-export type { HelpMessageStyle, InferInputType, InferOutputType, PrintHelpOptions } from "./types.ts";
+export type * from "./parse/context-types.ts";
+export type * from "./types.ts";
+export type * from "@standard-schema/spec";

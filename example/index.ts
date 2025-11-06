@@ -1,21 +1,25 @@
-import { cliSchema } from "./cli.ts";
+import { listCli } from "./cli.ts";
+
+// import "./scripts/generate-autocomplete-script.ts";
+// import "./scripts/generate-markdown.ts";
 
 // * Test different inputs 👇
 
-const input = "-h sdf";
-// const input = "--version";
+// const input = "-h --verbose";
+// const input = "--version --verbose";
 
-// const input = "help help";
-// const input = "help add-items";
-// const input = "help create-list";
-// const input = "help delete-list";
-// const input = "help remove-items";
+// const input = "help help --verbose";
+// const input = "help add-items --verbose";
+// const input = "help create-list --verbose";
+// const input = "help delete-list --verbose";
+// const input = "help remove-items --verbose";
 
-// const input = "add --list groceries --items egg,milk,bread --tags food";
+// const input = "add --list groceries --items egg,milk,bread --tags food --verbose";
+const input = "view-list --verbose";
 
 // const input = process.argv.slice(2); // 👈 use this in production
 
-const results = cliSchema.validate(input);
+const results = listCli.run(input);
 
 // ! Error
 if (results.error) {

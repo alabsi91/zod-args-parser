@@ -10,7 +10,7 @@ const tsLibDir = path.join(libDir, "typescript");
 const tsFiles = globSync("src/**/*.ts", { ignore: "node_modules/**" });
 
 // Clean lib directory
-console.log("🧹", `Cleaning "${libDir}"...`);
+console.log("🧹", `Cleaning "${libDir}" directory ...`);
 rmSync(libDir, { recursive: true, force: true });
 
 // esbuild plugin

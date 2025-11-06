@@ -1,38 +1,67 @@
 import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-message/format-cli.ts";
-import { createExecuteContext } from "../parse/context/create-execute-context.ts";
+import { createExecuteContext } from "../parse/create-execute-context.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
-import { validate } from "../parse/validate/validate.ts";
+import { validate } from "../parse/validate-context.ts";
 
-import type { ActionsFunctionsWide, AttachedMethods, PrintHelpOptions, ValidateMethods } from "../types.ts";
-import type { Argument, Cli, Option } from "./schema-types.ts";
+import type { AttachedMethods, AttachedMethodsWide, Prettify, PrintHelpOptions, ValidateMethods } from "../types.ts";
+import type { Argument, Cli, Option, Subcommand } from "./schema-types.ts";
 
-export function createCli<T extends Cli>(
-  input: {
-    [K in keyof T]: K extends keyof Cli
-      ? T[K] extends Record<string, Option>
-        ? { [OptionName in keyof T[K]]: Option<T[K][OptionName]["type"]["schema"]> }
+type OptionsInput<T extends Record<string, Option>> = {
+  [OptionName in keyof T]: Option<T[OptionName]["type"]["schema"]>;
+};
+
+type ArgumentsInput<T extends [Argument, ...Argument[]]> = {
+  [ArgumentIndex in keyof T]: Argument<T[ArgumentIndex]["type"]["schema"]>;
+};
+
+type SubcommandsInput<T extends readonly [Subcommand, ...Subcommand[]]> = {
+  [SubcommandIndex in keyof T]: {
+    [K in keyof T[SubcommandIndex]]: T[SubcommandIndex][K] extends Record<string, Option>
+      ? OptionsInput<T[SubcommandIndex][K]>
+      : T[SubcommandIndex][K] extends [Argument, ...Argument[]]
+        ? ArgumentsInput<T[SubcommandIndex][K]>
+        : T[SubcommandIndex][K];
+  } & Subcommand;
+};
+
+// This will prevent extra keys and enable Jsdoc on hover
+type CliInput<T extends Cli> = {
+  [K in keyof T]: K extends keyof Cli
+    ? T[K] extends readonly [Subcommand, ...Subcommand[]]
+      ? SubcommandsInput<T[K]>
+      : T[K] extends Record<string, Option>
+        ? OptionsInput<T[K]>
         : T[K] extends [Argument, ...Argument[]]
-          ? {
-              [ArgumentIndex in keyof T[K]]: T[K][ArgumentIndex] extends Argument
-                ? Argument<T[K][ArgumentIndex]["type"]["schema"]>
-                : T[K][ArgumentIndex];
-            }
+          ? ArgumentsInput<T[K]>
           : T[K]
-      : never;
-  } & Cli,
-) {
-  const cliSchema = input as T;
+    : never;
+};
 
-  const setAction: ActionsFunctionsWide["setAction"] = action => {
-    cliSchema.action = action;
+export function createCli<T extends Cli>(input: CliInput<T> & Cli) {
+  const cliSchema = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
+
+  const onExecute = (handler: (Cli["_onExecute"] & {})[number]) => {
+    cliSchema._onExecute ??= [];
+    cliSchema._onExecute.push(handler);
+
+    return () => {
+      const handlerIndex = cliSchema._onExecute?.indexOf(handler);
+      if (!handlerIndex || handlerIndex < 0) return;
+      cliSchema._onExecute?.splice(handlerIndex, 1);
+    };
   };
 
-  const execute: ActionsFunctionsWide["execute"] = inputValues => {
+  const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
-    if (!cliSchema.action) throw new Error("Action is not defined");
+    if (!cliSchema._onExecute) throw new Error("Action is not defined");
     const context = createExecuteContext(inputValues, cliSchema);
     const validateResult = validate(context, cliSchema);
-    cliSchema.action(validateResult);
+
+    if (cliSchema._onExecute) {
+      for (const handler of cliSchema._onExecute) {
+        handler(validateResult);
+      }
+    }
   };
 
   // Add print methods for CLI schema and its subcommands
@@ -56,9 +85,9 @@ export function createCli<T extends Cli>(
   }
 
   return Object.assign(cliSchema, {
-    setAction,
     execute,
-    validate: (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliSchema),
-    validateAsync: (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliSchema),
-  }) as T & AttachedMethods<T> & ValidateMethods<T>;
+    onExecute,
+    run: (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliSchema),
+    runAsync: (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliSchema),
+  });
 }

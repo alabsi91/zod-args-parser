@@ -1,7 +1,7 @@
-import { generateOrdinalSuffix } from "../../utilities.ts";
+import { generateOrdinalSuffix } from "../utilities.ts";
 
-import type { Cli, Subcommand } from "../../schemas/schema-types.ts";
-import type { InputTypeWide } from "../../types.ts";
+import type { Cli, Subcommand } from "../schemas/schema-types.ts";
+import type { InputTypeWide } from "../types.ts";
 import type { ContextWide } from "./context-types.ts";
 
 /** @throws {Error} */

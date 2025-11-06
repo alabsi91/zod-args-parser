@@ -1,4 +1,4 @@
-import { defaultValueAndIsOptional, validateSync } from "./schema-utilities.ts";
+import { defaultValueAndIsOptional, validateSync } from "../utilities.ts";
 
 import type { Coerce } from "../types.ts";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
@@ -31,28 +31,28 @@ const boolean: CoerceMethod<boolean> = schema => createCoerceObject(schema, stri
 const number: CoerceMethod<number> = schema => createCoerceObject(schema, stringToNumber, "number");
 const json: CoerceMethod<unknown> = schema => createCoerceObject(schema, value => JSON.parse(value), "json");
 
-const arrayOfStrings: CoerceMethod<string[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToArrayOfStrings(value, separator), "array");
+const stringArray: CoerceMethod<string[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToStringArray(value, separator), "array");
 };
 
-const arrayOfNumbers: CoerceMethod<number[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToArrayOfNumbers(value, separator), "array");
+const numberArray: CoerceMethod<number[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToNumberArray(value, separator), "array");
 };
 
-const arrayOfBooleans: CoerceMethod<boolean[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToArrayOfBooleans(value, separator), "array");
+const booleanArray: CoerceMethod<boolean[], string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToBooleanArray(value, separator), "array");
 };
 
-const setOfStrings: CoerceMethod<Set<string>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToSetOfStrings(value, separator), "set");
+const stringSet: CoerceMethod<Set<string>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToStringSet(value, separator), "set");
 };
 
-const setOfNumbers: CoerceMethod<Set<number>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToSetOfNumbers(value, separator), "set");
+const numberSet: CoerceMethod<Set<number>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToNumberSet(value, separator), "set");
 };
 
-const setOfBooleans: CoerceMethod<Set<boolean>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToSetOfBooleans(value, separator), "set");
+const booleanSet: CoerceMethod<Set<boolean>, string> = (schema, separator = ",") => {
+  return createCoerceObject(schema, value => stringToBooleanSet(value, separator), "set");
 };
 
 const custom = <T extends StandardSchemaV1>(
@@ -67,17 +67,17 @@ export const coerce = {
   boolean,
   number,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfStrings,
+  stringArray,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfNumbers,
+  numberArray,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  arrayOfBooleans,
+  booleanArray,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  setOfStrings,
+  stringSet,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  setOfNumbers,
+  numberSet,
   /** @param separator- The separator to use to split the string. **Default** is `","` */
-  setOfBooleans,
+  booleanSet,
   json,
   custom,
 };
@@ -114,7 +114,7 @@ function stringToBoolean(string: string): boolean {
   throw new TypeError(`Invalid boolean value: ${string}`, { cause: "zod-args-parser" });
 }
 
-function stringToArrayOfStrings(stringValue: string, separator: string = ","): string[] {
+function stringToStringArray(stringValue: string, separator: string = ","): string[] {
   return stringValue
     .split(separator)
     .map(s => s.trim())
@@ -122,25 +122,25 @@ function stringToArrayOfStrings(stringValue: string, separator: string = ","): s
 }
 
 /** @throws {TypeError} - Because of `stringToNumber` */
-function stringToArrayOfNumbers(stringValue: string, separator: string = ","): number[] {
-  return stringToArrayOfStrings(stringValue, separator).map(element => stringToNumber(element));
+function stringToNumberArray(stringValue: string, separator: string = ","): number[] {
+  return stringToStringArray(stringValue, separator).map(element => stringToNumber(element));
 }
 
 /** @throws {TypeError} - Because of `stringToBoolean` */
-function stringToArrayOfBooleans(stringValue: string, separator: string = ","): boolean[] {
-  return stringToArrayOfStrings(stringValue, separator).map(element => stringToBoolean(element));
+function stringToBooleanArray(stringValue: string, separator: string = ","): boolean[] {
+  return stringToStringArray(stringValue, separator).map(element => stringToBoolean(element));
 }
 
-function stringToSetOfStrings(stringValue: string, separator: string = ","): Set<string> {
-  return new Set(stringToArrayOfStrings(stringValue, separator));
+function stringToStringSet(stringValue: string, separator: string = ","): Set<string> {
+  return new Set(stringToStringArray(stringValue, separator));
 }
 
 /** @throws {TypeError} - Because of `stringToNumber` */
-function stringToSetOfNumbers(stringValue: string, separator: string = ","): Set<number> {
-  return new Set(stringToArrayOfNumbers(stringValue, separator));
+function stringToNumberSet(stringValue: string, separator: string = ","): Set<number> {
+  return new Set(stringToNumberArray(stringValue, separator));
 }
 
 /** @throws {TypeError} - Because of `stringToBoolean` */
-function stringToSetOfBooleans(stringValue: string, separator: string = ","): Set<boolean> {
-  return new Set(stringToArrayOfBooleans(stringValue, separator));
+function stringToBooleanSet(stringValue: string, separator: string = ","): Set<boolean> {
+  return new Set(stringToBooleanArray(stringValue, separator));
 }
