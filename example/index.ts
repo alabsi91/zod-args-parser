@@ -8,6 +8,7 @@ import { listCli } from "./cli.ts";
 // const input = "-h --verbose";
 // const input = "--version --verbose";
 
+const input = "help --verbose";
 // const input = "help help --verbose";
 // const input = "help add-items --verbose";
 // const input = "help create-list --verbose";
@@ -15,7 +16,7 @@ import { listCli } from "./cli.ts";
 // const input = "help remove-items --verbose";
 
 // const input = "add --list groceries --items egg,milk,bread --tags food --verbose";
-const input = "view-list --verbose";
+// const input = "view-list --verbose";
 
 // const input = process.argv.slice(2); // 👈 use this in production
 

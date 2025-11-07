@@ -1,4 +1,4 @@
-import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type { SchemaType } from "../types.ts";
 
 export interface MetadataBase {
   /** The description of the cli program. Empty string if not provided */
@@ -83,7 +83,7 @@ export interface OptionMetadata extends MetadataBase {
   readonly optional: boolean;
 
   /** The zod type of the option. */
-  readonly schema: StandardSchemaV1;
+  readonly schema: SchemaType;
 }
 
 export interface ArgumentMetadata extends MetadataBase {
@@ -100,5 +100,5 @@ export interface ArgumentMetadata extends MetadataBase {
   readonly optional: boolean;
 
   /** The zod type of the argument. */
-  readonly schema: StandardSchemaV1;
+  readonly schema: SchemaType;
 }

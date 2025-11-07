@@ -7,21 +7,21 @@ import { spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
 describe(defaultValueAndIsOptional.name.padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
   it(`z.string()`.padEnd(spaceToColumn + spaceColumnEnd), () => {
-    const schema = z.string();
+    const schema = z.object({ value: z.string() });
     const { defaultValue, optional: isOptional } = defaultValueAndIsOptional(schema);
     assert.equal(defaultValue, undefined);
     assert.equal(isOptional, false);
   });
 
   it(`z.string().optional()`.padEnd(spaceToColumn + spaceColumnEnd), () => {
-    const schema = z.string().optional();
+    const schema = z.object({ value: z.string().optional() });
     const { defaultValue, optional: isOptional } = defaultValueAndIsOptional(schema);
     assert.equal(defaultValue, undefined);
     assert.equal(isOptional, true);
   });
 
   it(`z.string().default("true")`.padEnd(spaceToColumn + spaceColumnEnd), () => {
-    const schema = z.string().default("true");
+    const schema = z.object({ value: z.string().default("true") });
     const { defaultValue, optional: isOptional } = defaultValueAndIsOptional(schema);
     assert.equal(defaultValue, "true");
     assert.equal(isOptional, true);

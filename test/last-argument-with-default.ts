@@ -9,15 +9,18 @@ const cli = createCli({
   cliName: "test-cli",
   arguments: [
     {
-      type: coerce.string(z.string()),
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
       meta: { name: "stringArg" },
     },
     {
-      type: coerce.number(z.number()),
+      type: z.object({ value: z.number() }),
+      coerce: coerce.number,
       meta: { name: "numberArg" },
     },
     {
-      type: coerce.boolean(z.boolean().default(true)),
+      type: z.object({ value: z.boolean().default(true) }),
+      coerce: coerce.boolean,
       meta: { name: "booleanDefaultArg" },
     },
   ],

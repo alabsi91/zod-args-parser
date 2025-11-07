@@ -16,7 +16,8 @@ const createListCommand = createSubcommand({
   options: {
     overwrite: {
       aliases: ["o"],
-      type: coerce.boolean(z.boolean().default(false)),
+      type: z.object({ value: z.boolean().default(false) }),
+      coerce: coerce.boolean,
       meta: {
         description: "Overwrite the list if it already exists.",
       },
@@ -26,14 +27,16 @@ const createListCommand = createSubcommand({
 
   arguments: [
     {
-      type: coerce.string(z.string()),
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
       meta: {
         name: "list-name",
         description: "The name of the list to create.",
       },
     },
     {
-      type: coerce.string(z.string().optional()),
+      type: z.object({ value: z.string().optional() }),
+      coerce: coerce.string,
       meta: {
         name: "list-description",
         description: "The description of the list to create.",

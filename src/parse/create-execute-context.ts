@@ -12,7 +12,11 @@ export function createExecuteContext(inputValues: InputTypeWide, inputSchema: Su
 
   if (inputSchema.options) {
     for (const [optionName, schemaOptions] of Object.entries(inputSchema.options)) {
-      const { schema, optional, defaultValue } = schemaOptions.type;
+      if (!schemaOptions._preparedType) {
+        throw new Error(`internal error: missing prepared type for option "${optionName}"`);
+      }
+
+      const { schema, optional, defaultValue } = schemaOptions._preparedType;
 
       // Case the value is passed
       if (inputValues.options && optionName in inputValues.options) {
@@ -41,9 +45,14 @@ export function createExecuteContext(inputValues: InputTypeWide, inputSchema: Su
   if (inputSchema.arguments) {
     for (let index = 0; index < inputSchema.arguments.length; index++) {
       const schemaArgument = inputSchema.arguments[index];
+
+      if (!schemaArgument._preparedType) {
+        throw new Error(`internal error: missing prepared type for argument "${schemaArgument.meta?.name ?? ""}"`);
+      }
+
       const passedValue = inputValues.arguments?.[index];
 
-      const { schema, optional, defaultValue } = schemaArgument.type;
+      const { schema, optional, defaultValue } = schemaArgument._preparedType;
 
       // case the value is passed
       if (passedValue) {

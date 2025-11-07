@@ -15,7 +15,8 @@ const helpCommand = createSubcommand({
 
   arguments: [
     {
-      type: coerce.string(z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional()),
+      type: z.object({ value: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional() }),
+      coerce: coerce.string,
       meta: {
         name: "command-name",
         descriptionMarkdown:

@@ -19,7 +19,7 @@ export function logCliContext(context: ContextWide) {
       const value = argumentContext.stringValue ?? argumentContext.passedValue;
       console.log("[verbose]", "argument of index:", index);
       console.log("         ", "received value:", value);
-      console.log("         ", "value source:" + argumentContext.source);
+      console.log("         ", "value source:", argumentContext.source);
     }
   }
 

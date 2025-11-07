@@ -1,9 +1,10 @@
 import type { SubcommandMetadata } from "./metadata/metadata-types.ts";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type { Argument, Option } from "./schemas/schema-types.ts";
+import type { SchemaType, CoerceMethod, PreparedType } from "./types.ts";
 
 /** @throws */
-export function validateSync(schema: StandardSchemaV1, value?: unknown) {
-  const results = schema["~standard"].validate(value);
+export function validateSync(schema: SchemaType, value?: unknown) {
+  const results = schema["~standard"].validate(value === undefined ? {} : { value });
   if (results instanceof Promise) {
     throw new TypeError("async schema validation not supported");
   }
@@ -11,14 +12,46 @@ export function validateSync(schema: StandardSchemaV1, value?: unknown) {
   return results;
 }
 
-export function defaultValueAndIsOptional(schema: StandardSchemaV1): { defaultValue: unknown; optional: boolean } {
+export function defaultValueAndIsOptional(schema: SchemaType): { defaultValue: unknown; optional: boolean } {
   const results = validateSync(schema);
 
   if (results.issues) {
     return { defaultValue: undefined, optional: false };
   }
 
-  return { defaultValue: results.value, optional: true };
+  return { defaultValue: results.value.value, optional: true };
+}
+
+export function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unknown>): PreparedType {
+  const { optional, defaultValue } = defaultValueAndIsOptional(schema);
+
+  return {
+    schema,
+    optional,
+    defaultValue,
+    coerceTo: coerceHandler.type,
+    validate: (value?: string) => validateSync(schema, value && coerceHandler(value)),
+  };
+}
+
+export function prepareOptionsTypes(options: Record<string, Option> | undefined) {
+  if (!options) return;
+
+  for (const option of Object.values(options)) {
+    if (!option._preparedType) {
+      option._preparedType = PrepareType(option.type, option.coerce);
+    }
+  }
+}
+
+export function prepareArgumentsTypes(arguments_: [Argument, ...Argument[]] | undefined) {
+  if (!arguments_) return;
+
+  for (const argument of arguments_) {
+    if (!argument._preparedType) {
+      argument._preparedType = PrepareType(argument.type, argument.coerce);
+    }
+  }
 }
 
 /**

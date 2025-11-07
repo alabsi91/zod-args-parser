@@ -9,8 +9,9 @@ const cli = createCli({
   cliName: "test-cli",
   options: {
     string: {
-      type: coerce.string(z.string()),
       aliases: ["s"],
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
     },
   },
 });

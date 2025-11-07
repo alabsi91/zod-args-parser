@@ -1,9 +1,8 @@
+import type { SchemaType } from "../index.ts";
 import type { Subcommand } from "../schemas/schema-types.ts";
 import type { Argument, Option } from "../schemas/schema-types.ts";
-import type { Coerce } from "../types.ts";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 
-export interface ContextBase<S extends StandardSchemaV1> {
+export interface ContextBase<S extends SchemaType> {
   /** The schema that validates this option. */
   schema: S;
 
@@ -14,7 +13,7 @@ export interface ContextBase<S extends StandardSchemaV1> {
   defaultValue: unknown;
 }
 
-export interface OptionContextCli<S extends StandardSchemaV1, N extends string> extends ContextBase<S> {
+export interface OptionContextCli<S extends SchemaType, N extends string> extends ContextBase<S> {
   /** The name of the option as provided by the user. */
   name: N;
 
@@ -37,7 +36,7 @@ export interface OptionContextCli<S extends StandardSchemaV1, N extends string> 
   source: "terminal";
 }
 
-export interface OptionContextDefault<S extends StandardSchemaV1, N extends string> extends ContextBase<S> {
+export interface OptionContextDefault<S extends SchemaType, N extends string> extends ContextBase<S> {
   /** The name of the option as provided by the user. */
   name: N;
 
@@ -60,7 +59,7 @@ export interface OptionContextDefault<S extends StandardSchemaV1, N extends stri
   source: "default";
 }
 
-export interface OptionContextProgrammatic<S extends StandardSchemaV1, N extends string> extends ContextBase<S> {
+export interface OptionContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S> {
   /** The name of the option as provided by the user. */
   name: N;
 
@@ -83,12 +82,12 @@ export interface OptionContextProgrammatic<S extends StandardSchemaV1, N extends
   source: "programmatic";
 }
 
-export type OptionContext<S extends StandardSchemaV1, N extends string> =
+export type OptionContext<S extends SchemaType, N extends string> =
   | OptionContextCli<S, N>
   | OptionContextDefault<S, N>
   | OptionContextProgrammatic<S, N>;
 
-export interface ArgumentContextCli<S extends StandardSchemaV1> extends ContextBase<S> {
+export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S> {
   /** The raw string value provided directly from the CLI. */
   stringValue: string;
 
@@ -105,7 +104,7 @@ export interface ArgumentContextCli<S extends StandardSchemaV1> extends ContextB
   source: "terminal";
 }
 
-export interface ArgumentContextDefault<S extends StandardSchemaV1> {
+export interface ArgumentContextDefault<S extends SchemaType> {
   /** Undefined when the source is `default`. */
   stringValue?: never;
 
@@ -131,7 +130,7 @@ export interface ArgumentContextDefault<S extends StandardSchemaV1> {
   source: "default";
 }
 
-export interface ArgumentContextProgrammatic<S extends StandardSchemaV1> extends ContextBase<S> {
+export interface ArgumentContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
   /** Undefined when the source is `programmatic`. */
   stringValue?: never;
 
@@ -148,17 +147,17 @@ export interface ArgumentContextProgrammatic<S extends StandardSchemaV1> extends
   source: "programmatic";
 }
 
-export type ArgumentContext<S extends StandardSchemaV1> =
+export type ArgumentContext<S extends SchemaType> =
   | ArgumentContextCli<S>
   | ArgumentContextDefault<S>
   | ArgumentContextProgrammatic<S>;
 
 export type OptionsArrayToOptionContext<T extends Record<string, Option>> = {
-  [K in keyof T]: OptionContext<T[K]["type"]["schema"], Extract<K, string>>;
+  [K in keyof T]: OptionContext<T[K]["type"], Extract<K, string>>;
 };
 
 export type ArgumentsArrayToArgumentContext<T extends [Argument, ...Argument[]]> = {
-  [Index in keyof T]: ArgumentContext<T[Index] extends { type: Coerce } ? T[Index]["type"]["schema"] : never>;
+  [Index in keyof T]: ArgumentContext<T[Index] extends Argument ? T[Index]["type"] : never>;
 };
 
 export type Context<S extends readonly Partial<Subcommand>[]> = {
@@ -175,7 +174,7 @@ export type Context<S extends readonly Partial<Subcommand>[]> = {
 /** Wide types of `ParseResult` */
 export interface ContextWide {
   subcommand: string | undefined;
-  options?: Record<string, OptionContext<StandardSchemaV1, string>>;
-  arguments?: ArgumentContext<StandardSchemaV1>[];
+  options?: Record<string, OptionContext<SchemaType, string>>;
+  arguments?: ArgumentContext<SchemaType>[];
   positionals?: string[];
 }

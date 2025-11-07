@@ -35,5 +35,5 @@
     "skipLibCheck": true
   },
 
-  "include": ["src", "example", "test"]
+  "include": ["src", "example", "scripts", "test"]
 }

@@ -1,3 +1,5 @@
+import { prepareArgumentsTypes } from "../utilities.ts";
+
 import type { Argument } from "./schema-types.ts";
 
 type Exact<Actual extends Wanted, Wanted> = {
@@ -5,7 +7,8 @@ type Exact<Actual extends Wanted, Wanted> = {
 };
 
 export function createArguments<const T extends [Argument, ...Argument[]]>(
-  ...options: { [I in keyof T]: T[I] & Exact<T[I], Argument> & Argument }
-): { [I in keyof T]: Argument<T[I]["type"]["schema"]> } {
-  return options;
+  ...arguments_: { [I in keyof T]: T[I] & Exact<T[I], Argument> & Argument }
+): { [I in keyof T]: Argument<T[I]["type"]> } {
+  prepareArgumentsTypes(arguments_);
+  return arguments_;
 }

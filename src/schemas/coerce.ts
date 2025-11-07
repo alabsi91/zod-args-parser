@@ -1,65 +1,51 @@
-import { defaultValueAndIsOptional, validateSync } from "../utilities.ts";
+import type { CoerceMethod } from "../types.ts";
 
-import type { Coerce } from "../types.ts";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
+const string: CoerceMethod<string> = terminalInput => terminalInput;
+string.type = "string";
 
-interface CoerceMethod<Value, separator extends string = never> {
-  <T extends StandardSchemaV1>(
-    schema: StandardSchemaV1.InferOutput<T> extends Value | undefined ? T : never,
-    separator?: separator,
-  ): Coerce<T>;
-}
+const boolean: CoerceMethod<boolean> = terminalInput => stringToBoolean(terminalInput);
+boolean.type = "boolean";
 
-function createCoerceObject<T extends StandardSchemaV1>(
-  schema: T,
-  coerceHandler: (value: string) => unknown,
-  coerceTo: Coerce["coerceTo"],
-): Coerce<T> {
-  const { optional, defaultValue } = defaultValueAndIsOptional(schema);
+const number: CoerceMethod<number> = terminalInput => stringToNumber(terminalInput);
+number.type = "number";
 
-  return {
-    schema,
-    optional,
-    defaultValue,
-    coerceTo,
-    validate: (value?: string) => validateSync(schema, value && coerceHandler(value)),
-  };
-}
+const json: CoerceMethod<unknown> = terminalInput => JSON.parse(terminalInput);
+json.type = "unknown";
 
-const string: CoerceMethod<string> = schema => createCoerceObject(schema, value => value, "string");
-const boolean: CoerceMethod<boolean> = schema => createCoerceObject(schema, stringToBoolean, "boolean");
-const number: CoerceMethod<number> = schema => createCoerceObject(schema, stringToNumber, "number");
-const json: CoerceMethod<unknown> = schema => createCoerceObject(schema, value => JSON.parse(value), "json");
-
-const stringArray: CoerceMethod<string[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToStringArray(value, separator), "array");
+const stringArray = (separator: string): CoerceMethod<string[]> => {
+  const coerceMethod: CoerceMethod<string[]> = terminalInput => stringToStringArray(terminalInput, separator);
+  coerceMethod.type = "string[]";
+  return coerceMethod;
 };
 
-const numberArray: CoerceMethod<number[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToNumberArray(value, separator), "array");
+const numberArray = (separator: string) => {
+  const coerceMethod: CoerceMethod<number[]> = terminalInput => stringToNumberArray(terminalInput, separator);
+  coerceMethod.type = "number[]";
+  return coerceMethod;
 };
 
-const booleanArray: CoerceMethod<boolean[], string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToBooleanArray(value, separator), "array");
+const booleanArray = (separator: string) => {
+  const coerceMethod: CoerceMethod<boolean[]> = terminalInput => stringToBooleanArray(terminalInput, separator);
+  coerceMethod.type = "boolean[]";
+  return coerceMethod;
 };
 
-const stringSet: CoerceMethod<Set<string>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToStringSet(value, separator), "set");
+const stringSet = (separator: string) => {
+  const coerceMethod: CoerceMethod<Set<string>> = terminalInput => stringToStringSet(terminalInput, separator);
+  coerceMethod.type = "set<string>";
+  return coerceMethod;
 };
 
-const numberSet: CoerceMethod<Set<number>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToNumberSet(value, separator), "set");
+const numberSet = (separator: string) => {
+  const coerceMethod: CoerceMethod<Set<number>> = terminalInput => stringToNumberSet(terminalInput, separator);
+  coerceMethod.type = "set<number>";
+  return coerceMethod;
 };
 
-const booleanSet: CoerceMethod<Set<boolean>, string> = (schema, separator = ",") => {
-  return createCoerceObject(schema, value => stringToBooleanSet(value, separator), "set");
-};
-
-const custom = <T extends StandardSchemaV1>(
-  schema: T,
-  coerceHandler: (value: string) => StandardSchemaV1.InferOutput<T>,
-) => {
-  return createCoerceObject(schema, coerceHandler, "custom");
+const booleanSet = (separator: string) => {
+  const coerceMethod: CoerceMethod<Set<boolean>> = terminalInput => stringToBooleanSet(terminalInput, separator);
+  coerceMethod.type = "set<boolean>";
+  return coerceMethod;
 };
 
 export const coerce = {
@@ -79,7 +65,6 @@ export const coerce = {
   /** @param separator- The separator to use to split the string. **Default** is `","` */
   booleanSet,
   json,
-  custom,
 };
 
 /** @throws {TypeError} */

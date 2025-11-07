@@ -1,15 +1,16 @@
 import { createExecuteContext } from "../parse/create-execute-context.ts";
 import { validate } from "../parse/validate-context.ts";
+import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
 
 import type { AttachedMethods, AttachedMethodsWide, Prettify } from "../types.ts";
 import type { Argument, Option, Subcommand } from "./schema-types.ts";
 
 type OptionsInput<T extends Record<string, Option>> = {
-  [OptionName in keyof T]: Option<T[OptionName]["type"]["schema"]>;
+  [OptionName in keyof T]: Option<T[OptionName]["type"]>;
 };
 
 type ArgumentsInput<T extends [Argument, ...Argument[]]> = {
-  [ArgumentIndex in keyof T]: Argument<T[ArgumentIndex]["type"]["schema"]>;
+  [ArgumentIndex in keyof T]: Argument<T[ArgumentIndex]["type"]>;
 };
 
 // This will prevent extra keys and enable Jsdoc on hover
@@ -24,31 +25,34 @@ type SubcommandInput<T extends Subcommand> = {
 };
 
 export function createSubcommand<T extends Subcommand>(input: SubcommandInput<T> & Subcommand) {
-  const cliSchema = input as Prettify<T & AttachedMethods<T>>;
+  const subcommandSchema = input as Prettify<T & AttachedMethods<T>>;
+
+  prepareOptionsTypes(subcommandSchema.options);
+  prepareArgumentsTypes(subcommandSchema.arguments);
 
   const onExecute = (handler: (Subcommand["_onExecute"] & {})[number]) => {
-    cliSchema._onExecute ??= [];
-    cliSchema._onExecute.push(handler);
+    subcommandSchema._onExecute ??= [];
+    subcommandSchema._onExecute.push(handler);
 
     return () => {
-      const handlerIndex = cliSchema._onExecute?.indexOf(handler);
+      const handlerIndex = subcommandSchema._onExecute?.indexOf(handler);
       if (!handlerIndex || handlerIndex < 0) return;
-      cliSchema._onExecute?.splice(handlerIndex, 1);
+      subcommandSchema._onExecute?.splice(handlerIndex, 1);
     };
   };
 
   const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
-    if (!cliSchema._onExecute) throw new Error("Action is not defined");
-    const context = createExecuteContext(inputValues, cliSchema);
-    const validateResult = validate(context, cliSchema);
+    if (!subcommandSchema._onExecute) throw new Error("Action is not defined");
+    const context = createExecuteContext(inputValues, subcommandSchema);
+    const validateResult = validate(context, subcommandSchema);
 
-    if (cliSchema._onExecute) {
-      for (const handler of cliSchema._onExecute) {
+    if (subcommandSchema._onExecute) {
+      for (const handler of subcommandSchema._onExecute) {
         handler(validateResult);
       }
     }
   };
 
-  return Object.assign(cliSchema, { onExecute, execute });
+  return Object.assign(subcommandSchema, { onExecute, execute });
 }

@@ -1,5 +1,11 @@
-import type { Coerce, Prettify, OutputTypeWide } from "../types.ts";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type {
+  InferSchemaOutputType,
+  SchemaType,
+  Prettify,
+  OutputTypeWide,
+  CoerceMethod,
+  PreparedType,
+} from "../types.ts";
 
 export type Cli = Prettify<
   Omit<Subcommand, "name" | "aliases" | "meta"> & {
@@ -60,26 +66,35 @@ export interface SubcommandMeta extends MetaBase {
 
 export interface Subcommand {
   /**
-   * - The subcommand name
-   * - Make sure to not duplicate commands and aliases.
+   * The subcommand name
+   *
+   * - Make sure there are no duplicates across names and aliases in the same CLI.
    *
    * @example
-   *   name: "test";
+   *   name: "test-app";
    *   name: "run-app";
    */
   readonly name: string;
 
   /**
-   * - The aliases of the subcommand.
-   * - Make sure to not duplicate aliases and commands.
+   * A list of aliases that can be used to invoke this subcommand.
+   *
+   * **NOTE:** Make sure there are no duplicates across names and aliases in the same CLI.
+   *
+   * @example
+   *   name: "test-app";
+   *   aliases: ["test"];
+   *
+   *   name: "run-app";
+   *   aliases: ["run"];
    */
   aliases?: string[];
 
   /**
    * - Allows positionals arguments for this subcommand.
-   * - Unlike `arguments`, which are strictly typed, positionals arguments are untyped and represented as a string array
-   *   of variable length.
-   * - When enabled and `arguments` are provided, `arguments` will be parsed first. Any remaining arguments will be
+   * - Unlike `arguments`, which are strictly typed tuples, positionals arguments are untyped and represented as a string
+   *   array of variable length.
+   * - When enabled and typed `arguments` are provided, `arguments` will be parsed first. Any remaining arguments will be
    *   considered positionals arguments and added to the `positionals` property in the result.
    */
   allowPositionals?: boolean;
@@ -89,25 +104,25 @@ export interface Subcommand {
    * **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.\
    * **Examples:**
    *
-   * - `I` or `i` ➡️ `-i`
-   * - `InputDir`, `inputDir`, or `INPUT_DIR` ➡️ `--input-dir`
-   * - `Help`, `help`, or `HELP` ➡️ `--help`
+   * - `I` or `i` => `-i`
+   * - `InputDir`, `inputDir`, or `INPUT_DIR` => `--input-dir`
+   * - `Help`, `help`, or `HELP` => `--help`
    */
   options?: Record<string, Option>;
 
   /**
    * - Specifies a list of strictly typed arguments.
    * - The order is important; for example, the first argument will be validated against the first specified type.
-   * - It is recommended to not use optional arguments as the parser will fill the arguments by order and can't determine
-   *   which arguments are optional.
+   * - When **`allowPositional`** is **disabled**, the last argument can be optional.
+   * - When **`allowPositional`** is **enabled**, no optional arguments are allowed.
    */
   arguments?: [Argument, ...Argument[]];
 
-  /** - Metadata for the subcommand. */
+  /** Metadata used for help messages and documentation generation */
   meta?: SubcommandMeta;
 
   /**
-   * - A list of functions to execute when the subcommand/main is executed.
+   * - A list of functions to execute when the subcommand/CLI is executed.
    * - Do not use this directly instead use `onExecute` after creating the subcommand/cli.
    *
    * @deprecated For internal use only
@@ -136,29 +151,60 @@ export interface OptionMeta extends MetaBase {
   optional?: boolean;
 }
 
-export interface Option<Schema extends StandardSchemaV1 = StandardSchemaV1> {
+export interface Option<Schema extends SchemaType = SchemaType> {
   /**
-   * - The aliases of the option, use `CamelCase`.
-   * - Here you can specify short names or flags.
-   * - Make sure to not duplicate aliases.
+   * For the option alias, use a valid **JavaScript** variable name.\
+   * **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.\
+   * **Examples:**
+   *
+   * - `I` or `i` => `-i`
+   * - `InputDir`, `inputDir`, or `INPUT_DIR` => `--input-dir`
+   * - `Help`, `help`, or `HELP` => `--help`
    */
   aliases?: string[];
 
-  /** - The will be used to validate the user input. */
-  type: Coerce<Schema>;
+  /**
+   * A schema to validate the user input.
+   *
+   * - Any validation library that supports `StandardSchemaV1` can be used.
+   *
+   * @example
+   *   type: z.string();
+   */
+  type: Schema;
+
+  /**
+   * Since the terminal input is a string, we need to coerce it.
+   *
+   * **Note:**
+   *
+   * - You can use the provided `coerce` methods to coerce the user input.
+   * - The output type of the `coerce` method should match the output type of the schema.
+   *
+   * @example
+   *   type: z.boolean();
+   *   coerce: coerce.boolean;
+   *
+   *   type: z.string().array();
+   *   coerce: coerce.stringArray(",");
+   */
+  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
 
   /** Used for help message and documentation generation. */
   meta?: OptionMeta;
+
+  /** @deprecated For internal use only */
+  _preparedType?: PreparedType;
 }
 
 export interface ArgumentMeta extends MetaBase {
-  /** - The name of the argument. */
+  /** The name of the argument. */
   name?: string;
 
   /**
    * Custom default value.
    *
-   * - Use an empty string to intentionally show no default.
+   * Use an empty string to intentionally show no default.
    */
   default?: string;
 
@@ -166,10 +212,36 @@ export interface ArgumentMeta extends MetaBase {
   optional?: boolean;
 }
 
-export interface Argument<Schema extends StandardSchemaV1 = StandardSchemaV1> {
-  /** - The will be used to validate the user input. */
-  type: Coerce<Schema>;
+export interface Argument<Schema extends SchemaType = SchemaType> {
+  /** The schema to validate the user input. */
+  type: Schema;
+
+  /**
+   * Since the terminal input is a string, we need to coerce it.
+   *
+   * **Note:**
+   *
+   * - You can use the provided `coerce` methods to coerce the user input.
+   * - The output type of the `coerce` method should match the output type of the schema.
+   *
+   * @example
+   *   type: z.boolean();
+   *   coerce: coerce.boolean;
+   */
+  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
 
   /** Used for help message and documentation generation. */
   meta?: ArgumentMeta;
+
+  /** @deprecated For internal use only */
+  _preparedType?: PreparedType;
 }
+
+// prettier-ignore
+type Widen<T> =
+  T extends string ? string :
+  T extends number ? number :
+  T extends boolean ? boolean :
+  T extends readonly (infer U)[] ? Widen<U>[] :
+  T extends Set<infer U> ? Set<Widen<U>> :
+  T;

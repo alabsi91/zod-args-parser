@@ -17,7 +17,8 @@ const deleteListCommand = createSubcommand({
 
   arguments: [
     {
-      type: coerce.string(z.string()),
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
       meta: {
         name: "list-name",
         description: "The name of the list to delete.",

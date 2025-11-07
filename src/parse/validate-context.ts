@@ -28,16 +28,23 @@ export function validate(parsedData: ContextWide, subcommand: Subcommand | Cli) 
         throw new Error(`Subcommand "${parsedData.subcommand}" does not have option "${optionName}"`);
       }
 
+      if (!option._preparedType) {
+        throw new Error(`internal error: missing prepared type for option "${optionName}"`);
+      }
+
       const isProgrammatic = source === "programmatic";
 
-      const safeParseResult = isProgrammatic ? validateSync(schema, passedValue) : option.type.validate(stringValue);
+      const safeParseResult = isProgrammatic
+        ? validateSync(schema, passedValue)
+        : option._preparedType.validate(stringValue);
+
       if (safeParseResult.issues) {
         throw new Error(
           `Invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? name : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
         );
       }
 
-      result.options[optionName] = safeParseResult.value;
+      result.options[optionName] = safeParseResult.value.value;
     }
   }
 
@@ -59,14 +66,21 @@ export function validate(parsedData: ContextWide, subcommand: Subcommand | Cli) 
         throw new Error(`Subcommand "${parsedData.subcommand}" does not have argument at index "${index}"`);
       }
 
-      const safeParseResult = isProgrammatic ? validateSync(schema, passedValue) : argument.type.validate(stringValue);
+      if (!argument._preparedType) {
+        throw new Error(`internal error: missing prepared type for argument at index "${index}"`);
+      }
+
+      const safeParseResult = isProgrammatic
+        ? validateSync(schema, passedValue)
+        : argument._preparedType.validate(stringValue);
+
       if (safeParseResult.issues) {
         throw new Error(
           `The ${generateOrdinalSuffix(result.arguments.length)} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
         );
       }
 
-      result.arguments.push(safeParseResult.value);
+      result.arguments.push(safeParseResult.value.value);
     }
   }
 

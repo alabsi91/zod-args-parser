@@ -10,7 +10,8 @@ const cli = createCli({
   options: {
     number: {
       aliases: ["n"],
-      type: coerce.number(z.number()),
+      type: z.object({ value: z.number() }),
+      coerce: coerce.number,
     },
   },
 });

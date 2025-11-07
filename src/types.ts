@@ -2,6 +2,10 @@ import type { Context, ContextWide } from "./parse/context-types.ts";
 import type { Argument, Cli, Option, Subcommand } from "./schemas/schema-types.ts";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
+export type SchemaType<T = unknown> = StandardSchemaV1<{ value?: T }>;
+export type InferSchemaInputType<T extends SchemaType> = StandardSchemaV1.InferInput<T>["value"];
+export type InferSchemaOutputType<T extends SchemaType> = StandardSchemaV1.InferOutput<T>["value"];
+
 /** `{ some props } & { other props }` => `{ some props, other props }` */
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
@@ -35,25 +39,25 @@ type WidenIfAllItemsOptional<T extends any[]> = {
 /** Output options type */
 type OptionsOutputType<T extends Record<string, Option>> = Prettify<
   ToOptional<{
-    [K in keyof T]: StandardSchemaV1.InferOutput<T[K]["type"]["schema"]>;
+    [K in keyof T]: InferSchemaOutputType<T[K]["type"]>;
   }>
 >;
 
 /** Input options type */
 type OptionsInputType<T extends Record<string, Option>> = Prettify<
   ToOptional<{
-    [K in keyof T]: StandardSchemaV1.InferInput<T[K]["type"]["schema"]>;
+    [K in keyof T]: InferSchemaInputType<T[K]["type"]>;
   }>
 >;
 
 /** Output arguments type */
 type ArgumentsOutputType<T extends [Argument, ...Argument[]]> = Prettify<{
-  [K in keyof T]: T[K] extends Argument ? StandardSchemaV1.InferOutput<T[K]["type"]["schema"]> : never;
+  [K in keyof T]: T[K] extends Argument ? InferSchemaOutputType<T[K]["type"]> : never;
 }>;
 
 /** Input arguments type */
 type ArgumentsInputType<T extends [Argument, ...Argument[]]> = Prettify<{
-  [K in keyof T]: T[K] extends Argument ? StandardSchemaV1.InferInput<T[K]["type"]["schema"]> : never;
+  [K in keyof T]: T[K] extends Argument ? InferSchemaInputType<T[K]["type"]> : never;
 }>;
 
 /**
@@ -166,12 +170,20 @@ export interface InputTypeWide {
   positionals?: string[];
 }
 
-export interface Coerce<Schema extends StandardSchemaV1 = StandardSchemaV1> {
-  schema: Schema;
-  coerceTo: "string" | "number" | "boolean" | "json" | "array" | "set" | "custom";
+type PrimitiveTypeNames = "string" | "number" | "boolean" | "object" | "unknown";
+type CoerceTypes = PrimitiveTypeNames | `${PrimitiveTypeNames}[]` | `set<${PrimitiveTypeNames}>` | (string & {});
+
+export interface PreparedType {
+  schema: SchemaType;
+  coerceTo: CoerceTypes | undefined;
   optional: boolean;
-  defaultValue: StandardSchemaV1.InferOutput<Schema> | undefined;
-  validate: (value: string | undefined) => StandardSchemaV1.Result<unknown>;
+  defaultValue: unknown;
+  validate: (value: string | undefined) => StandardSchemaV1.Result<{ value?: unknown }>;
+}
+
+export interface CoerceMethod<Value> {
+  (terminalInput: string): Value;
+  type?: CoerceTypes;
 }
 
 export interface PrintHelpOptions {

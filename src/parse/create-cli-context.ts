@@ -78,12 +78,18 @@ export function createCliContext(argv: string[], cli: Cli) {
         throw new Error(`Duplicated option: "${argument}"`);
       }
 
+      if (!option._preparedType) {
+        throw new Error(`Internal error: missing prepared type for option "${optionName}"`);
+      }
+
+      const { schema, optional, defaultValue, coerceTo } = option._preparedType;
+
       const nextArgument = argv[index + 1];
 
       let optionValue: string | boolean = argumentWithEquals ? argumentValue : nextArgument;
 
       // infer value for boolean options
-      if (option.type.coerceTo === "boolean") {
+      if (coerceTo === "boolean") {
         if (!argumentWithEquals) {
           optionValue = "true";
         }
@@ -110,8 +116,6 @@ export function createCliContext(argv: string[], cli: Cli) {
         throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`);
       }
 
-      const { schema, optional, defaultValue } = option.type;
-
       results.options ??= {};
       results.options[optionName] = {
         name: optionName,
@@ -124,7 +128,7 @@ export function createCliContext(argv: string[], cli: Cli) {
       };
 
       // Skip to the next argument if it is the current option’s value.
-      if (!argumentWithEquals && !(option.type.coerceTo === "boolean")) {
+      if (!argumentWithEquals && coerceTo !== "boolean") {
         index++;
       }
 
@@ -141,12 +145,18 @@ export function createCliContext(argv: string[], cli: Cli) {
 
       // Any extra arguments are possibly positionals
       if (currentArgumentCount < subcommandObject.arguments.length) {
-        const argumentType = subcommandObject.arguments[currentArgumentCount].type;
+        const schemaArgument = subcommandObject.arguments[currentArgumentCount];
+
+        if (!schemaArgument._preparedType) {
+          throw new Error(`Internal error: missing prepared type for argument "${currentArgumentCount}"`);
+        }
+
+        const { schema, optional, defaultValue } = schemaArgument._preparedType;
 
         results.arguments.push({
-          schema: argumentType.schema,
-          optional: argumentType.optional,
-          defaultValue: argumentType.defaultValue,
+          schema,
+          optional,
+          defaultValue,
           stringValue: argument_,
           source: "terminal",
         });
@@ -185,7 +195,11 @@ export function createCliContext(argv: string[], cli: Cli) {
       // option already exists
       if (results.options && schemaOptionName in results.options) continue;
 
-      const { schema, optional, defaultValue } = schemaOption.type;
+      if (!schemaOption._preparedType) {
+        throw new Error(`Internal error: missing prepared type for option "${schemaOptionName}"`);
+      }
+
+      const { schema, optional, defaultValue } = schemaOption._preparedType;
 
       if (optional) {
         if (defaultValue === undefined) {
@@ -217,7 +231,12 @@ export function createCliContext(argv: string[], cli: Cli) {
     if (currentArgumentCount < subcommandArgumentCount) {
       for (let index = currentArgumentCount; index < subcommandArgumentCount; index++) {
         const schemaArgument = subcommandObject.arguments[index];
-        const { schema, optional, defaultValue } = schemaArgument.type;
+
+        if (!schemaArgument._preparedType) {
+          throw new Error(`Internal error: missing prepared type for argument "${index}"`);
+        }
+
+        const { schema, optional, defaultValue } = schemaArgument._preparedType;
 
         if (optional) {
           if (defaultValue === undefined) {

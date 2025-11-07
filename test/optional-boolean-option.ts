@@ -10,7 +10,8 @@ const cli = createCli({
   options: {
     help: {
       aliases: ["h"],
-      type: coerce.boolean(z.boolean().optional()),
+      type: z.object({ value: z.boolean().optional() }),
+      coerce: coerce.boolean,
     },
   },
 });

@@ -18,7 +18,8 @@ const addItemsCommand = createSubcommand({
   options: {
     list: {
       aliases: ["l"],
-      type: coerce.string(z.string().default("default")),
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
         description: "The name of the list to add items to.",
@@ -26,7 +27,8 @@ const addItemsCommand = createSubcommand({
     },
     items: {
       aliases: ["i"],
-      type: coerce.stringSet(z.set(z.string()), ","),
+      type: z.object({ value: z.set(z.string()) }),
+      coerce: coerce.stringSet(","),
       meta: {
         placeholder: "<item, ...items>",
         descriptionMarkdown: "The items to add to the list. separated by a comma `,`.",
@@ -34,7 +36,8 @@ const addItemsCommand = createSubcommand({
     },
     tags: {
       aliases: ["t"],
-      type: coerce.stringArray(z.string().array().optional(), ","),
+      type: z.object({ value: z.string().array().optional() }),
+      coerce: coerce.stringArray(","),
       meta: {
         placeholder: "<tag, ...tags>",
         descriptionMarkdown: "The tags to add to the list. separated by a comma `,`.",

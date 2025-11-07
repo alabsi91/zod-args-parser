@@ -70,7 +70,11 @@ function validateArguments(schema: Cli | Subcommand) {
         throw createError(`argument's "type" property is required.`);
       }
 
-      if (!argument.type.optional) continue; // ok
+      if (!argument._preparedType) {
+        throw createError(`internal error: missing prepared type.`);
+      }
+
+      if (!argument._preparedType.optional) continue; // ok
 
       if (schema.allowPositionals) {
         throw createError(`optional arguments are not allowed when "allowPositionals" is enabled.`);

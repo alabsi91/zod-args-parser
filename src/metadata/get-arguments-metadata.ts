@@ -9,7 +9,7 @@ export function getArgumentsMetadata(arguments_: Argument[]): ArgumentMetadata[]
   for (const argument of arguments_) {
     const meta = argument.meta ?? {};
 
-    const { optional, defaultValue } = defaultValueAndIsOptional(argument.type.schema);
+    const { optional, defaultValue } = argument._preparedType ?? defaultValueAndIsOptional(argument.type);
 
     outputMetadata.push({
       name: meta.name ?? generateOrdinalSuffix(outputMetadata.length) + " argument",
@@ -19,7 +19,7 @@ export function getArgumentsMetadata(arguments_: Argument[]): ArgumentMetadata[]
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",
       optional: meta.optional ?? optional,
       example: meta.example ?? "",
-      schema: argument.type.schema,
+      schema: argument.type,
       hidden: meta.hidden ?? false,
     });
   }

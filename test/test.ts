@@ -20,7 +20,8 @@ describe("-h, --help (default: false)".padEnd(spaceToColumn + spaceColumnEnd + 2
     options: {
       help: {
         aliases: ["h"],
-        type: coerce.boolean(z.boolean().default(false)),
+        type: z.object({ value: z.boolean().default(false) }),
+        coerce: coerce.boolean,
       },
     },
   });
@@ -44,7 +45,8 @@ describe("-n, --number (optional: number)".padEnd(spaceToColumn + spaceColumnEnd
     options: {
       number: {
         aliases: ["n"],
-        type: coerce.number(z.number().optional()),
+        type: z.object({ value: z.number().optional() }),
+        coerce: coerce.number,
       },
     },
   });
@@ -68,7 +70,8 @@ describe("-n, --number (default: 0.1)".padEnd(spaceToColumn + spaceColumnEnd + 2
     options: {
       number: {
         aliases: ["n"],
-        type: coerce.number(z.number().default(0.1)),
+        type: z.object({ value: z.number().default(0.1) }),
+        coerce: coerce.number,
       },
     },
   });
@@ -91,8 +94,9 @@ describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd
     cliName: "test-cli",
     options: {
       string: {
-        type: coerce.string(z.string().optional()),
         aliases: ["s"],
+        type: z.object({ value: z.string().optional() }),
+        coerce: coerce.string,
       },
     },
   });
@@ -116,7 +120,8 @@ describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceCol
     options: {
       string: {
         aliases: ["s"],
-        type: coerce.string(z.string().default("hello world")),
+        type: z.object({ value: z.string().default("hello world") }),
+        coerce: coerce.string,
       },
     },
   });
@@ -141,10 +146,10 @@ describe("-abcd, booleans flags".padEnd(spaceToColumn + spaceColumnEnd + 2), () 
   const cli = createCli({
     cliName: "test-cli",
     options: {
-      a: { type: coerce.boolean(z.boolean()) },
-      b: { type: coerce.boolean(z.boolean()) },
-      c: { type: coerce.boolean(z.boolean()) },
-      d: { type: coerce.boolean(z.boolean()) },
+      a: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+      b: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+      c: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+      d: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
     },
   });
 

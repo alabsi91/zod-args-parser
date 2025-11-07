@@ -35,7 +35,8 @@ export const listCli = createCli({
   options: {
     help: {
       aliases: ["h"],
-      type: coerce.boolean(z.boolean().optional()),
+      type: z.object({ value: z.boolean().optional() }),
+      coerce: coerce.boolean,
       meta: {
         description: "Show help message.",
       },
@@ -45,7 +46,8 @@ export const listCli = createCli({
 
       // Zod: `z.boolean().optional()` | `z.boolean().default(false)`
       // Arktype: `type("boolean|undefined")` default and optional are not supported for primitive types
-      type: coerce.boolean(z.boolean().optional()),
+      type: z.object({ value: z.boolean().optional() }),
+      coerce: coerce.boolean,
       meta: {
         description: "Show listy version.",
       },

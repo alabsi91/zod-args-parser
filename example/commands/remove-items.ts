@@ -17,7 +17,8 @@ const removeItemsCommand = createSubcommand({
   options: {
     list: {
       aliases: ["l"],
-      type: coerce.string(z.string()),
+      type: z.object({ value: z.string() }),
+      coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
         description: "The name of the list to remove items from.",

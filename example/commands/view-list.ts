@@ -17,7 +17,8 @@ const viewListCommand = createSubcommand({
 
   arguments: [
     {
-      type: coerce.string(z.string().optional()),
+      type: z.object({ value: z.string().optional() }),
+      coerce: coerce.string,
       meta: {
         name: "list-name",
         description: "The name of the list to view. Leave blank to view all lists.",

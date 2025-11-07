@@ -12,7 +12,7 @@ export { getCliMetadata } from "./metadata/get-cli-metadata.ts";
 export { getOptionsMetadata } from "./metadata/get-options-metadata.ts";
 export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.ts";
 
-export { createCli } from "./schemas/create-cli-schema.ts";
+export { createCLI as createCli } from "./schemas/create-cli-schema.ts";
 export { createSubcommand } from "./schemas/create-subcommand-schema.ts";
 export { createOptions } from "./schemas/create-options-schema.ts";
 export { createArguments } from "./schemas/create-arguments-schema.ts";

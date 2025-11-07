@@ -15,7 +15,7 @@ export function getOptionsMetadata(options: Record<string, Option>): OptionMetad
     const aliases = option.aliases ?? [];
     const meta = option.meta ?? {};
 
-    const { optional, defaultValue } = defaultValueAndIsOptional(option.type.schema);
+    const { optional, defaultValue } = option._preparedType ?? defaultValueAndIsOptional(option.type);
 
     outputMetadata.push({
       name: optionName,
@@ -29,7 +29,7 @@ export function getOptionsMetadata(options: Record<string, Option>): OptionMetad
       example: meta.example ?? "",
       defaultValue,
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",
-      schema: option.type.schema,
+      schema: option.type,
       hidden: meta.hidden ?? false,
     });
   }
