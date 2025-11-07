@@ -96,7 +96,7 @@ function stringToBoolean(string: string): boolean {
     return false;
   }
 
-  throw new TypeError(`Invalid boolean value: ${string}`, { cause: "zod-args-parser" });
+  throw new TypeError(`Invalid boolean value: ${string}`);
 }
 
 function stringToStringArray(stringValue: string, separator: string = ","): string[] {

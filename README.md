@@ -1,8 +1,8 @@
-# zod-args-parser
+# typed-arg-parser
 
-[![npm](https://img.shields.io/npm/v/zod-args-parser?style=for-the-badge)](https://www.npmjs.com/package/zod-args-parser)
-[![GitHub](https://img.shields.io/github/license/alabsi91/zod-args-parser?style=for-the-badge)](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/alabsi91/zod-args-parser?style=for-the-badge)](https://github.com/alabsi91/zod-args-parser/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+[![npm](https://img.shields.io/npm/v/typed-arg-parser?style=for-the-badge)](https://www.npmjs.com/package/typed-arg-parser)
+[![GitHub](https://img.shields.io/github/license/alabsi91/typed-arg-parser?style=for-the-badge)](https://github.com/alabsi91/typed-arg-parser/blob/main/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/alabsi91/typed-arg-parser?style=for-the-badge)](https://github.com/alabsi91/typed-arg-parser/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
 
 A strictly typed command-line arguments parser powered by [Zod](https://github.com/colinhacks/zod).
 
@@ -29,30 +29,30 @@ A strictly typed command-line arguments parser powered by [Zod](https://github.c
 
 ## Features
 
-- **Strict typing for subcommands, options, and arguments**.
+- **Strict TypeScript typing** backed by schema **validation**.
 - **Flag coupling support**: e.g., `-rf` to combine `-r` and `-f` flags.
 - **Negative flag support**: e.g., `--no-verbose` to negate `--verbose`.
 - **Flexible option value formatting**: Supports both `--input-dir path` and `--input-dir=path` styles.
-- **Help message generation**: Built-in methods to generate help text for the CLI and each subcommand.
+- **Help message generation**: Built-in methods to generate help text for the CLI and each subcommand with markdown support.
 - **Auto completion**: Generate shell (bash, zsh, powershell) completion scripts for your CLI.
 - **Documentation**: Generate a markdown documentation for your CLI.
 
 ## Installation
 
 > [!IMPORTANT]  
-> `zod` version `3.25.0` or later (including `4.0.0`) is required.
+> A validation library is needed that supports **StandardSchemaV1** like `zod`, `arktype`, `yup`, `valibot`.
 
 ```bash
-npm install zod chalk zod-args-parser
+npm install zod typed-arg-parser
 ```
 
 ## Usage
 
 ```ts
+import { createCli, createSubcommand, createOptions, safeParse } from "typed-arg-parser";
 import * as z from "zod";
-import { createCli, createSubcommand, createOptions, safeParse } from "zod-args-parser";
 
-// Share options between schemas.
+// Share options between subcommands.
 const sharedOptions = createOptions([
   {
     name: "verbose",
@@ -152,7 +152,7 @@ if (!results.success) {
 - Do not reuse the same subcommand name within the same CLI. TypeScript will throw a type error if a duplicate exist.
 
 ```ts
-import { createSubcommand } from "zod-args-parser";
+import { createSubcommand } from "typed-arg-parser";
 
 const subcommand = createSubcommand({
   name: "subcommand",
@@ -189,6 +189,8 @@ subcommand.setAction(results => {
 >  All values from the terminal are passed as **strings**, so **coercion** is required except for simple booleans types which are inferred automatically.
 
 ```ts
+// Custom preprocessing:
+import { stringToArray, stringToSet } from "typed-arg-parser";
 import * as z from "zod";
 
 // String examples
@@ -216,9 +218,6 @@ z.enum(["a", "b", "c"]);
 
 // Union -> number | "development"
 z.union([z.coerce.number(), z.literal("development")]);
-
-// Custom preprocessing:
-import { stringToArray, stringToSet } from "zod-args-parser";
 
 // Array -> string[]
 z.preprocess((value: string) => stringToArray(value), z.string().array());
@@ -251,8 +250,8 @@ z.preprocess((value: string) => stringToSet(value), z.set(z.string()));
 See the [Option](#option) type for more details.
 
 ```ts
+import { createCli } from "typed-arg-parser";
 import * as z from "zod";
-import { createCli } from "zod-args-parser";
 
 // Define the CLI schema
 const cliSchema = createCli({
@@ -302,8 +301,8 @@ cliSchema.setAction(results => {
 See the [Argument](#argument) type for more details.
 
 ```ts
+import { createCli } from "typed-arg-parser";
 import * as z from "zod";
-import { createCli } from "zod-args-parser";
 
 // Define the CLI schema
 const cliSchema = createCli({
@@ -342,7 +341,7 @@ cliSchema.setAction(results => {
 >  If both typed arguments and positionals are used in the same CLI/subcommand, the **typed arguments are parsed first**, and only then are the remaining values collected as positionals.
 
 ```ts
-import { createSubcommand } from "zod-args-parser";
+import { createSubcommand } from "typed-arg-parser";
 
 // Define the subcommand schema
 export const countSchema = createSubcommand({
@@ -374,8 +373,8 @@ countSchema.setAction(results => {
 See the [Context](#context) type for more details.
 
 ```ts
+import { createCli } from "typed-arg-parser";
 import * as z from "zod";
-import { createCli } from "zod-args-parser";
 
 // Define the CLI schema
 const cliSchema = createCli({
@@ -430,7 +429,7 @@ See the [HelpMessageStyle](#helpmsgstyle) type for more details.
 
 ```ts
 import chalk from "chalk";
-import { formatCliHelpMsg, formatSubcommandHelpMsg, helpMessageStyles } from "zod-args-parser";
+import { formatCliHelpMsg, formatSubcommandHelpMsg, helpMessageStyles } from "typed-arg-parser";
 
 // Define the CLI schema
 const cliSchema = createCli(/* ... */);
@@ -480,8 +479,8 @@ console.log(`<pre style="background-color: #1e1e2e">${subcommandHelp}</pre>`);
   A preprocessing handle to convert a string to a set.
 
 ```ts
+import { createCli, isOptionalSchema, schemaDefaultValue, stringToArray } from "typed-arg-parser";
 import * as z from "zod";
-import { createCli, isOptionalSchema, schemaDefaultValue, stringToArray } from "zod-args-parser";
 
 const cliSchema = createCli({
   cliName: "my-cli",
@@ -528,8 +527,9 @@ cliSchema.setAction(results => {
   Infer the arguments Output type (after zod validation) from the Cli or subcommand schema.
 
 ```ts
-import { createSubcommand } from "zod-args-parser";
-import type { InferOptionsOutput, InferArgumentsOutput } from "zod-args-parser";
+import { createSubcommand } from "typed-arg-parser";
+
+import type { InferOptionsOutput, InferArgumentsOutput } from "typed-arg-parser";
 
 const subcommand = createSubcommand({
   name: "subcommand",
@@ -765,8 +765,8 @@ Each style has the following properties:
 
 ## Example
 
-- [Example code](https://github.com/alabsi91/zod-args-parser/tree/main/example)
+- [Example code](https://github.com/alabsi91/typed-arg-parser/tree/main/example)
 
 ## License
 
-**zod-args-parser** library is licensed under [**The MIT License.**](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)
+**typed-arg-parser** library is licensed under [**The MIT License.**](https://github.com/alabsi91/typed-arg-parser/blob/main/LICENSE)

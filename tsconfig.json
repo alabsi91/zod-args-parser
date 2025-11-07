@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "typed-arg-parser": ["./src/index.ts"]
+    },
     "target": "ESNext",
     "moduleDetection": "force",
     "types": ["node"],
@@ -35,5 +38,5 @@
     "skipLibCheck": true
   },
 
-  "include": ["src", "example", "scripts", "test"]
+  "include": ["src", "example", "test"]
 }

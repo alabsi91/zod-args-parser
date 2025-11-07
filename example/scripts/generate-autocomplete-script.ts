@@ -1,11 +1,11 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-
 import {
   generateBashAutocompleteScript,
   generatePowerShellAutocompleteScript,
   generateZshAutocompleteScript,
-} from "../../src/index.ts";
+} from "typed-arg-parser";
+
 import { listCli } from "../cli.ts";
 
 const outdir = path.join(import.meta.dirname, "..", "autocomplete-scripts");

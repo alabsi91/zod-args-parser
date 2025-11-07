@@ -1,6 +1,5 @@
+import { createArguments, createOptions, coerce } from "typed-arg-parser";
 import * as z from "zod";
-
-import { createArguments, createOptions, coerce } from "../src/index.ts";
 
 export const sharedOptions = createOptions({
   verbose: {

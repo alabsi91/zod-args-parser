@@ -37,7 +37,7 @@ export function formatHelpMessageOptions(optionsMetadata: OptionMetadata[], opti
 
     let description = metadata.description
       ? style.description(metadata.description)
-      : terminalMarkdown(style.description(metadata.descriptionMarkdown), markdownRenderer);
+      : terminalMarkdown(metadata.descriptionMarkdown, markdownRenderer, style.description);
 
     description = indentLines(description, totalSpacing);
 

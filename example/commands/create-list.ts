@@ -1,6 +1,6 @@
+import { coerce, createSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
 
-import { coerce, createSubcommand, type InferArgumentsInputType } from "../../src/index.ts";
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";

@@ -1,14 +1,15 @@
+import { coerce, createSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
 
-import { coerce, createSubcommand, type InferArgumentsInputType } from "../../src/index.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
 const helpCommand = createSubcommand({
   name: "help",
+  aliases: ["h"],
   meta: {
-    placeholder: "<command>",
-    description: "Print help message for command",
+    placeholder: "<command-name>",
+    description: "Show help message for a specific command.",
   },
 
   options: sharedOptions,

@@ -128,16 +128,20 @@ const terminalRenderer: RendererObject<string, string> = {
 const terminalMarked = new Marked();
 terminalMarked.use({ renderer: terminalRenderer });
 
-export function terminalMarkdown(text: string, renderer: "terminal" | "html" = "terminal"): string {
+export function terminalMarkdown(
+  text: string,
+  renderer: "terminal" | "html" = "terminal",
+  ansiTextColor: ColorFunctionType = (...string) => string.join(" "),
+): string {
   if (!text) {
     return "";
   }
 
   if (renderer === "terminal") {
-    return terminalMarked.parse(text) as string;
+    return ansiTextColor(terminalMarked.parse(text) as string);
   }
 
   const htmlString = marked.parse(text) as string;
 
-  return htmlString.trim();
+  return `<span class="_markdown">${htmlString.trim()}</span>`;
 }

@@ -1,13 +1,13 @@
+import { coerce, createSubcommand, type inferOptionsInputType } from "typed-arg-parser";
 import * as z from "zod";
 
-import { coerce, createSubcommand, type inferOptionsInputType } from "../../src/index.ts";
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
 const addItemsCommand = createSubcommand({
   name: "add-items",
-  aliases: ["a", "add"],
+  aliases: ["ai"],
   meta: {
     description: "Add new items to the list.",
     example:

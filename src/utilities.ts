@@ -262,7 +262,7 @@ function ansiRegex({ onlyFirst = false } = {}) {
   const ST = String.raw`(?:\u0007|\u001B\u005C|\u009C)`;
 
   // OSC sequences only: ESC ] ... ST (non-greedy until the first ST)
-  const osc = `(?:\\u001B\\][\\s\\S]*?${ST})`;
+  const osc = String.raw`(?:\u001B\][\s\S]*?${ST})`;
 
   // CSI and related: ESC/C1, optional intermediates, optional params (supports ; and :) then final byte
   const csi = String.raw`[\u001B\u009B][[\]()#;?]*(?:\d{1,4}(?:[;:]\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]`;

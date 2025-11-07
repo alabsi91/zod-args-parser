@@ -1,16 +1,16 @@
 {
-  "name": "typed-args-parser",
+  "name": "typed-arg-parser",
   "version": "1.0.0-alpha.0",
-  "description": "A strictly typed command-line arguments parser powered by Zod.",
+  "description": "A TypeScript-first CLI argument parser with schema-based validation.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alabsi91/zod-args-parser.git"
+    "url": "https://github.com/alabsi91/typed-arg-parser.git"
   },
   "type": "module",
   "scripts": {
-    "dev": "node --watch-path src --watch-path example example/index.ts",
+    "dev": "tsx --watch example/index.ts",
     "build": "node scripts/build.ts",
     "test": "node --test && eslint \"src/**\" --fix && tsgo --noEmit",
     "prepare": "npm run test && npm run build"
@@ -38,26 +38,27 @@
     "typescript"
   ],
   "devDependencies": {
-    "@eslint/js": "^9.38.0",
+    "@eslint/js": "^9.39.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.0",
     "@typescript/native-preview": "^7.0.0-dev.20251104.1",
     "esbuild": "^0.25.12",
-    "eslint": "^9.38.0",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-unicorn": "^61.0.2",
+    "eslint-plugin-unicorn": "^62.0.0",
     "glob": "^11.0.3",
-    "globals": "^16.4.0",
+    "globals": "^16.5.0",
     "prettier": "^3.6.2",
-    "prettier-plugin-jsdoc": "^1.3.3",
+    "prettier-plugin-jsdoc": "^1.5.0",
+    "terser": "^5.44.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
+    "typescript-eslint": "^8.46.3",
     "zod": "^4.1.12"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
     "chalk": "^5.6.2",
-    "marked": "^16.4.1"
+    "marked": "^17.0.0"
   }
 }

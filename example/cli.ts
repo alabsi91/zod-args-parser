@@ -1,14 +1,12 @@
+import { coerce, createCli, helpMessageStyles } from "typed-arg-parser";
 import * as z from "zod";
 
-import { coerce, createCli } from "../src/index.ts";
 import { addItemsCommand } from "./commands/add-items.ts";
 import { createListCommand } from "./commands/create-list.ts";
 import { deleteListCommand } from "./commands/delete-list.ts";
 import { helpCommand } from "./commands/help-cmd.ts";
 import { removeItemsCommand } from "./commands/remove-items.ts";
 import { viewListCommand } from "./commands/view-list.ts";
-import { sharedOptions } from "./shared.ts";
-import { logCliContext } from "./utilities.ts";
 
 export const listCli = createCli({
   cliName: "listy",
@@ -43,27 +41,18 @@ export const listCli = createCli({
     },
     version: {
       aliases: ["v"],
-
-      // Zod: `z.boolean().optional()` | `z.boolean().default(false)`
-      // Arktype: `type("boolean|undefined")` default and optional are not supported for primitive types
       type: z.object({ value: z.boolean().optional() }),
       coerce: coerce.boolean,
       meta: {
         description: "Show listy version.",
       },
     },
-
-    ...sharedOptions,
   },
 });
 
 // Execute this function when the CLI is run
 listCli.onExecute(results => {
-  const { help, version, verbose } = results.options;
-
-  if (verbose) {
-    logCliContext(results.context);
-  }
+  const { help, version } = results.options;
 
   if (help) {
     if (!listCli.formatCliHelpMessage) {
@@ -71,7 +60,7 @@ listCli.onExecute(results => {
       return;
     }
 
-    const helpMessage = listCli.formatCliHelpMessage();
+    const helpMessage = listCli.formatCliHelpMessage({ style: helpMessageStyles.gruvboxDark });
     console.log(helpMessage);
     return;
   }

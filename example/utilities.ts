@@ -1,4 +1,4 @@
-import type { ContextWide } from "../src/index.ts";
+import type { ContextWide } from "typed-arg-parser";
 
 export function logCliContext(context: ContextWide) {
   if (context.subcommand) {

@@ -46,8 +46,7 @@ function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
 export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = {}): string {
   const options = setPrintHelpOptionsDefaults(printOptions);
 
-  const style = { ...helpMessageStyles.default };
-  Object.assign(style, options.style);
+  const style = { ...helpMessageStyles.default, ...options.style };
 
   const metadata = getCliMetadata(cli);
 
@@ -76,7 +75,7 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
 
     let description = metadata.description
       ? style.description(metadata.description)
-      : terminalMarkdown(style.description(metadata.descriptionMarkdown), options.markdownRenderer);
+      : terminalMarkdown(metadata.descriptionMarkdown, options.markdownRenderer, style.description);
 
     description = indentLines(description, options.indentBeforeName);
 
@@ -145,8 +144,7 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
 export function formatSubcommandHelpMessage(subcommand: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
   setPrintHelpOptionsDefaults(options);
 
-  const style = { ...helpMessageStyles.default };
-  Object.assign(style, options.style);
+  const style = { ...helpMessageStyles.default, ...options.style };
 
   const meta = subcommand.meta ?? {};
 

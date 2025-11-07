@@ -1,7 +1,8 @@
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import esbuild, { type Plugin } from "esbuild";
 import { globSync } from "glob";
-import { rmSync } from "node:fs";
-import path, { join } from "node:path";
+import { minify } from "terser";
 import ts from "typescript";
 
 const libDir = "lib";
@@ -67,7 +68,8 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
 
   await esbuild.build({
     entryPoints: tsFiles,
-    outdir: join(libDir, "cjs"),
+    outdir: path.join(libDir, "cjs"),
+    outExtension: { ".js": ".cjs" },
     format: "cjs",
     platform: "node",
     target: "es2020",
@@ -84,7 +86,8 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
 
   await esbuild.build({
     entryPoints: tsFiles,
-    outdir: join(libDir, "mjs"),
+    outdir: path.join(libDir, "mjs"),
+    outExtension: { ".js": ".mjs" },
     format: "esm",
     platform: "node",
     target: "es2020",
@@ -101,7 +104,7 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
 
   await esbuild.build({
     entryPoints: tsFiles,
-    outdir: join(libDir, "esm"),
+    outdir: path.join(libDir, "esm"),
     format: "esm",
     platform: "browser",
     target: "es2020",
@@ -117,17 +120,40 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
   console.log("⚙️ ", `Building for iife...`);
 
   await esbuild.build({
-    entryPoints: [join(libDir, "esm", "index.js")],
-    outdir: join(libDir, "iife"),
+    entryPoints: [path.join("src", "index.ts")],
+    outdir: path.join(libDir, "iife"),
     format: "iife",
     platform: "browser",
     target: "es2020",
     treeShaking: true,
     sourcemap: true,
     bundle: true,
-    minify: true,
+    minify: false,
     packages: "bundle",
   });
+}
+
+{
+  console.log("🔻", `Minifying...`);
+
+  const cjsFiles = globSync(`${libDir}/**/*.{cjs,mjs,js}`);
+
+  for (const filePath of cjsFiles) {
+    const mapFilePath = filePath + ".map";
+    const mapFilename = path.basename(mapFilePath);
+
+    const minified = await minify(readFileSync(filePath, "utf8"), {
+      sourceMap: { content: readFileSync(mapFilePath, "utf8"), url: mapFilename },
+    });
+
+    if (!minified.code || !minified.map) {
+      console.warn(`    Failed to minify "${filePath}"`);
+      continue;
+    }
+
+    writeFileSync(filePath, minified.code, { encoding: "utf8" });
+    writeFileSync(mapFilePath, minified.map as string, { encoding: "utf8" });
+  }
 }
 
 console.log("\n🚀", `Done!`);
