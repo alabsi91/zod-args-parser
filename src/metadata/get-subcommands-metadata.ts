@@ -1,17 +1,17 @@
 import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
 import { getOptionsMetadata } from "./get-options-metadata.ts";
 
-import type { Subcommand } from "../schemas/schema-types.ts";
-import type { SubcommandMetadata } from "./metadata-types.ts";
+import type { Subcommand } from "../types/definitions-types.ts";
+import type { SubcommandMetadata } from "../types/metadata-types.ts";
 
-export function getSubcommandsMetadata(subcommands: readonly Subcommand[]): SubcommandMetadata[] {
+export function getSubcommandsMetadata(commandDefinition: readonly Subcommand[]): SubcommandMetadata[] {
   const outputMetadata: SubcommandMetadata[] = [];
 
-  if (!subcommands || subcommands.length === 0) {
+  if (!commandDefinition || commandDefinition.length === 0) {
     return outputMetadata;
   }
 
-  for (const subcommand of subcommands) {
+  for (const subcommand of commandDefinition) {
     const optionsMetadata = subcommand.options ? getOptionsMetadata(subcommand.options) : [];
     const argumentsMetadata = subcommand.arguments ? getArgumentsMetadata(subcommand.arguments) : [];
     const meta = subcommand.meta ?? {};

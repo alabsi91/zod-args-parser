@@ -1,12 +1,17 @@
-import type {
-  InferSchemaOutputType,
-  SchemaType,
-  Prettify,
-  OutputTypeWide,
-  CoerceMethod,
-  PreparedType,
-} from "../types.ts";
+import type { OutputTypeWide } from "./io-types.ts";
+import type { InferSchemaOutputType, SchemaResult, SchemaType } from "./schema-types.ts";
+import type { CoerceMethod, CoerceTypes } from "./types.ts";
+import type { Prettify, Widen } from "./utilities-types.ts";
 
+export interface PreparedType {
+  schema: SchemaType;
+  coerceTo: CoerceTypes | undefined;
+  optional: boolean;
+  defaultValue: unknown;
+  validate: (value: string | undefined) => SchemaResult;
+}
+
+// Derived from `Subcommand`
 export type Cli = Prettify<
   Omit<Subcommand, "name" | "aliases" | "meta"> & {
     /** The name of the CLI program. */
@@ -190,6 +195,49 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
 
+  /**
+   * When `true`, this option must appear on its own. It cannot be used together with any other option or argument,
+   * except those explicitly listed in `requires`.
+   *
+   * Only explicitly provided inputs are checked — options or arguments that are present only through default values are
+   * ignored.
+   */
+  exclusive?: boolean;
+
+  /**
+   * Declares other options ir arguments that must be provided when this option is used.
+   *
+   * If this option appears in the parsed input, each entry listed in `requires` must also be present. Default values do
+   * not satisfy this requirement — the user must explicitly provide the required option(s).
+   *
+   * Example:
+   *
+   * @example
+   *   {
+   *     "output": {
+   *       "aliases": ["o"],
+   *       "requires": ["input"] // using --output also requires --input
+   *     }
+   *   }
+   */
+  requires?: string[];
+
+  /**
+   * Declares options or arguments that conflict with this option.
+   *
+   * If any entry in `conflictWith` is provided alongside this option, the parser will report an error. Conflicts are
+   * only checked against explicitly supplied values — defaults do not trigger conflicts.
+   *
+   * @example
+   *   {
+   *     "help": {
+   *       "aliases": ["h"],
+   *       "conflictWith": ["version"] // cannot be used together with --version
+   *     }
+   *   }
+   */
+  conflictWith?: string[];
+
   /** Used for help message and documentation generation. */
   meta?: OptionMeta;
 
@@ -198,9 +246,6 @@ export interface Option<Schema extends SchemaType = SchemaType> {
 }
 
 export interface ArgumentMeta extends MetaBase {
-  /** The name of the argument. */
-  name?: string;
-
   /**
    * Custom default value.
    *
@@ -213,6 +258,9 @@ export interface ArgumentMeta extends MetaBase {
 }
 
 export interface Argument<Schema extends SchemaType = SchemaType> {
+  /** The name of the argument. */
+  name: string;
+
   /** The schema to validate the user input. */
   type: Schema;
 
@@ -230,18 +278,50 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
 
+  /**
+   * When `true`, this argument must appear on its own. It cannot be used together with any other option or argument,
+   * except those explicitly listed in `requires`.
+   *
+   * Only explicitly provided inputs are checked — options or arguments that are present only through default values are
+   * ignored.
+   */
+  exclusive?: boolean;
+
+  /**
+   * Declares other options/arguments that must be provided when this argument is used.
+   *
+   * If this argument appears in the parsed input, each entry listed in `requires` must also be present. Default values
+   * do not satisfy this requirement — the user must explicitly provide the required option(s).
+   *
+   * @example
+   *   {
+   *     "output": {
+   *       "aliases": ["o"],
+   *       "requires": ["input"] // using --output also requires --input
+   *     }
+   *   }
+   */
+  requires?: string[];
+
+  /**
+   * Declares options or arguments that conflict with this argument.
+   *
+   * If any entry in `conflictWith` is provided alongside this argument, the parser will report an error. Conflicts are
+   * only checked against explicitly supplied values — defaults do not trigger conflicts.
+   *
+   * @example
+   *   {
+   *     "help": {
+   *       "aliases": ["h"],
+   *       "conflictWith": ["version"] // cannot be used together with --version
+   *     }
+   *   }
+   */
+  conflictWith?: string[];
+
   /** Used for help message and documentation generation. */
   meta?: ArgumentMeta;
 
   /** @deprecated For internal use only */
   _preparedType?: PreparedType;
 }
-
-// prettier-ignore
-type Widen<T> =
-  T extends string ? string :
-  T extends number ? number :
-  T extends boolean ? boolean :
-  T extends readonly (infer U)[] ? Widen<U>[] :
-  T extends Set<infer U> ? Set<Widen<U>> :
-  T;

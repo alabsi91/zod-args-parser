@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, createCli } from "../src/index.ts";
+import { coerce, defineCLI } from "../src/index.ts";
 import {
   err,
   expectsFalse,
@@ -15,7 +15,7 @@ import {
 } from "./test-utils.ts";
 
 describe("-h, --help (default: false)".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       help: {
@@ -40,7 +40,7 @@ describe("-h, --help (default: false)".padEnd(spaceToColumn + spaceColumnEnd + 2
 });
 
 describe("-n, --number (optional: number)".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       number: {
@@ -65,7 +65,7 @@ describe("-n, --number (optional: number)".padEnd(spaceToColumn + spaceColumnEnd
 });
 
 describe("-n, --number (default: 0.1)".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       number: {
@@ -90,7 +90,7 @@ describe("-n, --number (default: 0.1)".padEnd(spaceToColumn + spaceColumnEnd + 2
 });
 
 describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       string: {
@@ -115,7 +115,7 @@ describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd
 });
 
 describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       string: {
@@ -143,7 +143,7 @@ describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceCol
 });
 
 describe("-abcd, booleans flags".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
-  const cli = createCli({
+  const cli = defineCLI({
     cliName: "test-cli",
     options: {
       a: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },

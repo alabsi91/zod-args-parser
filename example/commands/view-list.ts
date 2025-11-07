@@ -1,11 +1,11 @@
-import { coerce, createSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
+import { coerce, defineSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
-const viewListCommand = createSubcommand({
+const viewListCommand = defineSubcommand({
   name: "view-list",
   aliases: ["vl"],
   meta: {
@@ -17,10 +17,10 @@ const viewListCommand = createSubcommand({
 
   arguments: [
     {
+      name: "list-name",
       type: z.object({ value: z.string().optional() }),
       coerce: coerce.string,
       meta: {
-        name: "list-name",
         description: "The name of the list to view. Leave blank to view all lists.",
       },
     },

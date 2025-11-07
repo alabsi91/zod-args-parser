@@ -1,7 +1,7 @@
 import c from "chalk";
 import { Marked, type RendererObject, type Tokens, marked } from "marked";
 
-import type { ColorFunctionType } from "../types.ts";
+import type { ColorFunctionType } from "../types/help-message-types.ts";
 
 const markdownStyle: Record<string, ColorFunctionType> = {
   bold: c.bold,

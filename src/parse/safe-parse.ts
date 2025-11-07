@@ -1,18 +1,18 @@
-import { validateCliSchema } from "../schemas/validate-cli-schema.ts";
+import { validateCliDefinition } from "../definitions/validate-cli-definition.ts";
 import { parseArgv } from "../utilities.ts";
 import { createCliContext } from "./create-cli-context.ts";
-import { findSubcommand } from "./parser-helpers.ts";
-import { validate } from "./validate-context.ts";
+import { findSubcommandDefinition } from "./parser-helpers.ts";
+import { validate } from "./validate-context/validate-context.ts";
 
-import type { Cli } from "../schemas/schema-types.ts";
-import type { CliParseResult } from "../types.ts";
+import type { Cli } from "../types/definitions-types.ts";
+import type { CliParseResult } from "../types/types.ts";
 
-export function safeParse<T extends Cli>(stringOrArgv: string | string[], cli: T): CliParseResult<T> {
+export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDefinition: T): CliParseResult<T> {
   const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
 
   // validate input
   try {
-    validateCliSchema(cli);
+    validateCliDefinition(cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
@@ -20,12 +20,12 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cli: T
   // Parse
   let parsedData;
   try {
-    parsedData = createCliContext(argv, cli);
+    parsedData = createCliContext(argv, cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
 
-  const subcommandObject = findSubcommand(parsedData.subcommand, cli);
+  const subcommandObject = findSubcommandDefinition(parsedData.subcommand, cliDefinition);
   if (!subcommandObject) {
     const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
     return { error };
@@ -51,19 +51,19 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cli: T
 
 export async function safeParseAsync<T extends Cli>(
   stringOrArgv: string | string[],
-  cli: T,
+  cliDefinition: T,
 ): Promise<CliParseResult<T>> {
   const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
 
   // Parse
   let parsedData;
   try {
-    parsedData = createCliContext(argv, cli);
+    parsedData = createCliContext(argv, cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
 
-  const subcommandObject = findSubcommand(parsedData.subcommand, cli);
+  const subcommandObject = findSubcommandDefinition(parsedData.subcommand, cliDefinition);
   if (!subcommandObject) {
     const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
     return { error };

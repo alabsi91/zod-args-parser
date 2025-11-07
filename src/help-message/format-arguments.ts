@@ -1,7 +1,7 @@
 import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
-import type { ArgumentMetadata } from "../metadata/metadata-types.ts";
+import type { ArgumentMetadata } from "../types/metadata-types.ts";
 import type { FormatOptions } from "./format-cli.ts";
 
 export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[], options: FormatOptions): string {

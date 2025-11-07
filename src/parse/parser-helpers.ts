@@ -1,30 +1,30 @@
-import type { Cli, Option, Subcommand } from "../schemas/schema-types.ts";
+import type { Cli, Option, Subcommand } from "../types/definitions-types.ts";
 
 /**
  * Retrieves a subcommand object from an array of subcommands by matching the provided subcommand name against the
  * subcommand's name or its aliases.
  *
- * @param subCmdName - The name or alias of the subcommand to search for.
+ * @param subcommandName - The name or alias of the subcommand to search for.
  * @param subcommandArr - An array of `Subcommand` objects to search within.
  * @returns The matching `Subcommand` object if found; otherwise, `undefined`.
  */
-export function findSubcommand(subCmdName: string | undefined, cli: Cli): Subcommand | undefined {
-  if (subCmdName === undefined) {
-    return cli as unknown as Subcommand;
+export function findSubcommandDefinition(subcommandName: string | undefined, cliDefinition: Cli) {
+  if (subcommandName === undefined) {
+    return cliDefinition as unknown as Subcommand;
   }
 
-  if (!cli.subcommands) {
-    return undefined;
+  if (!cliDefinition.subcommands) {
+    return;
   }
 
-  return cli.subcommands.find(c => {
+  return cliDefinition.subcommands.find(c => {
     // match for undefined too
-    if (c.name === subCmdName) {
+    if (c.name === subcommandName) {
       return true;
     }
 
     // match for aliases
-    return subCmdName && c.aliases && c.aliases.includes(subCmdName);
+    return subcommandName && c.aliases && c.aliases.includes(subcommandName);
   });
 }
 
@@ -33,7 +33,7 @@ export function findSubcommand(subCmdName: string | undefined, cli: Cli): Subcom
  *
  * The function supports matching by option name, aliases, and their negated forms (e.g., `--no-` prefix).
  *
- * @param optionArg - The argument string to match (e.g., `--foo`, `--no-bar`, `-f`).
+ * @param optionArgument - The argument string to match (e.g., `--foo`, `--no-bar`, `-f`).
  * @param options - An array of `Option` objects to search through.
  * @returns The matching `Option` object if found; otherwise, `undefined`.
  */

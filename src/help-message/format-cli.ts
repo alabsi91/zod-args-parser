@@ -6,8 +6,8 @@ import { formatHelpMessageCommands } from "./format-subcommands.ts";
 import { helpMessageStyles } from "./styles.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
-import type { Cli, Subcommand } from "../schemas/schema-types.ts";
-import type { HelpMessageStyle, PrintHelpOptions } from "../types.ts";
+import type { Cli, Subcommand } from "../types/definitions-types.ts";
+import type { HelpMessageStyle, PrintHelpOptions } from "../types/help-message-types.ts";
 
 export interface FormatOptions extends Required<PrintHelpOptions> {
   style: HelpMessageStyle;
@@ -43,12 +43,12 @@ function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
   return clone as Required<FormatOptions>;
 }
 
-export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = {}): string {
+export function formatCliHelpMessage(cliDefinition: Cli, printOptions: PrintHelpOptions = {}): string {
   const options = setPrintHelpOptionsDefaults(printOptions);
 
   const style = { ...helpMessageStyles.default, ...options.style };
 
-  const metadata = getCliMetadata(cli);
+  const metadata = getCliMetadata(cliDefinition);
 
   const formatTitle = (title: string) => indent(1) + style.title(title);
 
@@ -141,24 +141,28 @@ export function formatCliHelpMessage(cli: Cli, printOptions: PrintHelpOptions = 
   return message;
 }
 
-export function formatSubcommandHelpMessage(subcommand: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
+export function formatSubcommandHelpMessage(
+  commandDefinition: Subcommand,
+  options: PrintHelpOptions = {},
+  cliName = "",
+) {
   setPrintHelpOptionsDefaults(options);
 
   const style = { ...helpMessageStyles.default, ...options.style };
 
-  const meta = subcommand.meta ?? {};
+  const meta = commandDefinition.meta ?? {};
 
   let usage = meta.usage;
   if (!usage) {
     usage = style.punctuation("$");
     usage += cliName ? ` ${cliName}` : "";
-    usage += style.command("", subcommand.name);
-    usage += subcommand.options ? style.option(" [options]") : "";
-    usage += subcommand.arguments || subcommand.allowPositionals ? style.argument(" <arguments>") : "";
+    usage += style.command("", commandDefinition.name);
+    usage += commandDefinition.options ? style.option(" [options]") : "";
+    usage += commandDefinition.arguments || commandDefinition.allowPositionals ? style.argument(" <arguments>") : "";
   }
 
   // convert to cli object without subcommands
-  const asCli: Cli = { ...subcommand, cliName: subcommand.name, meta: { usage, ...meta } };
+  const asCliDefinition: Cli = { ...commandDefinition, cliName: commandDefinition.name, meta: { usage, ...meta } };
 
-  return formatCliHelpMessage(asCli, options);
+  return formatCliHelpMessage(asCliDefinition, options);
 }

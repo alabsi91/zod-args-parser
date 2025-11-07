@@ -1,17 +1,17 @@
 import { transformOptionToArgument } from "../parse/parser-helpers.ts";
 import { defaultValueAndIsOptional, stringifyValue } from "../utilities.ts";
 
-import type { Option } from "../schemas/schema-types.ts";
-import type { OptionMetadata } from "./metadata-types.ts";
+import type { Option } from "../types/definitions-types.ts";
+import type { OptionMetadata } from "../types/metadata-types.ts";
 
-export function getOptionsMetadata(options: Record<string, Option>): OptionMetadata[] {
+export function getOptionsMetadata(optionsDefinition: Record<string, Option>): OptionMetadata[] {
   const outputMetadata: OptionMetadata[] = [];
 
-  if (!options) {
+  if (!optionsDefinition) {
     return outputMetadata;
   }
 
-  for (const [optionName, option] of Object.entries(options)) {
+  for (const [optionName, option] of Object.entries(optionsDefinition)) {
     const aliases = option.aliases ?? [];
     const meta = option.meta ?? {};
 

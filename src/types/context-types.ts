@@ -1,8 +1,11 @@
-import type { SchemaType } from "../index.ts";
-import type { Subcommand } from "../schemas/schema-types.ts";
-import type { Argument, Option } from "../schemas/schema-types.ts";
+import type { Subcommand } from "./definitions-types.ts";
+import type { Argument, Option } from "./definitions-types.ts";
+import type { SchemaType } from "./schema-types.ts";
 
-export interface ContextBase<S extends SchemaType> {
+export interface ContextBase<S extends SchemaType, N extends string = string> {
+  /** The name of the argument/option as provided in the schema. */
+  name: N;
+
   /** The schema that validates this option. */
   schema: S;
 
@@ -13,10 +16,7 @@ export interface ContextBase<S extends SchemaType> {
   defaultValue: unknown;
 }
 
-export interface OptionContextCli<S extends SchemaType, N extends string> extends ContextBase<S> {
-  /** The name of the option as provided by the user. */
-  name: N;
-
+export interface OptionContextCli<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** The CLI flag as provided by the user (e.g. `--foo` or `-f`). */
   flag: string;
 
@@ -36,10 +36,7 @@ export interface OptionContextCli<S extends SchemaType, N extends string> extend
   source: "terminal";
 }
 
-export interface OptionContextDefault<S extends SchemaType, N extends string> extends ContextBase<S> {
-  /** The name of the option as provided by the user. */
-  name: N;
-
+export interface OptionContextDefault<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** Undefined when the source is `default`. */
   flag?: never;
 
@@ -59,10 +56,7 @@ export interface OptionContextDefault<S extends SchemaType, N extends string> ex
   source: "default";
 }
 
-export interface OptionContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S> {
-  /** The name of the option as provided by the user. */
-  name: N;
-
+export interface OptionContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** Undefined when the source is `programmatic`. */
   flag?: never;
 
@@ -104,21 +98,12 @@ export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S>
   source: "terminal";
 }
 
-export interface ArgumentContextDefault<S extends SchemaType> {
+export interface ArgumentContextDefault<S extends SchemaType> extends ContextBase<S> {
   /** Undefined when the source is `default`. */
   stringValue?: never;
 
   /** Undefined when the source is `default`. */
   passedValue?: never;
-
-  /** The schema that validates this argument. */
-  schema: S;
-
-  /** Whether the schema is optional. */
-  optional: boolean;
-
-  /** The default value of the schema, if any. */
-  defaultValue: unknown;
 
   /**
    * The source of the option:
@@ -171,7 +156,6 @@ export type Context<S extends readonly Partial<Subcommand>[]> = {
   };
 }[number];
 
-/** Wide types of `ParseResult` */
 export interface ContextWide {
   subcommand: string | undefined;
   options?: Record<string, OptionContext<SchemaType, string>>;

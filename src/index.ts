@@ -12,14 +12,15 @@ export { getCliMetadata } from "./metadata/get-cli-metadata.ts";
 export { getOptionsMetadata } from "./metadata/get-options-metadata.ts";
 export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.ts";
 
-export { createCLI as createCli } from "./schemas/create-cli-schema.ts";
-export { createSubcommand } from "./schemas/create-subcommand-schema.ts";
-export { createOptions } from "./schemas/create-options-schema.ts";
-export { createArguments } from "./schemas/create-arguments-schema.ts";
+export { defineCLI } from "./definitions/define-cli.ts";
+export { defineSubcommand } from "./definitions/define-subcommand.ts";
+export { defineOptions } from "./definitions/define-options.ts";
+export { defineArguments } from "./definitions/define-arguments.ts";
 
-export { coerce } from "./schemas/coerce.ts";
+export { coerce } from "./coerce/coerce-methods.ts";
 
-export type * from "./metadata/metadata-types.ts";
-export type * from "./parse/context-types.ts";
-export type * from "./types.ts";
+export type * from "./types/metadata-types.ts";
+export type * from "./types/context-types.ts";
+export type * from "./types/types.ts";
+export type * from "./types/io-types.ts";
 export type * from "@standard-schema/spec";

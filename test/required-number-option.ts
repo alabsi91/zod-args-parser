@@ -2,10 +2,10 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, createCli } from "../src/index.ts";
+import { coerce, defineCLI } from "../src/index.ts";
 import { err, expectsFailure, expectsNumber, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
-const cli = createCli({
+const cli = defineCLI({
   cliName: "test-cli",
   options: {
     number: {

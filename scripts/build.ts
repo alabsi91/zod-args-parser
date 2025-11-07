@@ -8,43 +8,11 @@ import ts from "typescript";
 const libDir = "lib";
 const tsLibDir = path.join(libDir, "typescript");
 
-const tsFiles = globSync("src/**/*.ts", { ignore: "node_modules/**" });
+const tsFiles = globSync("src/**/*.ts");
 
 // Clean lib directory
 console.log("🧹", `Cleaning "${libDir}" directory ...`);
 rmSync(libDir, { recursive: true, force: true });
-
-// esbuild plugin
-
-interface PluginOptions {
-  replaceWith?: ".mjs" | ".cjs" | ".js";
-}
-
-function replaceExtension(filePath: string, ext: ".mjs" | ".cjs" | ".js"): string {
-  const { dir, name } = path.parse(filePath);
-  return path
-    .normalize(path.format({ dir, name, ext }))
-    .replace(/\\/g, "/")
-    .replace(/^([^./])/, "./$1");
-}
-
-/** Please see https://github.com/evanw/esbuild/issues/2435 */
-function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plugin {
-  options.replaceWith ??= ".js";
-
-  return {
-    name: "rewrite-relative-import",
-    setup(build) {
-      build.onResolve({ filter: /\..+$/ }, args => {
-        if (args.kind === "entry-point") return;
-        return {
-          path: replaceExtension(args.path, options.replaceWith!),
-          external: true,
-        };
-      });
-    },
-  };
-}
 
 // TypeScript Compiler Options
 {
@@ -62,12 +30,14 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
   program.emit();
 }
 
+const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: "src/types/**" });
+
 // cjs
 {
   console.log("⚙️ ", `Building for cjs...`);
 
   await esbuild.build({
-    entryPoints: tsFiles,
+    entryPoints: tsFilesWithoutTypes,
     outdir: path.join(libDir, "cjs"),
     outExtension: { ".js": ".cjs" },
     format: "cjs",
@@ -85,7 +55,7 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
   console.log("⚙️ ", `Building for mjs...`);
 
   await esbuild.build({
-    entryPoints: tsFiles,
+    entryPoints: tsFilesWithoutTypes,
     outdir: path.join(libDir, "mjs"),
     outExtension: { ".js": ".mjs" },
     format: "esm",
@@ -103,7 +73,7 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
   console.log("⚙️ ", `Building for esm...`);
 
   await esbuild.build({
-    entryPoints: tsFiles,
+    entryPoints: tsFilesWithoutTypes,
     outdir: path.join(libDir, "esm"),
     format: "esm",
     platform: "browser",
@@ -136,9 +106,9 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
 {
   console.log("🔻", `Minifying...`);
 
-  const cjsFiles = globSync(`${libDir}/**/*.{cjs,mjs,js}`);
+  const outputFiles = globSync(`${libDir}/**/*.{cjs,mjs,js}`);
 
-  for (const filePath of cjsFiles) {
+  for (const filePath of outputFiles) {
     const mapFilePath = filePath + ".map";
     const mapFilename = path.basename(mapFilePath);
 
@@ -157,3 +127,35 @@ function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plu
 }
 
 console.log("\n🚀", `Done!`);
+
+// esbuild plugin
+
+interface PluginOptions {
+  replaceWith?: ".mjs" | ".cjs" | ".js";
+}
+
+function replaceExtension(filePath: string, ext: ".mjs" | ".cjs" | ".js"): string {
+  const { dir, name } = path.parse(filePath);
+  return path
+    .normalize(path.format({ dir, name, ext }))
+    .replace(/\\/g, "/")
+    .replace(/^([^./])/, "./$1");
+}
+
+/** Please see https://github.com/evanw/esbuild/issues/2435 */
+function rewriteRelativeImportExtensionsPlugin(options: PluginOptions = {}): Plugin {
+  options.replaceWith ??= ".js";
+
+  return {
+    name: "rewrite-relative-import",
+    setup(build) {
+      build.onResolve({ filter: /\..+$/ }, args => {
+        if (args.kind === "entry-point") return;
+        return {
+          path: replaceExtension(args.path, options.replaceWith!),
+          external: true,
+        };
+      });
+    },
+  };
+}

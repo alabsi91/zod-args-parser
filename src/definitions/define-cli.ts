@@ -1,11 +1,13 @@
 import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-message/format-cli.ts";
 import { createExecuteContext } from "../parse/create-execute-context.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
-import { validate } from "../parse/validate-context.ts";
+import { validate } from "../parse/validate-context/validate-context.ts";
 import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
 
-import type { AttachedMethods, AttachedMethodsWide, Prettify, PrintHelpOptions, ValidateMethods } from "../types.ts";
-import type { Argument, Cli, Option, Subcommand } from "./schema-types.ts";
+import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
+import type { PrintHelpOptions } from "../types/help-message-types.ts";
+import type { AttachedMethods, AttachedMethodsWide, ValidateMethods } from "../types/types.ts";
+import type { Prettify } from "../types/utilities-types.ts";
 
 type OptionsInput<T extends Record<string, Option>> = {
   [OptionName in keyof T]: Option<T[OptionName]["type"]>;
@@ -25,7 +27,7 @@ type SubcommandsInput<T extends readonly [Subcommand, ...Subcommand[]]> = {
   } & Subcommand;
 };
 
-// This will prevent extra keys and enable Jsdoc on hover
+// This will prevent extra keys and enable jsdoc on hover
 type CliInput<T extends Cli> = {
   [K in keyof T]: K extends keyof Cli
     ? T[K] extends readonly [Subcommand, ...Subcommand[]]
@@ -38,7 +40,7 @@ type CliInput<T extends Cli> = {
     : never;
 };
 
-export function createCLI<T extends Cli>(input: CliInput<T> & Cli) {
+export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
   const cliSchema = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
 
   prepareOptionsTypes(cliSchema.options);

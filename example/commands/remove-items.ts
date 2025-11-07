@@ -1,11 +1,11 @@
-import { coerce, createSubcommand, type InferInputType } from "typed-arg-parser";
+import { coerce, defineSubcommand, type InferInputType } from "typed-arg-parser";
 import * as z from "zod";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
-const removeItemsCommand = createSubcommand({
+const removeItemsCommand = defineSubcommand({
   name: "remove-items",
   aliases: ["ri"],
   meta: {

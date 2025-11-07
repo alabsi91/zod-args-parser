@@ -1,11 +1,11 @@
-import { coerce, createSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
+import { coerce, defineSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
-const createListCommand = createSubcommand({
+const createListCommand = defineSubcommand({
   name: "create-list",
   aliases: ["cl"],
   meta: {
@@ -27,18 +27,18 @@ const createListCommand = createSubcommand({
 
   arguments: [
     {
+      name: "list-name",
       type: z.object({ value: z.string() }),
       coerce: coerce.string,
       meta: {
-        name: "list-name",
         description: "The name of the list to create.",
       },
     },
     {
+      name: "list-description",
       type: z.object({ value: z.string().optional() }),
       coerce: coerce.string,
       meta: {
-        name: "list-description",
         description: "The description of the list to create.",
       },
     },

@@ -2,27 +2,15 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, createCli } from "../src/index.ts";
+import { coerce, defineCLI } from "../src/index.ts";
 import { err, expectsFailure, expectsSuccess, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
-const cli = createCli({
+const cli = defineCLI({
   cliName: "test-cli",
   arguments: [
-    {
-      type: z.object({ value: z.boolean() }),
-      coerce: coerce.boolean,
-      meta: { name: "booleanArg" },
-    },
-    {
-      type: z.object({ value: z.string() }),
-      coerce: coerce.string,
-      meta: { name: "stringArg" },
-    },
-    {
-      type: z.object({ value: z.number() }),
-      coerce: coerce.number,
-      meta: { name: "numberArg" },
-    },
+    { name: "booleanArg", type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+    { name: "stringArg", type: z.object({ value: z.string() }), coerce: coerce.string },
+    { name: "numberArg", type: z.object({ value: z.number() }), coerce: coerce.number },
   ],
 });
 

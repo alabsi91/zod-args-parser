@@ -1,9 +1,10 @@
-import type { SubcommandMetadata } from "./metadata/metadata-types.ts";
-import type { Argument, Option } from "./schemas/schema-types.ts";
-import type { SchemaType, CoerceMethod, PreparedType } from "./types.ts";
+import type { Argument, Option, PreparedType } from "./types/definitions-types.ts";
+import type { SubcommandMetadata } from "./types/metadata-types.ts";
+import type { SchemaResult, SchemaType } from "./types/schema-types.ts";
+import type { CoerceMethod } from "./types/types.ts";
 
 /** @throws */
-export function validateSync(schema: SchemaType, value?: unknown) {
+export function validateSync(schema: SchemaType, value?: unknown): SchemaResult {
   const results = schema["~standard"].validate(value === undefined ? {} : { value });
   if (results instanceof Promise) {
     throw new TypeError("async schema validation not supported");
@@ -276,4 +277,20 @@ const regex = ansiRegex();
 
 export function stripAnsi(string: string): string {
   return string.replace(regex, "");
+}
+
+export function findDuplicateStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicates.add(value);
+      continue;
+    }
+
+    seen.add(value);
+  }
+
+  return Array.from(duplicates);
 }

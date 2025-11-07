@@ -1,12 +1,12 @@
 import { formatCliHelpMessage, formatSubcommandHelpMessage } from "./format-cli.ts";
 
-import type { Cli, Subcommand } from "../schemas/schema-types.ts";
-import type { PrintHelpOptions } from "../types.ts";
+import type { Cli, Subcommand } from "../types/definitions-types.ts";
+import type { PrintHelpOptions } from "../types/help-message-types.ts";
 
-export function printCliHelp(cli: Cli, options: PrintHelpOptions = {}) {
-  console.log(formatCliHelpMessage(cli, options));
+export function printCliHelp(cliDefinition: Cli, options: PrintHelpOptions = {}) {
+  console.log(formatCliHelpMessage(cliDefinition, options));
 }
 
-export function printSubcommandHelp(subcommand: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
-  console.log(formatSubcommandHelpMessage(subcommand, options, cliName));
+export function printSubcommandHelp(commandDefinition: Subcommand, options: PrintHelpOptions = {}, cliName = "") {
+  console.log(formatSubcommandHelpMessage(commandDefinition, options, cliName));
 }

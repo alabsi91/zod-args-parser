@@ -2,23 +2,23 @@ import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
 import { getOptionsMetadata } from "./get-options-metadata.ts";
 import { getSubcommandsMetadata } from "./get-subcommands-metadata.ts";
 
-import type { Cli } from "../schemas/schema-types.ts";
-import type { CliMetadata } from "./metadata-types.ts";
+import type { Cli } from "../types/definitions-types.ts";
+import type { CliMetadata } from "../types/metadata-types.ts";
 
-export function getCliMetadata(cli: Cli): CliMetadata {
-  const subcommands = cli.subcommands ?? [];
+export function getCliMetadata(cliDefinition: Cli): CliMetadata {
+  const subcommands = cliDefinition.subcommands ?? [];
 
-  const meta = cli.meta ?? {};
+  const meta = cliDefinition.meta ?? {};
 
   const outputMetadata: CliMetadata = {
-    name: cli.cliName,
+    name: cliDefinition.cliName,
     description: meta.description ?? "",
     descriptionMarkdown: meta.descriptionMarkdown ?? "",
     usage: meta.usage ?? "",
     example: meta.example ?? "",
-    allowPositionals: cli.allowPositionals ?? false,
-    options: cli.options ? getOptionsMetadata(cli.options) : [],
-    arguments: cli.arguments ? getArgumentsMetadata(cli.arguments) : [],
+    allowPositionals: cliDefinition.allowPositionals ?? false,
+    options: cliDefinition.options ? getOptionsMetadata(cliDefinition.options) : [],
+    arguments: cliDefinition.arguments ? getArgumentsMetadata(cliDefinition.arguments) : [],
     subcommands: subcommands ? getSubcommandsMetadata(subcommands) : [],
   };
 

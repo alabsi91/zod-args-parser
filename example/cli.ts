@@ -1,4 +1,4 @@
-import { coerce, createCli, helpMessageStyles } from "typed-arg-parser";
+import { coerce, defineCLI, helpMessageStyles } from "typed-arg-parser";
 import * as z from "zod";
 
 import { addItemsCommand } from "./commands/add-items.ts";
@@ -8,7 +8,7 @@ import { helpCommand } from "./commands/help-cmd.ts";
 import { removeItemsCommand } from "./commands/remove-items.ts";
 import { viewListCommand } from "./commands/view-list.ts";
 
-export const listCli = createCli({
+export const listCli = defineCLI({
   cliName: "listy",
   meta: {
     descriptionMarkdown: "**Listy** is a simple CLI to showcase arguments **parsing** and **validation**.",
@@ -33,6 +33,7 @@ export const listCli = createCli({
   options: {
     help: {
       aliases: ["h"],
+      requires: ["version"],
       type: z.object({ value: z.boolean().optional() }),
       coerce: coerce.boolean,
       meta: {
@@ -41,6 +42,7 @@ export const listCli = createCli({
     },
     version: {
       aliases: ["v"],
+      // conflictWith: ["help"],
       type: z.object({ value: z.boolean().optional() }),
       coerce: coerce.boolean,
       meta: {
@@ -48,6 +50,18 @@ export const listCli = createCli({
       },
     },
   },
+
+  arguments: [
+    {
+      name: "list",
+      requires: ["help"],
+      type: z.object({ value: z.string().optional() }),
+      coerce: coerce.string,
+      meta: {
+        description: "List name.",
+      },
+    },
+  ],
 });
 
 // Execute this function when the CLI is run

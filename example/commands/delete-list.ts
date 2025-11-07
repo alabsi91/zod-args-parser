@@ -1,11 +1,11 @@
-import { coerce, createSubcommand } from "typed-arg-parser";
+import { coerce, defineSubcommand } from "typed-arg-parser";
 import * as z from "zod";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
 
-const deleteListCommand = createSubcommand({
+const deleteListCommand = defineSubcommand({
   name: "delete-list",
   aliases: ["dl"],
   meta: {
@@ -17,10 +17,10 @@ const deleteListCommand = createSubcommand({
 
   arguments: [
     {
+      name: "list-name",
       type: z.object({ value: z.string() }),
       coerce: coerce.string,
       meta: {
-        name: "list-name",
         description: "The name of the list to delete.",
       },
     },

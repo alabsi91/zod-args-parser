@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-import type { HelpMessageStyle } from "../types.ts";
+import type { HelpMessageStyle } from "../types/help-message-types.ts";
 
 export const helpMessageStyles = Object.freeze({
   default: {
