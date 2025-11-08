@@ -1,4 +1,4 @@
-import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
+import { indent, indentLines, insertAtEndOfFirstLine, ln, toKebabCase } from "../utilities.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { ArgumentMetadata } from "../types/metadata-types.ts";
@@ -22,6 +22,7 @@ export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[]
     emptyLinesBeforeTitle,
     emptyLinesAfterTitle,
     markdownRenderer,
+    kebabCaseArgumentName,
   } = options;
 
   let message = ln(emptyLinesBeforeTitle) + indent(1) + style.title(argumentsTitle) + ln(1 + emptyLinesAfterTitle);
@@ -52,7 +53,7 @@ export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[]
 
     message +=
       indent(indentBeforeName) +
-      style.argument(metadata.name) +
+      style.argument(kebabCaseArgumentName ? toKebabCase(metadata.name) : metadata.name) +
       indent(indentBeforePlaceholder + indentAfterName) +
       indent(spacing) +
       insertAtEndOfFirstLine(description, defaultOrOptional) +

@@ -10,8 +10,8 @@ type OptionsInput<T extends Record<string, Option>> = {
   [OptionName in keyof T]: Option<T[OptionName]["type"]>;
 };
 
-type ArgumentsInput<T extends [Argument, ...Argument[]]> = {
-  [ArgumentIndex in keyof T]: Argument<T[ArgumentIndex]["type"]>;
+type ArgumentsInput<T extends Record<string, Argument>> = {
+  [ArgumentName in keyof T]: Argument<T[ArgumentName]["type"]>;
 };
 
 // This will prevent extra keys and enable jsdoc on hover
@@ -19,7 +19,7 @@ type SubcommandInput<T extends Subcommand> = {
   [K in keyof T]: K extends keyof Subcommand
     ? T[K] extends Record<string, Option>
       ? OptionsInput<T[K]>
-      : T[K] extends [Argument, ...Argument[]]
+      : T[K] extends Record<string, Argument>
         ? ArgumentsInput<T[K]>
         : T[K]
     : never;

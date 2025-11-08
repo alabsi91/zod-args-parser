@@ -45,14 +45,18 @@ export function prepareOptionsTypes(options: Record<string, Option> | undefined)
   }
 }
 
-export function prepareArgumentsTypes(arguments_: [Argument, ...Argument[]] | undefined) {
+export function prepareArgumentsTypes(arguments_: Record<string, Argument> | undefined) {
   if (!arguments_) return;
 
-  for (const argument of arguments_) {
+  for (const argument of Object.values(arguments_)) {
     if (!argument._preparedType) {
       argument._preparedType = PrepareType(argument.type, argument.coerce);
     }
   }
+}
+
+export function toKebabCase(input: string): string {
+  return input.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 /**

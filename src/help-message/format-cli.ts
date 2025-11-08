@@ -3,6 +3,7 @@ import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts"
 import { formatHelpMessageArguments } from "./format-arguments.ts";
 import { formatHelpMessageOptions } from "./format-options.ts";
 import { formatHelpMessageCommands } from "./format-subcommands.ts";
+import { setPrintHelpOptionsDefaults } from "./set-defaults.ts";
 import { helpMessageStyles } from "./styles.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
@@ -12,35 +13,6 @@ import type { HelpMessageStyle, PrintHelpOptions } from "../types/help-message-t
 export interface FormatOptions extends Required<PrintHelpOptions> {
   style: HelpMessageStyle;
   longest: number;
-}
-
-function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
-  const clone = { ...options };
-
-  clone.style ??= helpMessageStyles.default;
-  clone.markdownRenderer ??= "terminal";
-
-  clone.indentBeforeName ??= 2;
-  clone.indentAfterName ??= 4;
-  clone.indentBeforePlaceholder ??= 1;
-  clone.newLineIndent ??= 0;
-
-  clone.emptyLines ??= 0;
-  clone.emptyLinesBeforeTitle ??= 1;
-  clone.emptyLinesAfterTitle ??= 0;
-
-  clone.exampleKeyword ??= "Example";
-  clone.optionalKeyword ??= "(optional)";
-  clone.defaultKeyword ??= "(default: {{ value }})";
-
-  clone.usageTitle ??= "USAGE";
-  clone.descriptionTitle ??= "DESCRIPTION";
-  clone.commandsTitle ??= "COMMANDS";
-  clone.optionsTitle ??= "OPTIONS";
-  clone.argumentsTitle ??= "ARGUMENTS";
-  clone.exampleTitle ??= "EXAMPLE";
-
-  return clone as Required<FormatOptions>;
 }
 
 export function formatCliHelpMessage(cliDefinition: Cli, printOptions: PrintHelpOptions = {}): string {

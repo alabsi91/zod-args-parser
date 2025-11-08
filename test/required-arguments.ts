@@ -7,11 +7,11 @@ import { err, expectsFailure, expectsSuccess, spaceColumnEnd, spaceToColumn } fr
 
 const cli = defineCLI({
   cliName: "test-cli",
-  arguments: [
-    { name: "booleanArg", type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
-    { name: "stringArg", type: z.object({ value: z.string() }), coerce: coerce.string },
-    { name: "numberArg", type: z.object({ value: z.number() }), coerce: coerce.number },
-  ],
+  arguments: {
+    booleanArg: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+    stringArg: { type: z.object({ value: z.string() }), coerce: coerce.string },
+    numberArg: { type: z.object({ value: z.number() }), coerce: coerce.number },
+  },
 });
 
 describe("[boolean, string, number]".padEnd(spaceToColumn + spaceColumnEnd + 2), () => {
@@ -21,7 +21,7 @@ describe("[boolean, string, number]".padEnd(spaceToColumn + spaceColumnEnd + 2),
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    const [booleanArg, stringArg, numberArg] = result.value.arguments;
+    const { booleanArg, stringArg, numberArg } = result.value.arguments;
     assert(booleanArg, err("Invalid value for argument `booleanArg`. Expected `true`, but received:", booleanArg));
 
     assert.equal(
@@ -43,7 +43,7 @@ describe("[boolean, string, number]".padEnd(spaceToColumn + spaceColumnEnd + 2),
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    const [booleanArg, stringArg, numberArg] = result.value.arguments;
+    const { booleanArg, stringArg, numberArg } = result.value.arguments;
 
     assert(!booleanArg, err("Invalid value for argument `booleanArg`. Expected `false`, but received:", booleanArg));
 

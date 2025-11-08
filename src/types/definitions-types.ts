@@ -121,7 +121,7 @@ export interface Subcommand {
    * - When **`allowPositional`** is **disabled**, the last argument can be optional.
    * - When **`allowPositional`** is **enabled**, no optional arguments are allowed.
    */
-  arguments?: [Argument, ...Argument[]];
+  arguments?: Record<string, Argument>;
 
   /** Metadata used for help messages and documentation generation */
   meta?: SubcommandMeta;
@@ -246,6 +246,9 @@ export interface Option<Schema extends SchemaType = SchemaType> {
 }
 
 export interface ArgumentMeta extends MetaBase {
+  /** Override the argument name in the help message and documentation. */
+
+  name?: string;
   /**
    * Custom default value.
    *
@@ -258,9 +261,6 @@ export interface ArgumentMeta extends MetaBase {
 }
 
 export interface Argument<Schema extends SchemaType = SchemaType> {
-  /** The name of the argument. */
-  name: string;
-
   /** The schema to validate the user input. */
   type: Schema;
 

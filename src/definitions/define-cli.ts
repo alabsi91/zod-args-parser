@@ -13,15 +13,15 @@ type OptionsInput<T extends Record<string, Option>> = {
   [OptionName in keyof T]: Option<T[OptionName]["type"]>;
 };
 
-type ArgumentsInput<T extends [Argument, ...Argument[]]> = {
-  [ArgumentIndex in keyof T]: Argument<T[ArgumentIndex]["type"]>;
+type ArgumentsInput<T extends Record<string, Argument>> = {
+  [ArgumentName in keyof T]: Argument<T[ArgumentName]["type"]>;
 };
 
 type SubcommandsInput<T extends readonly [Subcommand, ...Subcommand[]]> = {
   [SubcommandIndex in keyof T]: {
     [K in keyof T[SubcommandIndex]]: T[SubcommandIndex][K] extends Record<string, Option>
       ? OptionsInput<T[SubcommandIndex][K]>
-      : T[SubcommandIndex][K] extends [Argument, ...Argument[]]
+      : T[SubcommandIndex][K] extends Record<string, Argument>
         ? ArgumentsInput<T[SubcommandIndex][K]>
         : T[SubcommandIndex][K];
   } & Subcommand;
@@ -34,7 +34,7 @@ type CliInput<T extends Cli> = {
       ? SubcommandsInput<T[K]>
       : T[K] extends Record<string, Option>
         ? OptionsInput<T[K]>
-        : T[K] extends [Argument, ...Argument[]]
+        : T[K] extends Record<string, Argument>
           ? ArgumentsInput<T[K]>
           : T[K]
     : never;

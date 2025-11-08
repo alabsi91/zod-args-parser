@@ -5,13 +5,13 @@ import { listCli } from "./cli.ts";
 
 // * Test different inputs 👇
 
-const input = "-h -v";
+// const input = "-h";
 // const input = "--version --verbose";
 
 // const input = "help --verbose";
 // const input = "help help --verbose";
 // const input = "help add-items --verbose";
-// const input = "help create-list --verbose";
+const input = "help create-list --verbose";
 // const input = "help delete-list --verbose";
 // const input = "help remove-items --verbose";
 

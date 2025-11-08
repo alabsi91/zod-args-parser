@@ -1,13 +1,7 @@
 import type { Context, ContextWide } from "./context-types.ts";
 import type { Argument, Cli, Option, Subcommand } from "./definitions-types.ts";
 import type { InferSchemaInputType, InferSchemaOutputType } from "./schema-types.ts";
-import type {
-  MakeTailOptional,
-  Prettify,
-  ToOptional,
-  WidenIfAllItemsOptional,
-  WidenIfAllPropertiesOptional,
-} from "./utilities-types.ts";
+import type { Prettify, ToOptional, AllowUndefinedIfOptional as AddUndefinedIfAllOptional } from "./utilities-types.ts";
 
 /** Output options type */
 type OptionsOutputType<T extends Record<string, Option>> = Prettify<
@@ -20,14 +14,14 @@ type OptionsInputType<T extends Record<string, Option>> = Prettify<
 >;
 
 /** Output arguments type */
-type ArgumentsOutputType<T extends [Argument, ...Argument[]]> = Prettify<{
-  [K in keyof T]: T[K] extends Argument ? InferSchemaOutputType<T[K]["type"]> : never;
-}>;
+type ArgumentsOutputType<T extends Record<string, Argument>> = Prettify<
+  ToOptional<{ [K in keyof T]: InferSchemaOutputType<T[K]["type"]> }>
+>;
 
 /** Input arguments type */
-type ArgumentsInputType<T extends [Argument, ...Argument[]]> = Prettify<{
-  [K in keyof T]: T[K] extends Argument ? InferSchemaInputType<T[K]["type"]> : never;
-}>;
+type ArgumentsInputType<T extends Record<string, Argument>> = Prettify<
+  ToOptional<{ [K in keyof T]: InferSchemaInputType<T[K]["type"]> }>
+>;
 
 /**
  * - Infer options output type.
@@ -46,9 +40,8 @@ export type InferOptionsOutputType<T extends Cli | Subcommand> =
  *   const myCommand = defineSubcommand({ name: "my-command", arguments: [...] });
  *   type MyCommandArgumentsOutput = InferArgumentsOutputType<typeof myCommand>;
  */
-export type InferArgumentsOutputType<T extends Cli | Subcommand> = T["arguments"] extends [Argument, ...Argument[]]
-  ? ArgumentsOutputType<T["arguments"]>
-  : undefined;
+export type InferArgumentsOutputType<T extends Cli | Subcommand> =
+  T["arguments"] extends Record<string, Argument> ? ArgumentsOutputType<T["arguments"]> : undefined;
 
 /**
  * - Infer arguments input type.
@@ -57,10 +50,8 @@ export type InferArgumentsOutputType<T extends Cli | Subcommand> = T["arguments"
  *   const myCommand = defineSubcommand({ name: "my-command", arguments: [...] });
  *   type MyCommandArgumentsInput = InferArgumentsInputType<typeof myCommand>;
  */
-export type InferArgumentsInputType<T extends Cli | Subcommand> = T["arguments"] extends [Argument, ...Argument[]]
-  ? // Make the tail of a tuple optional if it extends undefined
-    MakeTailOptional<ArgumentsInputType<T["arguments"]>>
-  : undefined;
+export type InferArgumentsInputType<T extends Cli | Subcommand> =
+  T["arguments"] extends Record<string, Argument> ? ArgumentsInputType<T["arguments"]> : undefined;
 
 /**
  * - Infer options input type.
@@ -81,27 +72,24 @@ export type inferOptionsInputType<T extends Cli | Subcommand> =
  */
 export type InferInputType<T extends Cli | Subcommand> = Prettify<
   // Add undefined if all properties are optional
-  WidenIfAllPropertiesOptional<
+  AddUndefinedIfAllOptional<
     // Make properties that can be undefined optional
     ToOptional<{
       positionals: T["allowPositionals"] extends true ? string[] : undefined;
 
       options: T["options"] extends Record<string, Option>
         ? // Add undefined if all properties are optional
-          WidenIfAllPropertiesOptional<
+          AddUndefinedIfAllOptional<
             // Options types as record
             OptionsInputType<T["options"]>
           >
         : undefined;
 
-      arguments: T["arguments"] extends [Argument, ...Argument[]]
-        ? // Add undefined if all items are optional
-          WidenIfAllItemsOptional<
-            // Make the tail of a tuple optional if it extends undefined
-            MakeTailOptional<
-              // Arguments types as tuple
-              ArgumentsInputType<T["arguments"]>
-            >
+      arguments: T["arguments"] extends Record<string, Argument>
+        ? // Add undefined if all properties are optional
+          AddUndefinedIfAllOptional<
+            // Arguments types as record
+            ArgumentsInputType<T["arguments"]>
           >
         : undefined;
     }>
@@ -109,7 +97,7 @@ export type InferInputType<T extends Cli | Subcommand> = Prettify<
 >;
 
 export interface InputTypeWide {
-  arguments?: unknown[];
+  arguments?: Record<string, unknown>;
   options?: Record<string, unknown>;
   positionals?: string[];
 }
@@ -124,7 +112,7 @@ export interface InputTypeWide {
 export type InferOutputType<T extends Cli | Subcommand> = Prettify<{
   subcommand: "name" extends keyof T ? T["name"] : undefined;
   options: T["options"] extends Record<string, Option> ? OptionsOutputType<T["options"]> : never;
-  arguments: T["arguments"] extends [Argument, ...Argument[]] ? ArgumentsOutputType<T["arguments"]> : never;
+  arguments: T["arguments"] extends Record<string, Argument> ? ArgumentsOutputType<T["arguments"]> : never;
   positionals: T["allowPositionals"] extends true ? string[] : never;
   context: Context<[T]>;
 }>;
@@ -137,7 +125,7 @@ export type OutputType<S extends readonly (Cli | Subcommand)[]> = {
 export interface OutputTypeWide {
   subcommand: string | undefined;
   positionals?: string[];
-  arguments?: unknown[];
+  arguments?: Record<string, unknown>;
   options?: Record<string, unknown>;
   context: ContextWide;
 }

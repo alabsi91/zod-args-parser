@@ -2,13 +2,9 @@ import { prepareArgumentsTypes } from "../utilities.ts";
 
 import type { Argument } from "../types/definitions-types.ts";
 
-type Exact<Actual extends Wanted, Wanted> = {
-  [Key in keyof Actual]: Key extends Exclude<keyof Actual, keyof Wanted> ? never : unknown;
-};
-
-export function defineArguments<const T extends [Argument, ...Argument[]]>(
-  ...arguments_: { [I in keyof T]: T[I] & Exact<T[I], Argument> & Argument }
-): { [I in keyof T]: Argument<T[I]["type"]> } {
+export function defineArguments<const T extends Record<string, Argument>>(arguments_: {
+  [K in keyof T]: T[K] & Argument;
+}): { [I in keyof T]: Argument<T[I]["type"]> } {
   prepareArgumentsTypes(arguments_);
   return arguments_;
 }

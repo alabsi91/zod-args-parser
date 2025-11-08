@@ -14,9 +14,8 @@ const helpCommand = defineSubcommand({
 
   options: sharedOptions,
 
-  arguments: [
-    {
-      name: "command-name",
+  arguments: {
+    commandName: {
       type: z.object({ value: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional() }),
       coerce: coerce.string,
       meta: {
@@ -25,12 +24,12 @@ const helpCommand = defineSubcommand({
           "\n**Available commands:** `add-items`, `create-list`, `delete-list`, `remove-items`, `help`",
       },
     },
-  ],
+  },
 });
 
 helpCommand.onExecute(results => {
   const { verbose } = results.options;
-  const [command] = results.arguments;
+  const { commandName } = results.arguments;
 
   if (verbose) {
     logCliContext(results.context);
@@ -41,8 +40,8 @@ helpCommand.onExecute(results => {
     return;
   }
 
-  if (command) {
-    const helpMessage = helpCommand.formatSubcommandHelpMessage(command);
+  if (commandName) {
+    const helpMessage = helpCommand.formatSubcommandHelpMessage(commandName);
     console.log(helpMessage);
     return;
   }
@@ -51,8 +50,8 @@ helpCommand.onExecute(results => {
   console.log(helpMessage);
 });
 
-function executeHelpCommand(commandName?: InferArgumentsInputType<typeof helpCommand>[0]) {
-  helpCommand.execute({ arguments: [commandName] });
+function executeHelpCommand(commandName?: InferArgumentsInputType<typeof helpCommand>["commandName"]) {
+  helpCommand.execute({ arguments: { commandName } });
 }
 
 export { executeHelpCommand, helpCommand };

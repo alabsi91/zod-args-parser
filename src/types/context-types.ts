@@ -81,7 +81,7 @@ export type OptionContext<S extends SchemaType, N extends string> =
   | OptionContextDefault<S, N>
   | OptionContextProgrammatic<S, N>;
 
-export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S> {
+export interface ArgumentContextCli<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** The raw string value provided directly from the CLI. */
   stringValue: string;
 
@@ -98,7 +98,7 @@ export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S>
   source: "terminal";
 }
 
-export interface ArgumentContextDefault<S extends SchemaType> extends ContextBase<S> {
+export interface ArgumentContextDefault<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** Undefined when the source is `default`. */
   stringValue?: never;
 
@@ -115,7 +115,7 @@ export interface ArgumentContextDefault<S extends SchemaType> extends ContextBas
   source: "default";
 }
 
-export interface ArgumentContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
+export interface ArgumentContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S, N> {
   /** Undefined when the source is `programmatic`. */
   stringValue?: never;
 
@@ -132,25 +132,25 @@ export interface ArgumentContextProgrammatic<S extends SchemaType> extends Conte
   source: "programmatic";
 }
 
-export type ArgumentContext<S extends SchemaType> =
-  | ArgumentContextCli<S>
-  | ArgumentContextDefault<S>
-  | ArgumentContextProgrammatic<S>;
+export type ArgumentContext<S extends SchemaType, N extends string> =
+  | ArgumentContextCli<S, N>
+  | ArgumentContextDefault<S, N>
+  | ArgumentContextProgrammatic<S, N>;
 
-export type OptionsArrayToOptionContext<T extends Record<string, Option>> = {
+export type OptionsRecordToOptionContext<T extends Record<string, Option>> = {
   [K in keyof T]: OptionContext<T[K]["type"], Extract<K, string>>;
 };
 
-export type ArgumentsArrayToArgumentContext<T extends [Argument, ...Argument[]]> = {
-  [Index in keyof T]: ArgumentContext<T[Index] extends Argument ? T[Index]["type"] : never>;
+export type ArgumentsRecordToArgumentContext<T extends Record<string, Argument>> = {
+  [K in keyof T]: ArgumentContext<T[K]["type"], Extract<K, string>>;
 };
 
 export type Context<S extends readonly Partial<Subcommand>[]> = {
   [K in keyof S]: {
     subcommand: S[K]["name"] extends string ? S[K]["name"] : undefined;
-    options: S[K]["options"] extends Record<string, Option> ? OptionsArrayToOptionContext<S[K]["options"]> : never;
-    arguments: S[K]["arguments"] extends [Argument, ...Argument[]]
-      ? ArgumentsArrayToArgumentContext<S[K]["arguments"]>
+    options: S[K]["options"] extends Record<string, Option> ? OptionsRecordToOptionContext<S[K]["options"]> : never;
+    arguments: S[K]["arguments"] extends Record<string, Argument>
+      ? ArgumentsRecordToArgumentContext<S[K]["arguments"]>
       : never;
     positionals: S[K]["allowPositionals"] extends true ? string[] : never;
   };
@@ -159,6 +159,6 @@ export type Context<S extends readonly Partial<Subcommand>[]> = {
 export interface ContextWide {
   subcommand: string | undefined;
   options?: Record<string, OptionContext<SchemaType, string>>;
-  arguments?: ArgumentContext<SchemaType>[];
+  arguments?: Record<string, ArgumentContext<SchemaType, string>>;
   positionals?: string[];
 }

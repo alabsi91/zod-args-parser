@@ -15,21 +15,20 @@ const viewListCommand = defineSubcommand({
 
   options: sharedOptions,
 
-  arguments: [
-    {
-      name: "list-name",
+  arguments: {
+    listName: {
       type: z.object({ value: z.string().optional() }),
       coerce: coerce.string,
       meta: {
         description: "The name of the list to view. Leave blank to view all lists.",
       },
     },
-  ],
+  },
 });
 
 viewListCommand.onExecute(results => {
   const { verbose } = results.options;
-  const [listName] = results.arguments;
+  const { listName } = results.arguments;
 
   if (verbose) {
     logCliContext(results.context);
@@ -74,8 +73,8 @@ viewListCommand.onExecute(results => {
   }
 });
 
-function executeViewListCommand(...arguments_: InferArgumentsInputType<typeof viewListCommand>) {
-  viewListCommand.execute({ arguments: arguments_ });
+function executeViewListCommand(listName: InferArgumentsInputType<typeof viewListCommand>["listName"]) {
+  viewListCommand.execute({ arguments: { listName } });
 }
 
 export { executeViewListCommand, viewListCommand };

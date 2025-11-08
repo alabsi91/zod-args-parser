@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "tsx --watch example/index.ts",
     "build": "node scripts/build.ts",
-    "test": "node --test && tsgo --noEmit && eslint \"src/**\" --fix",
+    "test": "node --test && echo Checking types... && tsgo --noEmit && echo Linting... && eslint \"src/**\" --fix",
     "prepare": "npm run test && npm run build"
   },
   "exports": {

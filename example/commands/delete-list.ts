@@ -15,21 +15,20 @@ const deleteListCommand = defineSubcommand({
 
   options: sharedOptions,
 
-  arguments: [
-    {
-      name: "list-name",
+  arguments: {
+    listName: {
       type: z.object({ value: z.string() }),
       coerce: coerce.string,
       meta: {
         description: "The name of the list to delete.",
       },
     },
-  ],
+  },
 });
 
 deleteListCommand.onExecute(results => {
   const { verbose } = results.options;
-  const [listName] = results.arguments;
+  const { listName } = results.arguments;
 
   if (verbose) {
     logCliContext(results.context);
@@ -47,7 +46,7 @@ deleteListCommand.onExecute(results => {
 
 // Provide a programmatic way to execute the command
 function executeDeleteListCommand(listName: string) {
-  deleteListCommand.execute({ arguments: [listName] });
+  deleteListCommand.execute({ arguments: { listName } });
 }
 
 export { deleteListCommand, executeDeleteListCommand };

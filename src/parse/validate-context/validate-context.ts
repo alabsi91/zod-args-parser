@@ -1,4 +1,4 @@
-import { generateOrdinalSuffix, validateSync } from "../../utilities.ts";
+import { validateSync } from "../../utilities.ts";
 import { validateConflictWith } from "./validate-conflict-with.ts";
 import { validateExclusive } from "./validate-exclusive.ts";
 import { validateRequires } from "./validate-requires.ts";
@@ -18,17 +18,17 @@ export function validate(context: ContextWide, commandDefinition: Subcommand | C
   // validate `requires` - `exclusive` - `conflictWith`
   if (commandDefinition.options) {
     for (const [optionName, option] of Object.entries(commandDefinition.options)) {
-      validateRequires({ name: optionName, commandDefinition, optionOrArgument: option, context });
-      validateExclusive({ name: optionName, optionOrArgument: option, context });
-      validateConflictWith({ name: optionName, optionOrArgument: option, context });
+      validateRequires({ name: optionName, commandDefinition, optionOrArgument: option, context, type: "option" });
+      validateExclusive({ name: optionName, optionOrArgument: option, context, type: "option" });
+      validateConflictWith({ name: optionName, optionOrArgument: option, context, type: "option" });
     }
   }
 
   if (commandDefinition.arguments) {
-    for (const argument of commandDefinition.arguments) {
-      validateRequires({ name: argument.name, commandDefinition, optionOrArgument: argument, context });
-      validateExclusive({ name: argument.name, optionOrArgument: argument, context });
-      validateConflictWith({ name: argument.name, optionOrArgument: argument, context });
+    for (const [argumentName, argument] of Object.entries(commandDefinition.arguments)) {
+      validateRequires({ name: argumentName, commandDefinition, optionOrArgument: argument, context, type: "option" });
+      validateExclusive({ name: argumentName, optionOrArgument: argument, context, type: "option" });
+      validateConflictWith({ name: argumentName, optionOrArgument: argument, context, type: "option" });
     }
   }
 
@@ -70,24 +70,24 @@ export function validate(context: ContextWide, commandDefinition: Subcommand | C
 
   // validate arguments
   if (context.arguments) {
-    result.arguments ??= [];
+    result.arguments ??= {};
 
     if (!commandDefinition.arguments) {
       throw new Error(`Subcommand "${context.subcommand}" does not have arguments`);
     }
 
-    for (let index = 0; index < context.arguments.length; index++) {
-      const { passedValue, stringValue, source, schema } = context.arguments[index];
+    const argumentContextEntries = Object.entries(context.arguments);
 
+    for (const [name, { passedValue, stringValue, source, schema }] of argumentContextEntries) {
       const isProgrammatic = source === "programmatic";
 
-      const argument = commandDefinition.arguments[index];
+      const argument = commandDefinition.arguments[name];
       if (!argument) {
-        throw new Error(`Subcommand "${context.subcommand}" does not have argument at index "${index}"`);
+        throw new Error(`Subcommand "${context.subcommand}" does not have the argument "${name}"`);
       }
 
       if (!argument._preparedType) {
-        throw new Error(`internal error: missing prepared type for argument at index "${index}"`);
+        throw new Error(`internal error: missing prepared type for the argument "${name}"`);
       }
 
       const safeParseResult = isProgrammatic
@@ -96,11 +96,11 @@ export function validate(context: ContextWide, commandDefinition: Subcommand | C
 
       if (safeParseResult.issues) {
         throw new Error(
-          `The ${generateOrdinalSuffix(result.arguments.length)} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
+          `The argument ${name} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
         );
       }
 
-      result.arguments.push(safeParseResult.value.value);
+      result.arguments[name] = safeParseResult.value.value;
     }
   }
 

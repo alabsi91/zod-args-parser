@@ -3,6 +3,13 @@ export interface PrintHelpOptions {
   style?: Partial<HelpMessageStyle>;
 
   /**
+   * Whether to transform the argument (not option) name to kebab case.
+   *
+   * @default true
+   */
+  kebabCaseArgumentName?: boolean;
+
+  /**
    * The renderer to use for the markdown.
    *
    * @default terminal

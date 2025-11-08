@@ -10,7 +10,7 @@ import type { CliParseResult } from "../types/types.ts";
 export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDefinition: T): CliParseResult<T> {
   const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
 
-  // validate input
+  // validate cli definition
   try {
     validateCliDefinition(cliDefinition);
   } catch (error) {
@@ -18,23 +18,23 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDef
   }
 
   // Parse
-  let parsedData;
+  let cliContext;
   try {
-    parsedData = createCliContext(argv, cliDefinition);
+    cliContext = createCliContext(argv, cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
 
-  const subcommandObject = findSubcommandDefinition(parsedData.subcommand, cliDefinition);
+  const subcommandObject = findSubcommandDefinition(cliContext.subcommand, cliDefinition);
   if (!subcommandObject) {
-    const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
+    const error = new Error(`Subcommand "${cliContext.subcommand}" does not exist`);
     return { error };
   }
 
-  // Validate
+  // Validate context
   let validateResult;
   try {
-    validateResult = validate(parsedData, subcommandObject);
+    validateResult = validate(cliContext, subcommandObject);
   } catch (error) {
     return { error: error as Error };
   }
@@ -55,24 +55,31 @@ export async function safeParseAsync<T extends Cli>(
 ): Promise<CliParseResult<T>> {
   const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
 
-  // Parse
-  let parsedData;
+  // validate cli definition
   try {
-    parsedData = createCliContext(argv, cliDefinition);
+    validateCliDefinition(cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
 
-  const subcommandObject = findSubcommandDefinition(parsedData.subcommand, cliDefinition);
+  // Parse
+  let cliContext;
+  try {
+    cliContext = createCliContext(argv, cliDefinition);
+  } catch (error) {
+    return { error: error as Error };
+  }
+
+  const subcommandObject = findSubcommandDefinition(cliContext.subcommand, cliDefinition);
   if (!subcommandObject) {
-    const error = new Error(`Subcommand "${parsedData.subcommand}" does not exist`);
+    const error = new Error(`Subcommand "${cliContext.subcommand}" does not exist`);
     return { error };
   }
 
-  // Validate
+  // Validate context
   let validateResult;
   try {
-    validateResult = validate(parsedData, subcommandObject);
+    validateResult = validate(cliContext, subcommandObject);
   } catch (error) {
     return { error: error as Error };
   }

@@ -5,7 +5,6 @@ export const sharedOptions = defineOptions({
   verbose: {
     type: z.object({ value: z.boolean().optional() }),
     coerce: coerce.boolean,
-    requires: ["debug"],
     meta: {
       description: "Enable verbose mode.",
     },
@@ -24,11 +23,12 @@ export const sharedOptions = defineOptions({
 });
 
 export const sharedArguments = defineArguments({
-  name: "input-path",
-  type: z.object({ value: z.string().optional() }),
-  coerce: coerce.string,
-  meta: {
-    description: "The path to the input file",
-    example: "input.txt\ninput.json\ninput.csv",
+  "input-path": {
+    type: z.object({ value: z.string().optional() }),
+    coerce: coerce.string,
+    meta: {
+      description: "The path to the input file",
+      example: "input.txt\ninput.json\ninput.csv",
+    },
   },
 });

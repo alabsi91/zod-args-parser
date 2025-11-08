@@ -3,16 +3,16 @@ import { defaultValueAndIsOptional, stringifyValue } from "../utilities.ts";
 import type { Argument } from "../types/definitions-types.ts";
 import type { ArgumentMetadata } from "../types/metadata-types.ts";
 
-export function getArgumentsMetadata(argumentsDefinition: Argument[]): ArgumentMetadata[] {
+export function getArgumentsMetadata(argumentsDefinition: Record<string, Argument>): ArgumentMetadata[] {
   const outputMetadata: ArgumentMetadata[] = [];
 
-  for (const argument of argumentsDefinition) {
+  for (const [name, argument] of Object.entries(argumentsDefinition)) {
     const meta = argument.meta ?? {};
 
     const { optional, defaultValue } = argument._preparedType ?? defaultValueAndIsOptional(argument.type);
 
     outputMetadata.push({
-      name: argument.name,
+      name: meta.name ?? name,
       description: meta.description ?? "",
       descriptionMarkdown: meta.descriptionMarkdown ?? "",
       defaultValue,

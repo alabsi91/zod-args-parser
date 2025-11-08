@@ -15,7 +15,7 @@ export function logCliContext(context: ContextWide) {
   }
 
   if (context.arguments) {
-    for (const [index, argumentContext] of context.arguments.entries()) {
+    for (const [index, argumentContext] of Object.entries(context.arguments)) {
       const value = argumentContext.stringValue ?? argumentContext.passedValue;
       console.log("[verbose]", "argument of index:", index);
       console.log("         ", "received value:", value);

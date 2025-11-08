@@ -22,22 +22,22 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
   // decouple flags E.g. `-rf` -> `-r, -f`
   argv = decoupleFlags(argv);
 
-  const results: ContextWide = {
+  const context: ContextWide = {
     subcommand: undefined,
   };
 
   /** Get the current subcommand object */
-  const getCommandDefinition = () => findSubcommandDefinition(results.subcommand, cliDefinition);
+  const getCommandDefinition = () => findSubcommandDefinition(context.subcommand, cliDefinition);
 
   for (let index = 0; index < argv.length; index++) {
     const argument_ = argv[index];
 
     // * Subcommand check
     if (index === 0) {
-      results.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
+      context.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
 
       // First argument is a subcommand. Skip to the next argument
-      if (results.subcommand) continue;
+      if (context.subcommand) continue;
     }
 
     // * Option check
@@ -50,38 +50,38 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
 
     if (isOptionArgument(argument)) {
       if (isFlagArgument(argument) && argumentWithEquals) {
-        throw new Error(`Flag arguments cannot be assigned using "=": "${argument_}"`);
+        throw new Error(`flag arguments cannot be assigned using "=": "${argument_}"`);
       }
 
       const commandDefinition = getCommandDefinition();
       if (!commandDefinition) {
-        throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+        throw new Error(`unknown subcommand: "${context.subcommand}"`);
       }
 
       if (!commandDefinition.options) {
-        if (!results.subcommand) {
-          throw new Error(`Error: options are not allowed here: "${argument}"`);
+        if (!context.subcommand) {
+          throw new Error(`options are not allowed here: "${argument}"`);
         }
 
-        throw new Error(`Error: subcommand "${results.subcommand}" does not have options: "${argument}"`);
+        throw new Error(`subcommand "${context.subcommand}" does not accept options: "${argument}"`);
       }
 
       const nameOptionTuple = findOption(argument, commandDefinition.options);
       if (!nameOptionTuple) {
-        throw new Error(`Unknown option: "${argument}"`);
+        throw new Error(`unknown option: "${argument}"`);
       }
 
-      const [optionName, option] = nameOptionTuple;
+      const [optionName, optionDefinition] = nameOptionTuple;
 
-      if (results.options && optionName in results.options) {
-        throw new Error(`Duplicated option: "${argument}"`);
+      if (context.options && optionName in context.options) {
+        throw new Error(`duplicated option: "${argument}"`);
       }
 
-      if (!option._preparedType) {
-        throw new Error(`Internal error: missing prepared type for option "${optionName}"`);
+      if (!optionDefinition._preparedType) {
+        throw new Error(`internal error: missing prepared type for option "${optionName}"`);
       }
 
-      const { schema, optional, defaultValue, coerceTo } = option._preparedType;
+      const { schema, optional, defaultValue, coerceTo } = optionDefinition._preparedType;
 
       const nextArgument = argv[index + 1];
 
@@ -95,7 +95,7 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
 
         const isNegated = argument.startsWith("--no-");
 
-        if (isNegated && ["true", "false"].includes(optionValue)) {
+        if (isNegated && ["true", "false"].includes(optionValue.toLowerCase())) {
           optionValue = optionValue === "true" ? "false" : "true";
         }
       }
@@ -108,15 +108,15 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
       // ? Analogy: it's like a form asking for your name. If the user leaves it blank,
       // ? do we reject the form immediately, or send it to validation and let the validator decide?
       if (optionValue === undefined) {
-        throw new Error(`Expected a value for "${argument}" but got nothing`);
+        throw new Error(`expected a value for "${argument}" but got nothing`);
       }
 
       if (!argumentWithEquals && isOptionArgument(optionValue)) {
-        throw new Error(`Expected a value for "${argument}" but got an argument "${nextArgument}"`);
+        throw new Error(`expected a value for "${argument}" but got an argument "${nextArgument}"`);
       }
 
-      results.options ??= {};
-      results.options[optionName] = {
+      context.options ??= {};
+      context.options[optionName] = {
         name: optionName,
         schema,
         optional,
@@ -138,75 +138,75 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
 
     // * Arguments check
     if (commandDefinition?.arguments) {
-      results.arguments ??= [];
+      context.arguments ??= {};
 
-      const currentArgumentCount = results.arguments.length;
+      const currentArgumentCount = Object.keys(context.arguments).length;
+      const argumentDefinitionEntries = Object.entries(commandDefinition.arguments);
 
       // Any extra arguments are possibly positionals
-      if (currentArgumentCount < commandDefinition.arguments.length) {
-        const schemaArgument = commandDefinition.arguments[currentArgumentCount];
-        const name = schemaArgument.name;
+      if (currentArgumentCount < argumentDefinitionEntries.length) {
+        const [name, argumentDefinition] = argumentDefinitionEntries[currentArgumentCount];
 
-        if (!schemaArgument._preparedType) {
-          throw new Error(`Internal error: missing prepared type for argument "${currentArgumentCount}"`);
+        if (!argumentDefinition._preparedType) {
+          throw new Error(`internal error: missing prepared type for argument "${currentArgumentCount}"`);
         }
 
-        const { schema, optional, defaultValue } = schemaArgument._preparedType;
+        const { schema, optional, defaultValue } = argumentDefinition._preparedType;
 
-        results.arguments.push({
+        context.arguments[name] = {
           name,
           schema,
           optional,
           defaultValue,
           stringValue: argument_,
           source: "terminal",
-        });
+        };
         continue;
       }
     }
 
     // * Positional check
     if (commandDefinition?.allowPositionals) {
-      results.positionals ??= [];
-      results.positionals.push(argument_);
+      context.positionals ??= [];
+      context.positionals.push(argument_);
       continue;
     }
 
-    if (!results.subcommand) {
-      throw new Error(`Unexpected argument "${argument_}": positionals arguments are not allowed here`);
+    if (!context.subcommand) {
+      throw new Error(`unexpected argument "${argument_}": positionals arguments are not allowed here`);
     }
 
     throw new Error(
-      `Unexpected argument "${argument_}": positionals arguments are not allowed for subcommand "${results.subcommand}"`,
+      `unexpected argument "${argument_}": positionals arguments are not allowed for subcommand "${context.subcommand}"`,
     );
   }
 
-  // * Check for missing options - set defaults - add `source`
+  // * Check for missing options
   const commandDefinition = getCommandDefinition();
   if (!commandDefinition) {
-    throw new Error(`Unknown subcommand: "${results.subcommand}"`);
+    throw new Error(`unknown subcommand: "${context.subcommand}"`);
   }
 
   // Options
   if (commandDefinition.options) {
-    results.options ??= {};
+    context.options ??= {};
 
-    for (const [schemaOptionName, schemaOption] of Object.entries(commandDefinition.options)) {
+    for (const [schemaOptionName, optionDefinition] of Object.entries(commandDefinition.options)) {
       // option already exists
-      if (results.options && schemaOptionName in results.options) continue;
+      if (schemaOptionName in context.options) continue;
 
-      if (!schemaOption._preparedType) {
-        throw new Error(`Internal error: missing prepared type for option "${schemaOptionName}"`);
+      if (!optionDefinition._preparedType) {
+        throw new Error(`internal error: missing prepared type for option "${schemaOptionName}"`);
       }
 
-      const { schema, optional, defaultValue } = schemaOption._preparedType;
+      const { schema, optional, defaultValue } = optionDefinition._preparedType;
 
       if (optional) {
         if (defaultValue === undefined) {
           continue;
         }
 
-        results.options[schemaOptionName] = {
+        context.options[schemaOptionName] = {
           name: schemaOptionName,
           schema,
           optional,
@@ -216,48 +216,48 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
         continue;
       }
 
-      throw new Error(`Missing required option: ${transformOptionToArgument(schemaOptionName)}`);
+      throw new Error(`missing required option: ${transformOptionToArgument(schemaOptionName)}`);
     }
   }
 
   // Arguments
   if (commandDefinition.arguments) {
-    results.arguments ??= [];
+    context.arguments ??= {};
 
-    const currentArgumentCount = results.arguments.length ?? 0;
-    const subcommandArgumentCount = commandDefinition.arguments.length;
+    const currentArgumentCount = Object.keys(context.arguments).length;
+
+    const argumentDefinitionEntries = Object.entries(commandDefinition.arguments);
+    const argumentsDefinitionLength = argumentDefinitionEntries.length;
 
     // missing arguments
-    if (currentArgumentCount < subcommandArgumentCount) {
-      for (let index = currentArgumentCount; index < subcommandArgumentCount; index++) {
-        const schemaArgument = commandDefinition.arguments[index];
-        const name = schemaArgument.name;
+    if (currentArgumentCount < argumentsDefinitionLength) {
+      for (let index = currentArgumentCount; index < argumentsDefinitionLength; index++) {
+        const [name, argumentDefinition] = argumentDefinitionEntries[index];
 
-        if (!schemaArgument._preparedType) {
-          throw new Error(`Internal error: missing prepared type for argument "${index}"`);
+        if (!argumentDefinition._preparedType) {
+          throw new Error(`internal error: missing prepared type for the argument "${name}"`);
         }
 
-        const { schema, optional, defaultValue } = schemaArgument._preparedType;
+        const { schema, optional, defaultValue } = argumentDefinition._preparedType;
 
         if (optional) {
           if (defaultValue === undefined) {
             continue;
           }
 
-          if (!results.arguments) results.arguments = [];
-
-          results.arguments.push({ name, schema, optional, defaultValue, source: "default" });
+          context.arguments ??= {};
+          context.arguments[name] = { name, schema, optional, defaultValue, source: "default" };
           continue;
         }
 
-        throw new Error(`The argument "${schemaArgument.name}" is required`);
+        throw new Error(`The argument "${name}" is required`);
       }
     }
   }
 
   if (commandDefinition.allowPositionals) {
-    results.positionals ??= [];
+    context.positionals ??= [];
   }
 
-  return results;
+  return context;
 }

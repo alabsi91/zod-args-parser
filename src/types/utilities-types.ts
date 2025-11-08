@@ -8,24 +8,10 @@ export type UndefinedProperties<T> = { [P in keyof T]-?: undefined extends T[P] 
 export type ToOptional<T> = Partial<Pick<T, UndefinedProperties<T>>> &
   Pick<T, Exclude<keyof T, UndefinedProperties<T>>>;
 
-/** Make the tail of a tuple optional if it extends undefined */
-export type MakeTailOptional<T extends readonly unknown[]> = T extends [...infer H, infer L]
-  ? undefined extends L
-    ? [...MakeTailOptional<H>, L?]
-    : T
-  : T;
-
 /** If every property in a record is optional, widen the type to `T | undefined`. */
-export type WidenIfAllPropertiesOptional<T> = {
+export type AllowUndefinedIfOptional<T> = {
   [K in keyof T]-?: object extends Pick<T, K> ? never : K;
 }[keyof T] extends never
-  ? T | undefined
-  : T;
-
-/** If every tuple element can be undefined, widen the type to `T | undefined`. */
-export type WidenIfAllItemsOptional<T extends any[]> = {
-  [Index in keyof T]-?: undefined extends T[Index] ? never : T[Index];
-}[number] extends never
   ? T | undefined
   : T;
 

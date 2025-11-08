@@ -1,5 +1,4 @@
 import {
-  isArgument,
   isArgumentExplicitlyPassed,
   isOptionExplicitlyPassed,
   isOptionOrArgumentExplicitlyPassed,
@@ -20,26 +19,32 @@ interface ValidateRequiresOptions {
 
   /** The parsed context */
   context: ContextWide;
+
+  /** What we're checking */
+  type: "option" | "argument";
 }
 
 /** @throws {Error} */
-export function validateRequires({ name, commandDefinition, optionOrArgument, context }: ValidateRequiresOptions) {
+export function validateRequires({
+  name,
+  commandDefinition,
+  optionOrArgument,
+  context,
+  type,
+}: ValidateRequiresOptions) {
   const requires = optionOrArgument.requires;
   if (!requires || requires.length === 0) return;
 
   // Check if the options/argument is passed
   if (!isOptionOrArgumentExplicitlyPassed(name, context)) return;
 
-  // Identify whether we're validating an option or an argument
-  const checkingType = isArgument(optionOrArgument) ? "argument" : "option";
-
-  const schemaOptions = commandDefinition.options ?? {};
+  const optionsDefinition = commandDefinition.options ?? {};
 
   const missingOptions: string[] = [];
   const missingArguments: string[] = [];
 
   for (const requiredName of requires) {
-    const isOption = requiredName in schemaOptions;
+    const isOption = requiredName in optionsDefinition;
 
     const provided = isOption
       ? isOptionExplicitlyPassed(requiredName, context)
@@ -71,5 +76,5 @@ export function validateRequires({ name, commandDefinition, optionOrArgument, co
 
   const joinedParts = parts.join(" and ");
 
-  throw new Error(`${checkingType} "${name}" cannot be used without the required ${joinedParts}.`);
+  throw new Error(`${type} "${name}" cannot be used without the required ${joinedParts}.`);
 }

@@ -33,7 +33,7 @@ export const listCli = defineCLI({
   options: {
     help: {
       aliases: ["h"],
-      requires: ["version"],
+      exclusive: true,
       type: z.object({ value: z.boolean().optional() }),
       coerce: coerce.boolean,
       meta: {
@@ -42,7 +42,6 @@ export const listCli = defineCLI({
     },
     version: {
       aliases: ["v"],
-      // conflictWith: ["help"],
       type: z.object({ value: z.boolean().optional() }),
       coerce: coerce.boolean,
       meta: {
@@ -51,9 +50,8 @@ export const listCli = defineCLI({
     },
   },
 
-  arguments: [
-    {
-      name: "list",
+  arguments: {
+    list: {
       requires: ["help"],
       type: z.object({ value: z.string().optional() }),
       coerce: coerce.string,
@@ -61,7 +59,7 @@ export const listCli = defineCLI({
         description: "List name.",
       },
     },
-  ],
+  },
 });
 
 // Execute this function when the CLI is run

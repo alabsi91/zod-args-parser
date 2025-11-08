@@ -1,4 +1,4 @@
-import { isArgument, isOptionOrArgumentExplicitlyPassed } from "./is-explicitly-passed.ts";
+import { isOptionOrArgumentExplicitlyPassed } from "./is-explicitly-passed.ts";
 
 import type { ContextWide } from "../../types/context-types.ts";
 import type { Argument, Option } from "../../types/definitions-types.ts";
@@ -12,18 +12,18 @@ interface ValidateConflictOptions {
 
   /** The parsed context */
   context: ContextWide;
+
+  /** What we're checking */
+  type: "option" | "argument";
 }
 
 /** @throws {Error} */
-export function validateConflictWith({ name, optionOrArgument, context }: ValidateConflictOptions) {
+export function validateConflictWith({ name, optionOrArgument, context, type }: ValidateConflictOptions) {
   const conflictWith = optionOrArgument.conflictWith;
   if (!conflictWith || conflictWith.length === 0) return;
 
   // Check if the options/argument is passed
   if (!isOptionOrArgumentExplicitlyPassed(name, context)) return;
-
-  // Identify whether we're validating an option or an argument
-  const checkingType = isArgument(optionOrArgument) ? "argument" : "option";
 
   const conflictedOptions: string[] = [];
   const conflictedArguments: string[] = [];
@@ -38,11 +38,11 @@ export function validateConflictWith({ name, optionOrArgument, context }: Valida
   }
 
   if (context.arguments) {
-    for (const argument of context.arguments) {
-      if (argument.name === name) continue; // don't check self
-      if (!conflictWith.includes(argument.name)) continue; // not a conflict
-      if (argument.source === "default") continue; // not explicitly passed
-      conflictedArguments.push(argument.name);
+    for (const [argumentName, argumentContext] of Object.entries(context.arguments)) {
+      if (argumentName === name) continue; // don't check self
+      if (!conflictWith.includes(argumentName)) continue; // not a conflict
+      if (argumentContext.source === "default") continue; // not explicitly passed
+      conflictedArguments.push(argumentName);
     }
   }
 
@@ -62,7 +62,5 @@ export function validateConflictWith({ name, optionOrArgument, context }: Valida
 
   const joinedParts = parts.join(" and ");
 
-  throw new Error(
-    `${checkingType} "${name}" cannot be used with the ${joinedParts} because they are mutually exclusive.`,
-  );
+  throw new Error(`${type} "${name}" cannot be used with the ${joinedParts} because they are mutually exclusive.`);
 }

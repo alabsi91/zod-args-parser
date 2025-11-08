@@ -25,29 +25,27 @@ const createListCommand = defineSubcommand({
     ...sharedOptions,
   },
 
-  arguments: [
-    {
-      name: "list-name",
+  arguments: {
+    listName: {
       type: z.object({ value: z.string() }),
       coerce: coerce.string,
       meta: {
         description: "The name of the list to create.",
       },
     },
-    {
-      name: "list-description",
+    listDescription: {
       type: z.object({ value: z.string().optional() }),
       coerce: coerce.string,
       meta: {
         description: "The description of the list to create.",
       },
     },
-  ],
+  },
 });
 
 createListCommand.onExecute(results => {
   const { overwrite, verbose } = results.options;
-  const [listName, listDescription] = results.arguments;
+  const { listName, listDescription } = results.arguments;
 
   if (verbose) {
     logCliContext(results.context);
@@ -69,8 +67,8 @@ createListCommand.onExecute(results => {
 });
 
 // Provide a programmatic way to execute the command
-function executeCreateList(...[name, description]: InferArgumentsInputType<typeof createListCommand>) {
-  createListCommand.execute({ arguments: [name, description] });
+function executeCreateList({ listName, listDescription }: InferArgumentsInputType<typeof createListCommand>) {
+  createListCommand.execute({ arguments: { listName, listDescription } });
 }
 
 export { createListCommand, executeCreateList };
