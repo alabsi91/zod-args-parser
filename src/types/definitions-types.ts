@@ -13,10 +13,10 @@ export interface PreparedType {
 
 // Derived from `Subcommand`
 export interface Cli extends Omit<Subcommand, "name" | "aliases" | "meta"> {
-  /** The name of the CLI program. */
+  /** The name of the CLI program (main command). */
   readonly cliName: string;
 
-  /** Array of subcommands. Do not pass them directly instead use `createSubcommand` */
+  /** Array of subcommands. Do not pass them directly instead use `defineSubcommand` */
   subcommands?: readonly [Subcommand, ...Subcommand[]];
 
   /** The metadata for the CLI. */
@@ -29,7 +29,7 @@ export interface MetaBase {
    *
    * Supports multi-line text and ansi color styles (like `chalk`).
    *
-   * **Note:** For terminal markdown, use `descriptionMarkdown` instead.
+   * **NOTE:** For terminal markdown, use `descriptionMarkdown` instead.
    */
   description?: string;
 
@@ -118,6 +118,8 @@ export interface Subcommand {
    * - The order is important; for example, the first argument will be validated against the first specified type.
    * - When **`allowPositional`** is **disabled**, the last argument can be optional.
    * - When **`allowPositional`** is **enabled**, no optional arguments are allowed.
+   *
+   * **IMPORTANT:** The order of arguments matters!
    */
   arguments?: Record<string, Argument>;
 
@@ -130,10 +132,10 @@ export interface Subcommand {
    *
    * @deprecated For internal use only
    * @example
-   *   const helpCommand = createSubcommand({ name: "help", options: [...] });
+   *   const helpCommand = defineSubcommand({ name: "help", options: [...] });
    *   helpCommand.onExecute((result) => console.log(result));
    *
-   *   const myCli = createCli({ name: "my-cli", subcommands: [helpCommand] });
+   *   const myCli = defineCLI({ name: "my-cli", subcommands: [helpCommand] });
    *   myCli.onExecute((result) => console.log(result));
    */
   _onExecute?: ((result: OutputTypeWide) => void)[];
@@ -170,25 +172,28 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    * A schema to validate the user input.
    *
    * - Any validation library that supports `StandardSchemaV1` can be used.
+   * - Use an object schema with the key `value` to specify the type. The reason behind that is that not all validation
+   *   libraries support **optional** and **default values** for primitive types.
    *
    * @example
-   *   type: z.string();
+   *   type: z.object({ value: z.string().optional() }); // Zod
+   *   type: type({ "value?": "string" }); // ArkType
    */
   type: Schema;
 
   /**
    * Since the terminal input is a string, we need to coerce it.
    *
-   * **Note:**
+   * **NOTE:**
    *
-   * - You can use the provided `coerce` methods to coerce the user input.
+   * - You can use the provided `coerce` methods to coerce the terminal input.
    * - The output type of the `coerce` method should match the output type of the schema.
    *
    * @example
-   *   type: z.boolean();
+   *   type: z.object({ value: z.boolean() });
    *   coerce: coerce.boolean;
    *
-   *   type: z.string().array();
+   *   type: z.object({ value: z.string().array() });
    *   coerce: coerce.stringArray(",");
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
@@ -199,6 +204,22 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    *
    * Only explicitly provided inputs are checked — options or arguments that are present only through default values are
    * ignored.
+   *
+   * @example
+   *   defineOptions({
+   *     // nothing else can be used with this option (no other options or arguments)
+   *     output: {
+   *       exclusive: true,
+   *     },
+   *   });
+   *
+   *   defineOptions({
+   *     // only `input` (could be an option or argument name) can be used with this option
+   *     output: {
+   *       exclusive: true,
+   *       requires: ["input"],
+   *     },
+   *   });
    */
   exclusive?: boolean;
 
@@ -211,12 +232,12 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    * Example:
    *
    * @example
-   *   {
-   *     "output": {
-   *       "aliases": ["o"],
-   *       "requires": ["input"] // using --output also requires --input
-   *     }
-   *   }
+   *   defineOptions({
+   *     // using the option `output` also requires `input` (could be an option or argument name)
+   *     output: {
+   *       requires: ["input"],
+   *     },
+   *   });
    */
   requires?: string[];
 
@@ -227,12 +248,12 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    * only checked against explicitly supplied values — defaults do not trigger conflicts.
    *
    * @example
-   *   {
-   *     "help": {
-   *       "aliases": ["h"],
-   *       "conflictWith": ["version"] // cannot be used together with --version
-   *     }
-   *   }
+   *   defineOptions({
+   *     // the option `help` cannot be used together with `version` (could be an option or argument name)
+   *     help: {
+   *       conflictWith: ["version"],
+   *     },
+   *   });
    */
   conflictWith?: string[];
 
@@ -265,13 +286,13 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
   /**
    * Since the terminal input is a string, we need to coerce it.
    *
-   * **Note:**
+   * **NOTE:**
    *
    * - You can use the provided `coerce` methods to coerce the user input.
    * - The output type of the `coerce` method should match the output type of the schema.
    *
    * @example
-   *   type: z.boolean();
+   *   type: z.object({ value: z.boolean() });
    *   coerce: coerce.boolean;
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
@@ -282,6 +303,22 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
    *
    * Only explicitly provided inputs are checked — options or arguments that are present only through default values are
    * ignored.
+   *
+   * @example
+   *   defineArguments({
+   *     // nothing else can be used with this argument (no other options or arguments)
+   *     output: {
+   *       exclusive: true,
+   *     },
+   *   });
+   *
+   *   defineArguments({
+   *     // only `input` (could be an option or argument name) can be used with this argument
+   *     output: {
+   *       exclusive: true,
+   *       requires: ["input"],
+   *     },
+   *   });
    */
   exclusive?: boolean;
 
@@ -292,12 +329,12 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
    * do not satisfy this requirement — the user must explicitly provide the required option(s).
    *
    * @example
-   *   {
-   *     "output": {
-   *       "aliases": ["o"],
-   *       "requires": ["input"] // using --output also requires --input
-   *     }
-   *   }
+   *   defineArguments({
+   *     // using the argument `output` also requires `input` (could be an option or argument name)
+   *     output: {
+   *       requires: ["input"],
+   *     },
+   *   });
    */
   requires?: string[];
 
@@ -308,12 +345,12 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
    * only checked against explicitly supplied values — defaults do not trigger conflicts.
    *
    * @example
-   *   {
-   *     "help": {
-   *       "aliases": ["h"],
-   *       "conflictWith": ["version"] // cannot be used together with --version
-   *     }
-   *   }
+   *   defineArguments({
+   *     // the argument `help` cannot be used together with `version` (could be an option or argument name)
+   *     help: {
+   *       conflictWith: ["version"],
+   *     },
+   *   });
    */
   conflictWith?: string[];
 
