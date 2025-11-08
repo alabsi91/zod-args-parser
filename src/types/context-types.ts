@@ -1,11 +1,8 @@
 import type { Subcommand } from "./definitions-types.ts";
 import type { Argument, Option } from "./definitions-types.ts";
-import type { SchemaType } from "./schema-types.ts";
+import type { InferSchemaInputType, InferSchemaOutputType, SchemaType } from "./schema-types.ts";
 
-export interface ContextBase<S extends SchemaType, N extends string = string> {
-  /** The name of the argument/option as provided in the schema. */
-  name: N;
-
+export interface ContextBase<S extends SchemaType> {
   /** The schema that validates this option. */
   schema: S;
 
@@ -13,17 +10,24 @@ export interface ContextBase<S extends SchemaType, N extends string = string> {
   optional: boolean;
 
   /** The default value of the schema, if any. */
-  defaultValue: unknown;
+  defaultValue: InferSchemaOutputType<S> | undefined;
 }
 
-export interface OptionContextCli<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** The CLI flag as provided by the user (e.g. `--foo` or `-f`). */
+export interface OptionContextCli<S extends SchemaType> extends ContextBase<S> {
+  /**
+   * The CLI flag as provided by the user (e.g. `--foo` or `-f`).
+   *
+   * **Note:** This is only defined when the source is `terminal`.
+   */
   flag: string;
 
-  /** The string value supplied or inferred in case of a boolean. */
+  /**
+   * The raw string value provided directly from the CLI.
+   *
+   * **Note:** This is only defined when the source is `terminal`.
+   */
   stringValue: string;
 
-  /** Undefined when the source is `terminal`. */
   passedValue?: never;
 
   /**
@@ -36,14 +40,11 @@ export interface OptionContextCli<S extends SchemaType, N extends string> extend
   source: "terminal";
 }
 
-export interface OptionContextDefault<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** Undefined when the source is `default`. */
+export interface OptionContextDefault<S extends SchemaType> extends ContextBase<S> {
   flag?: never;
 
-  /** Undefined when the source is `default`. */
   stringValue?: never;
 
-  /** Undefined when the source is `default`. */
   passedValue?: never;
 
   /**
@@ -56,15 +57,17 @@ export interface OptionContextDefault<S extends SchemaType, N extends string> ex
   source: "default";
 }
 
-export interface OptionContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** Undefined when the source is `programmatic`. */
+export interface OptionContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
   flag?: never;
 
-  /** Undefined when the source is `programmatic`. */
   stringValue?: never;
 
-  /** The value passed programmatically. */
-  passedValue: unknown;
+  /**
+   * The value passed programmatically.
+   *
+   * **NOTE:** This is only defined when the source is `programmatic`.
+   */
+  passedValue: InferSchemaInputType<S>;
 
   /**
    * The source of the option:
@@ -76,16 +79,19 @@ export interface OptionContextProgrammatic<S extends SchemaType, N extends strin
   source: "programmatic";
 }
 
-export type OptionContext<S extends SchemaType, N extends string> =
-  | OptionContextCli<S, N>
-  | OptionContextDefault<S, N>
-  | OptionContextProgrammatic<S, N>;
+export type OptionContext<S extends SchemaType> =
+  | OptionContextCli<S>
+  | OptionContextDefault<S>
+  | OptionContextProgrammatic<S>;
 
-export interface ArgumentContextCli<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** The raw string value provided directly from the CLI. */
+export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S> {
+  /**
+   * The raw string value provided directly from the CLI.
+   *
+   * **Note:** This is only defined when the source is `terminal`.
+   */
   stringValue: string;
 
-  /** Undefined when the source is `terminal`. */
   passedValue?: never;
 
   /**
@@ -98,11 +104,9 @@ export interface ArgumentContextCli<S extends SchemaType, N extends string> exte
   source: "terminal";
 }
 
-export interface ArgumentContextDefault<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** Undefined when the source is `default`. */
+export interface ArgumentContextDefault<S extends SchemaType> extends ContextBase<S> {
   stringValue?: never;
 
-  /** Undefined when the source is `default`. */
   passedValue?: never;
 
   /**
@@ -115,12 +119,15 @@ export interface ArgumentContextDefault<S extends SchemaType, N extends string> 
   source: "default";
 }
 
-export interface ArgumentContextProgrammatic<S extends SchemaType, N extends string> extends ContextBase<S, N> {
-  /** Undefined when the source is `programmatic`. */
+export interface ArgumentContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
   stringValue?: never;
 
-  /** The value passed programmatically. */
-  passedValue: unknown;
+  /**
+   * The value passed programmatically.
+   *
+   * **NOTE:** This is only defined when the source is `programmatic`.
+   */
+  passedValue: InferSchemaInputType<S>;
 
   /**
    * The source of the option:
@@ -132,17 +139,17 @@ export interface ArgumentContextProgrammatic<S extends SchemaType, N extends str
   source: "programmatic";
 }
 
-export type ArgumentContext<S extends SchemaType, N extends string> =
-  | ArgumentContextCli<S, N>
-  | ArgumentContextDefault<S, N>
-  | ArgumentContextProgrammatic<S, N>;
+export type ArgumentContext<S extends SchemaType> =
+  | ArgumentContextCli<S>
+  | ArgumentContextDefault<S>
+  | ArgumentContextProgrammatic<S>;
 
 export type OptionsRecordToOptionContext<T extends Record<string, Option>> = {
-  [K in keyof T]: OptionContext<T[K]["type"], Extract<K, string>>;
+  [K in keyof T]: OptionContext<T[K]["type"]>;
 };
 
 export type ArgumentsRecordToArgumentContext<T extends Record<string, Argument>> = {
-  [K in keyof T]: ArgumentContext<T[K]["type"], Extract<K, string>>;
+  [K in keyof T]: ArgumentContext<T[K]["type"]>;
 };
 
 export type Context<S extends readonly Partial<Subcommand>[]> = {
@@ -158,7 +165,7 @@ export type Context<S extends readonly Partial<Subcommand>[]> = {
 
 export interface ContextWide {
   subcommand: string | undefined;
-  options?: Record<string, OptionContext<SchemaType, string>>;
-  arguments?: Record<string, ArgumentContext<SchemaType, string>>;
+  options?: Record<string, OptionContext<SchemaType>>;
+  arguments?: Record<string, ArgumentContext<SchemaType>>;
   positionals?: string[];
 }

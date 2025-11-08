@@ -31,7 +31,7 @@ export function validateOptions({ commandDefinition, context, output }: Validate
 
   const optionContextEntries = Object.entries(context.options);
 
-  for (const [optionName, { passedValue, stringValue, name, flag, source, schema }] of optionContextEntries) {
+  for (const [optionName, { passedValue, stringValue, flag, source, schema }] of optionContextEntries) {
     const option = optionsDefinition[optionName];
     if (!option) {
       throw new Error(`Subcommand "${context.subcommand}" does not have option "${optionName}"`);
@@ -49,7 +49,7 @@ export function validateOptions({ commandDefinition, context, output }: Validate
 
     if (safeParseResult.issues) {
       throw new Error(
-        `Invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? name : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
+        `Invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
       );
     }
 

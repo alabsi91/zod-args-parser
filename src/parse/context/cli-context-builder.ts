@@ -109,7 +109,6 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
 
       context.options ??= {};
       context.options[optionName] = {
-        name: optionName,
         schema,
         optional,
         defaultValue,
@@ -145,14 +144,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
 
         const { schema, optional, defaultValue } = argumentDefinition._preparedType;
 
-        context.arguments[name] = {
-          name,
-          schema,
-          optional,
-          defaultValue,
-          stringValue: argvItem,
-          source: "terminal",
-        };
+        context.arguments[name] = { schema, optional, defaultValue, stringValue: argvItem, source: "terminal" };
         continue;
       }
     }
@@ -199,7 +191,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         }
 
         // optional with default value
-        context.options[name] = { name, schema, optional, defaultValue, source: "default" };
+        context.options[name] = { schema, optional, defaultValue, source: "default" };
         continue;
       }
 
@@ -235,7 +227,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
           }
 
           // optional argument with default value
-          context.arguments[name] = { name, schema, optional, defaultValue, source: "default" };
+          context.arguments[name] = { schema, optional, defaultValue, source: "default" };
           continue;
         }
 

@@ -45,8 +45,8 @@ function buildForOptionsOrArguments(
       context[type] ??= {};
       context[type][name] =
         passedValue === undefined
-          ? { name, schema, optional, defaultValue, source: "default" }
-          : { name, schema, optional, defaultValue, passedValue, source: "programmatic" };
+          ? { schema, optional, defaultValue, source: "default" }
+          : { schema, optional, defaultValue, passedValue, source: "programmatic" };
 
       continue;
     }
@@ -58,6 +58,6 @@ function buildForOptionsOrArguments(
 
     // case the value is optional
     context[type] ??= {};
-    context[type][name] = { name, schema, optional, defaultValue, source: "default" };
+    context[type][name] = { schema, optional, defaultValue, source: "default" };
   }
 }

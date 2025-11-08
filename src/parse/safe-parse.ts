@@ -5,39 +5,13 @@ import { findSubcommandDefinition } from "./parser-utilities.ts";
 import { validate } from "./validation/validate-context.ts";
 
 import type { Cli } from "../types/definitions-types.ts";
-import type { CliParseResult } from "../types/types.ts";
+import type { CliParseResultWide } from "../types/types.ts";
 
-export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDefinition: T): CliParseResult<T> {
-  const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
+export function safeParse(stringOrArgv: string | string[], cliDefinition: Cli): CliParseResultWide {
+  const core = safeParseCore(stringOrArgv, cliDefinition);
+  if (core.error) return { error: core.error };
 
-  // validate cli definition
-  try {
-    validateCliDefinition(cliDefinition);
-  } catch (error) {
-    return { error: error as Error };
-  }
-
-  // Parse
-  let cliContext;
-  try {
-    cliContext = buildCliContext(argv, cliDefinition);
-  } catch (error) {
-    return { error: error as Error };
-  }
-
-  const subcommandObject = findSubcommandDefinition(cliContext.subcommand, cliDefinition);
-  if (!subcommandObject) {
-    const error = new Error(`Subcommand "${cliContext.subcommand}" does not exist`);
-    return { error };
-  }
-
-  // Validate context
-  let validateResult;
-  try {
-    validateResult = validate(cliContext, subcommandObject);
-  } catch (error) {
-    return { error: error as Error };
-  }
+  const { validateResult, subcommandObject } = core;
 
   // Fire action (throw errors caused by the usage of the action hook)
   if (subcommandObject._onExecute) {
@@ -46,43 +20,14 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDef
     }
   }
 
-  return { error: undefined, value: validateResult } as CliParseResult<T>;
+  return { error: undefined, value: validateResult };
 }
 
-export async function safeParseAsync<T extends Cli>(
-  stringOrArgv: string | string[],
-  cliDefinition: T,
-): Promise<CliParseResult<T>> {
-  const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
+export async function safeParseAsync(stringOrArgv: string | string[], cliDefinition: Cli): Promise<CliParseResultWide> {
+  const core = safeParseCore(stringOrArgv, cliDefinition);
+  if (core.error) return { error: core.error };
 
-  // validate cli definition
-  try {
-    validateCliDefinition(cliDefinition);
-  } catch (error) {
-    return { error: error as Error };
-  }
-
-  // Parse
-  let cliContext;
-  try {
-    cliContext = buildCliContext(argv, cliDefinition);
-  } catch (error) {
-    return { error: error as Error };
-  }
-
-  const subcommandObject = findSubcommandDefinition(cliContext.subcommand, cliDefinition);
-  if (!subcommandObject) {
-    const error = new Error(`Subcommand "${cliContext.subcommand}" does not exist`);
-    return { error };
-  }
-
-  // Validate context
-  let validateResult;
-  try {
-    validateResult = validate(cliContext, subcommandObject);
-  } catch (error) {
-    return { error: error as Error };
-  }
+  const { validateResult, subcommandObject } = core;
 
   // Fire action (throw errors caused by the usage of the action hook)
   if (subcommandObject._onExecute) {
@@ -92,5 +37,40 @@ export async function safeParseAsync<T extends Cli>(
     }
   }
 
-  return { error: undefined, value: validateResult } as CliParseResult<T>;
+  return { error: undefined, value: validateResult };
+}
+
+function safeParseCore(stringOrArgv: string | string[], cliDefinition: Cli) {
+  const argv = typeof stringOrArgv === "string" ? parseArgv(stringOrArgv) : stringOrArgv;
+
+  // validate cli definition
+  try {
+    validateCliDefinition(cliDefinition);
+  } catch (error) {
+    return { error: error as Error };
+  }
+
+  // Parse
+  let cliContext;
+  try {
+    cliContext = buildCliContext(argv, cliDefinition);
+  } catch (error) {
+    return { error: error as Error };
+  }
+
+  const subcommandObject = findSubcommandDefinition(cliContext.subcommand, cliDefinition);
+  if (!subcommandObject) {
+    const error = new Error(`Subcommand "${cliContext.subcommand}" does not exist`);
+    return { error };
+  }
+
+  // Validate context
+  let validateResult;
+  try {
+    validateResult = validate(cliContext, subcommandObject);
+  } catch (error) {
+    return { error: error as Error };
+  }
+
+  return { error: undefined, validateResult, subcommandObject };
 }

@@ -63,6 +63,8 @@ export type CliParseResult<S extends Cli> =
   | { value: CliOutputType<S>; error?: undefined }
   | { value?: never; error: Error };
 
+export type CliParseResultWide = { value: OutputTypeWide; error?: undefined } | { value?: never; error: Error };
+
 export interface ValidateMethods<S extends Cli> {
   run(input: string | string[]): CliParseResult<S>;
   runAsync(input: string | string[]): Promise<CliParseResult<S>>;
