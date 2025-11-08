@@ -2,10 +2,10 @@ import {
   isArgumentExplicitlyPassed,
   isOptionExplicitlyPassed,
   isOptionOrArgumentExplicitlyPassed,
-} from "./is-explicitly-passed.ts";
+} from "./explicitly-passed.ts";
 
-import type { ContextWide } from "../../types/context-types.ts";
-import type { Argument, Cli, Option, Subcommand } from "../../types/definitions-types.ts";
+import type { ContextWide } from "../../../types/context-types.ts";
+import type { Argument, Cli, Option, Subcommand } from "../../../types/definitions-types.ts";
 
 interface ValidateRequiresOptions {
   /** The option or argument name to check its `requires` */
@@ -66,12 +66,14 @@ export function validateRequires({
 
   if (missingOptions.length > 0) {
     const formatted = missingOptions.map(o => `"${o}"`).join(", ");
-    parts.push(`option${missingOptions.length > 1 ? "s" : ""} ${formatted}`);
+    const s = missingOptions.length > 1 ? "s" : "";
+    parts.push(`option${s} ${formatted}`);
   }
 
   if (missingArguments.length > 0) {
     const formatted = missingArguments.map(a => `"${a}"`).join(", ");
-    parts.push(`argument${missingArguments.length > 1 ? "s" : ""} ${formatted}`);
+    const s = missingArguments.length > 1 ? "s" : "";
+    parts.push(`argument${s} ${formatted}`);
   }
 
   const joinedParts = parts.join(" and ");

@@ -1,19 +1,19 @@
-import type { ContextWide } from "../types/context-types.ts";
-import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
-import type { InputTypeWide } from "../types/io-types.ts";
+import type { ContextWide } from "../../types/context-types.ts";
+import type { Argument, Cli, Option, Subcommand } from "../../types/definitions-types.ts";
+import type { InputTypeWide } from "../../types/io-types.ts";
 
 /** @throws {Error} */
-export function createExecuteContext(inputValues: InputTypeWide, commandDefinition: Subcommand | Cli) {
+export function buildObjectContext(inputValues: InputTypeWide, commandDefinition: Subcommand | Cli) {
   const context: ContextWide = {
     subcommand: "cliName" in commandDefinition ? undefined : commandDefinition.name,
   };
 
   if (commandDefinition.options) {
-    createForOptionsOrArguments(commandDefinition.options, context, inputValues.options, "options");
+    buildForOptionsOrArguments(commandDefinition.options, context, inputValues.options, "options");
   }
 
   if (commandDefinition.arguments) {
-    createForOptionsOrArguments(commandDefinition.arguments, context, inputValues.arguments, "arguments");
+    buildForOptionsOrArguments(commandDefinition.arguments, context, inputValues.arguments, "arguments");
   }
 
   if (commandDefinition.allowPositionals) {
@@ -23,7 +23,7 @@ export function createExecuteContext(inputValues: InputTypeWide, commandDefiniti
   return context;
 }
 
-function createForOptionsOrArguments(
+function buildForOptionsOrArguments(
   definitionRecord: Record<string, Option> | Record<string, Argument>,
   context: ContextWide,
   inputRecord: Record<string, unknown> | undefined,

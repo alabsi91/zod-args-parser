@@ -5,17 +5,17 @@ import {
   isFlagArgument,
   isOptionArgument,
   transformOptionToArgument,
-} from "./parser-helpers.ts";
+} from "../parser-utilities.ts";
 
-import type { ContextWide } from "../types/context-types.ts";
-import type { Cli } from "../types/definitions-types.ts";
+import type { ContextWide } from "../../types/context-types.ts";
+import type { Cli } from "../../types/definitions-types.ts";
 
 /**
  * Parse argv and create a cli context
  *
  * @throws {Error}
  */
-export function createCliContext(argv: string[], cliDefinition: Cli) {
+export function buildCliContext(argv: string[], cliDefinition: Cli) {
   const subcommandArray = cliDefinition.subcommands ?? [];
   const allSubcommands = new Set<string>(subcommandArray.flatMap(c => [c.name, ...(c.aliases || [])]));
 
@@ -26,15 +26,15 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
     subcommand: undefined,
   };
 
-  /** Get the current subcommand object */
+  /** Get the current subcommand definition or cli definition if subcommand name is `undefined` object */
   const getCommandDefinition = () => findSubcommandDefinition(context.subcommand, cliDefinition);
 
   for (let index = 0; index < argv.length; index++) {
-    const argument_ = argv[index];
+    const argvItem = argv[index];
 
     // * Subcommand check
     if (index === 0) {
-      context.subcommand = allSubcommands.has(argument_) ? argument_ : undefined;
+      context.subcommand = allSubcommands.has(argvItem) ? argvItem : undefined;
 
       // First argument is a subcommand. Skip to the next argument
       if (context.subcommand) continue;
@@ -42,15 +42,14 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
 
     // * Option check
 
-    // Check for `--option=value` or `--option value`
-    const argumentAndValue = argument_.split("=").filter(Boolean);
-    const argumentWithEquals = argument_.includes("=");
+    const argumentAndValue = argvItem.split("=").filter(Boolean); // E.g --option=value -> ["--option", "value"]
+    const argumentWithEquals = argvItem.includes("="); // E.g --option=value
     const argument = argumentAndValue[0];
     const argumentValue: string | undefined = argumentAndValue[1];
 
     if (isOptionArgument(argument)) {
       if (isFlagArgument(argument) && argumentWithEquals) {
-        throw new Error(`flag arguments cannot be assigned using "=": "${argument_}"`);
+        throw new Error(`flag arguments cannot be assigned using "=": "${argvItem}"`);
       }
 
       const commandDefinition = getCommandDefinition();
@@ -100,13 +99,6 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
         }
       }
 
-      // ? If the option is a string but no value was provided (e.g. user typed `--option` only):
-      // ? We have 3 choices:
-      // ?  1) Throw an error because the value is missing.
-      // ?  2) Treat it as an empty string ("") and let the schema validator validate it.
-      // ?  3) Leave it undefined without throwing an error.
-      // ? Analogy: it's like a form asking for your name. If the user leaves it blank,
-      // ? do we reject the form immediately, or send it to validation and let the validator decide?
       if (optionValue === undefined) {
         throw new Error(`expected a value for "${argument}" but got nothing`);
       }
@@ -126,7 +118,7 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
         source: "terminal",
       };
 
-      // Skip to the next argument if it is the current option’s value.
+      // Skip to the next argument if it is the current option's value.
       if (!argumentWithEquals && coerceTo !== "boolean") {
         index++;
       }
@@ -143,7 +135,7 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
       const currentArgumentCount = Object.keys(context.arguments).length;
       const argumentDefinitionEntries = Object.entries(commandDefinition.arguments);
 
-      // Any extra arguments are possibly positionals
+      // The current argument is a typed argument and not a positional
       if (currentArgumentCount < argumentDefinitionEntries.length) {
         const [name, argumentDefinition] = argumentDefinitionEntries[currentArgumentCount];
 
@@ -158,30 +150,29 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
           schema,
           optional,
           defaultValue,
-          stringValue: argument_,
+          stringValue: argvItem,
           source: "terminal",
         };
         continue;
       }
     }
 
-    // * Positional check
+    // The current argument is a positional and not a typed argument (when `allowPositionals` is enabled)
     if (commandDefinition?.allowPositionals) {
       context.positionals ??= [];
-      context.positionals.push(argument_);
+      context.positionals.push(argvItem);
       continue;
     }
 
     if (!context.subcommand) {
-      throw new Error(`unexpected argument "${argument_}": positionals arguments are not allowed here`);
+      throw new Error(`unexpected argument "${argvItem}": positionals arguments are not allowed here`);
     }
 
     throw new Error(
-      `unexpected argument "${argument_}": positionals arguments are not allowed for subcommand "${context.subcommand}"`,
+      `unexpected argument "${argvItem}": positionals arguments are not allowed for subcommand "${context.subcommand}"`,
     );
   }
 
-  // * Check for missing options
   const commandDefinition = getCommandDefinition();
   if (!commandDefinition) {
     throw new Error(`unknown subcommand: "${context.subcommand}"`);
@@ -191,32 +182,29 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
   if (commandDefinition.options) {
     context.options ??= {};
 
-    for (const [schemaOptionName, optionDefinition] of Object.entries(commandDefinition.options)) {
-      // option already exists
-      if (schemaOptionName in context.options) continue;
+    for (const [name, optionDefinition] of Object.entries(commandDefinition.options)) {
+      // option already added to the context (found during argument parsing)
+      if (name in context.options) continue;
 
       if (!optionDefinition._preparedType) {
-        throw new Error(`internal error: missing prepared type for option "${schemaOptionName}"`);
+        throw new Error(`internal error: missing prepared type for option "${name}"`);
       }
 
       const { schema, optional, defaultValue } = optionDefinition._preparedType;
 
       if (optional) {
+        // optional without default value
         if (defaultValue === undefined) {
           continue;
         }
 
-        context.options[schemaOptionName] = {
-          name: schemaOptionName,
-          schema,
-          optional,
-          defaultValue,
-          source: "default",
-        };
+        // optional with default value
+        context.options[name] = { name, schema, optional, defaultValue, source: "default" };
         continue;
       }
 
-      throw new Error(`missing required option: ${transformOptionToArgument(schemaOptionName)}`);
+      // required option
+      throw new Error(`missing required option: ${transformOptionToArgument(name)}`);
     }
   }
 
@@ -241,20 +229,23 @@ export function createCliContext(argv: string[], cliDefinition: Cli) {
         const { schema, optional, defaultValue } = argumentDefinition._preparedType;
 
         if (optional) {
+          // optional argument without default value
           if (defaultValue === undefined) {
             continue;
           }
 
-          context.arguments ??= {};
+          // optional argument with default value
           context.arguments[name] = { name, schema, optional, defaultValue, source: "default" };
           continue;
         }
 
+        // required argument
         throw new Error(`The argument "${name}" is required`);
       }
     }
   }
 
+  // make sure `positionals` is defined when `allowPositionals` is enabled
   if (commandDefinition.allowPositionals) {
     context.positionals ??= [];
   }

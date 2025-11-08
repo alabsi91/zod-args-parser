@@ -1,8 +1,8 @@
 import { validateCliDefinition } from "../definitions/validate-cli-definition.ts";
 import { parseArgv } from "../utilities.ts";
-import { createCliContext } from "./create-cli-context.ts";
-import { findSubcommandDefinition } from "./parser-helpers.ts";
-import { validate } from "./validate-context/validate-context.ts";
+import { buildCliContext } from "./context/cli-context-builder.ts";
+import { findSubcommandDefinition } from "./parser-utilities.ts";
+import { validate } from "./validation/validate-context.ts";
 
 import type { Cli } from "../types/definitions-types.ts";
 import type { CliParseResult } from "../types/types.ts";
@@ -20,7 +20,7 @@ export function safeParse<T extends Cli>(stringOrArgv: string | string[], cliDef
   // Parse
   let cliContext;
   try {
-    cliContext = createCliContext(argv, cliDefinition);
+    cliContext = buildCliContext(argv, cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }
@@ -65,7 +65,7 @@ export async function safeParseAsync<T extends Cli>(
   // Parse
   let cliContext;
   try {
-    cliContext = createCliContext(argv, cliDefinition);
+    cliContext = buildCliContext(argv, cliDefinition);
   } catch (error) {
     return { error: error as Error };
   }

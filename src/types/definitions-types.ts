@@ -1,7 +1,7 @@
 import type { OutputTypeWide } from "./io-types.ts";
 import type { InferSchemaOutputType, SchemaResult, SchemaType } from "./schema-types.ts";
 import type { CoerceMethod, CoerceTypes } from "./types.ts";
-import type { Prettify, Widen } from "./utilities-types.ts";
+import type { Widen } from "./utilities-types.ts";
 
 export interface PreparedType {
   schema: SchemaType;
@@ -12,18 +12,16 @@ export interface PreparedType {
 }
 
 // Derived from `Subcommand`
-export type Cli = Prettify<
-  Omit<Subcommand, "name" | "aliases" | "meta"> & {
-    /** The name of the CLI program. */
-    readonly cliName: string;
+export interface Cli extends Omit<Subcommand, "name" | "aliases" | "meta"> {
+  /** The name of the CLI program. */
+  readonly cliName: string;
 
-    /** Array of subcommands. Do not pass them directly instead use `createSubcommand` */
-    subcommands?: readonly [Subcommand, ...Subcommand[]];
+  /** Array of subcommands. Do not pass them directly instead use `createSubcommand` */
+  subcommands?: readonly [Subcommand, ...Subcommand[]];
 
-    /** The metadata for the CLI. */
-    meta?: Omit<SubcommandMeta, "placeholder" | "hidden">;
-  }
->;
+  /** The metadata for the CLI. */
+  meta?: Omit<SubcommandMeta, "placeholder" | "hidden">;
+}
 
 export interface MetaBase {
   /**

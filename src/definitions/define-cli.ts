@@ -1,7 +1,7 @@
 import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-message/format-cli.ts";
-import { createExecuteContext } from "../parse/create-execute-context.ts";
+import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
-import { validate } from "../parse/validate-context/validate-context.ts";
+import { validate } from "../parse/validation/validate-context.ts";
 import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
 
 import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
@@ -67,7 +67,7 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
   const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
     if (!cliSchema._onExecute) throw new Error("Action is not defined");
-    const context = createExecuteContext(inputValues, cliSchema);
+    const context = buildObjectContext(inputValues, cliSchema);
     const validateResult = validate(context, cliSchema);
 
     if (cliSchema._onExecute) {

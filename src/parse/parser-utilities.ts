@@ -8,9 +8,12 @@ import type { Cli, Option, Subcommand } from "../types/definitions-types.ts";
  * @param subcommandArr - An array of `Subcommand` objects to search within.
  * @returns The matching `Subcommand` object if found; otherwise, `undefined`.
  */
-export function findSubcommandDefinition(subcommandName: string | undefined, cliDefinition: Cli) {
+export function findSubcommandDefinition(
+  subcommandName: string | undefined,
+  cliDefinition: Cli,
+): Subcommand | Cli | undefined {
   if (subcommandName === undefined) {
-    return cliDefinition as unknown as Subcommand;
+    return cliDefinition;
   }
 
   if (!cliDefinition.subcommands) {

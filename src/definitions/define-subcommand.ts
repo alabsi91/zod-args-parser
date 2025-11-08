@@ -1,5 +1,5 @@
-import { createExecuteContext } from "../parse/create-execute-context.ts";
-import { validate } from "../parse/validate-context/validate-context.ts";
+import { buildObjectContext } from "../parse/context/object-context-builder.ts";
+import { validate } from "../parse/validation/validate-context.ts";
 import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
 
 import type { Argument, Option, Subcommand } from "../types/definitions-types.ts";
@@ -45,7 +45,7 @@ export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T>
   const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
     if (!subcommandSchema._onExecute) throw new Error("Action is not defined");
-    const context = createExecuteContext(inputValues, subcommandSchema);
+    const context = buildObjectContext(inputValues, subcommandSchema);
     const validateResult = validate(context, subcommandSchema);
 
     if (subcommandSchema._onExecute) {

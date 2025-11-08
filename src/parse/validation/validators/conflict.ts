@@ -1,7 +1,7 @@
-import { isOptionOrArgumentExplicitlyPassed } from "./is-explicitly-passed.ts";
+import { isOptionOrArgumentExplicitlyPassed } from "./explicitly-passed.ts";
 
-import type { ContextWide } from "../../types/context-types.ts";
-import type { Argument, Option } from "../../types/definitions-types.ts";
+import type { ContextWide } from "../../../types/context-types.ts";
+import type { Argument, Option } from "../../../types/definitions-types.ts";
 
 interface ValidateConflictOptions {
   /** The option or argument name to check its `requires` */
@@ -52,12 +52,14 @@ export function validateConflictWith({ name, optionOrArgument, context, type }: 
 
   if (conflictedOptions.length > 0) {
     const formatted = conflictedOptions.map(o => `"${o}"`).join(", ");
-    parts.push(`option${conflictedOptions.length > 1 ? "s" : ""} ${formatted}`);
+    const s = conflictedOptions.length > 1 ? "s" : "";
+    parts.push(`option${s} ${formatted}`);
   }
 
   if (conflictedArguments.length > 0) {
     const formatted = conflictedArguments.map(a => `"${a}"`).join(", ");
-    parts.push(`argument${conflictedArguments.length > 1 ? "s" : ""} ${formatted}`);
+    const s = conflictedArguments.length > 1 ? "s" : "";
+    parts.push(`argument${s} ${formatted}`);
   }
 
   const joinedParts = parts.join(" and ");

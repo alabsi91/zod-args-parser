@@ -1,7 +1,7 @@
-import { isOptionOrArgumentExplicitlyPassed } from "./is-explicitly-passed.ts";
+import { isOptionOrArgumentExplicitlyPassed } from "./explicitly-passed.ts";
 
-import type { ContextWide } from "../../types/context-types.ts";
-import type { Argument, Option } from "../../types/definitions-types.ts";
+import type { ContextWide } from "../../../types/context-types.ts";
+import type { Argument, Option } from "../../../types/definitions-types.ts";
 
 interface ValidateExclusiveOptions {
   /** The option or argument name to check its `requires` */
@@ -54,12 +54,14 @@ export function validateExclusive({ name, optionOrArgument, context, type }: Val
 
   if (mutuallyExclusiveOptions.length > 0) {
     const formatted = mutuallyExclusiveOptions.map(o => `"${o}"`).join(", ");
-    parts.push(`option${mutuallyExclusiveOptions.length > 1 ? "s" : ""} ${formatted}`);
+    const s = mutuallyExclusiveOptions.length > 1 ? "s" : "";
+    parts.push(`option${s} ${formatted}`);
   }
 
   if (mutuallyExclusiveArguments.length > 0) {
     const formatted = mutuallyExclusiveArguments.map(a => `"${a}"`).join(", ");
-    parts.push(`argument${mutuallyExclusiveArguments.length > 1 ? "s" : ""} ${formatted}`);
+    const s = mutuallyExclusiveArguments.length > 1 ? "s" : "";
+    parts.push(`argument${s} ${formatted}`);
   }
 
   const joinedParts = parts.join(" and ");

@@ -1,4 +1,4 @@
-import type { ContextWide } from "../../types/context-types.ts";
+import type { ContextWide } from "../../../types/context-types.ts";
 
 export function isArgumentExplicitlyPassed(name: string, context: ContextWide) {
   if (!context.arguments) return false;

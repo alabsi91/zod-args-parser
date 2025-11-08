@@ -1,4 +1,4 @@
-import { transformOptionToArgument } from "../parse/parser-helpers.ts";
+import { transformOptionToArgument } from "../parse/parser-utilities.ts";
 import { defaultValueAndIsOptional, stringifyValue } from "../utilities.ts";
 
 import type { Option } from "../types/definitions-types.ts";
