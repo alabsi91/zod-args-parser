@@ -13,20 +13,20 @@ A strictly typed command-line arguments parser powered by schema validation.
 - [Usage](#usage)
 - [Guide](#guide)
   - [Subcommands](#subcommands)
-  - [Type Zod Schemas](#type-zod-schemas)
+  - [Type Schemas](#type-schemas)
   - [Options](#options)
   - [Arguments](#arguments)
   - [Positionals](#positionals)
-  - [Pre-Validation Hook](#pre-validation-hook)
   - [Help Message](#help-message)
   - [Zod Utilities](#zod-utilities)
-  - [Type Utilities](#type-utilities)
 - [API Reference](#api-reference)
   - [Type Utilities](#type-utilities)
+  - [Coerce Helpers](#coerce-helpers)
   - [Cli Definition](#cli-definition)
   - [Subcommand Definition](#subcommand-definition)
   - [Option Definition](#option-definition)
   - [Argument Definition](#argument-definition)
+  - [Help Message Options](#help-message-options)
 - [Example](#example)
 - [License](#license)
 
@@ -175,18 +175,23 @@ Here are some examples:
 
 #### Type Utilities
 
-- `InferInputType<T extends Cli | Subcommand>`  
-  Infer options, arguments, and positionals input types from the CLI/subcommand definition.
-- `InferOutputType<T extends Cli | Subcommand>`  
-  Infer options, arguments, and positionals output types from the CLI/subcommand definition.
-- `inferOptionsInputType<T extends Cli | Subcommand>`  
-  Infer options input type from the CLI/subcommand definition.
-- `inferOptionsOutputType<T extends Cli | Subcommand>`  
-  Infer options output type from the CLI/subcommand definition.
-- `inferArgumentsInputType<T extends Cli | Subcommand>`  
-  Infer arguments input type from the CLI/subcommand definition.
-- `inferArgumentsOutputType<T extends Cli | Subcommand>`  
-  Infer arguments output type from the CLI/subcommand definition.
+**`InferInputType<T extends Cli | Subcommand>`**  
+Infer options, arguments, and positionals input types from the CLI/subcommand definition.
+
+**`InferOutputType<T extends Cli | Subcommand>`**  
+Infer options, arguments, and positionals output types from the CLI/subcommand definition.
+
+**`InferOptionsInputType<T extends Cli | Subcommand>`**  
+Infer options input type from the CLI/subcommand definition.
+
+**`InferOptionsOutputType<T extends Cli | Subcommand>`**  
+Infer options output type from the CLI/subcommand definition.
+
+**`InferArgumentsInputType<T extends Cli | Subcommand>`**  
+Infer arguments input type from the CLI/subcommand definition.
+
+**`InferArgumentsOutputType<T extends Cli | Subcommand>`**  
+Infer arguments output type from the CLI/subcommand definition.
 
 ```ts
 import type { defineSubcommand, InferInputType, InferOutputType } from "zod-args-parser";
@@ -198,6 +203,19 @@ const subcommand = defineSubcommand({
 type InputType = InferInputType<typeof subcommand>;
 type OutputType = InferOutputType<typeof subcommand>;
 ```
+
+#### Coerce Helpers
+
+- `coerce.string`
+- `coerce.number`
+- `coerce.boolean`
+- `coerce.stringArray(separator: string)`
+- `coerce.numberArray(separator: string)`
+- `coerce.booleanArray(separator: string)`
+- `coerce.stringSet(separator: string)`
+- `coerce.numberSet(separator: string)`
+- `coerce.booleanSet(separator: string)`
+- `coerce.json<T>()`
 
 #### Cli Definition
 
@@ -279,6 +297,30 @@ type OutputType = InferOutputType<typeof subcommand>;
 | `name?`     | `string`  | Override the argument name in the help message and documentation.                              |
 | `default?`  | `string`  | Custom default value shown in docs/help. Use an empty string to intentionally show no default. |
 | `optional?` | `boolean` | Override whether this argument is considered optional in the generated help documentation.     |
+
+#### Help Message Options
+
+| Option                  | Type                   | Default                     | Description                                                                         |
+| ----------------------- | ---------------------- | --------------------------- | ----------------------------------------------------------------------------------- |
+| style                   | `HelpMessageStyle`     | `helpMessageStyles.default` | The style to use for the help message.                                              |
+| kebabCaseArgumentName   | `boolean`              | `true`                      | Whether to transform the argument (not option) name to kebab case.                  |
+| markdownRenderer        | `"terminal" \| "html"` | `"terminal"`                | The renderer to use for the markdown.                                               |
+| indentBeforeName        | `number`               | `2`                         | The number of spaces before the name of option/argument/subcommand.                 |
+| indentAfterName         | `number`               | `4`                         | Spaces after the name, between the name and description (space between columns).    |
+| indentBeforePlaceholder | `number`               | `1`                         | The number of spaces to put before the placeholder.                                 |
+| newLineIndent           | `number`               | `0`                         | Spaces before a new line for description or example under description.              |
+| emptyLines              | `number`               | `0`                         | Number of empty lines between lines.                                                |
+| emptyLinesBeforeTitle   | `number`               | `1`                         | Number of empty lines before the title.                                             |
+| emptyLinesAfterTitle    | `number`               | `0`                         | Number of empty lines after the title.                                              |
+| exampleKeyword          | `string`               | `"Example:"`                | The keyword to use for examples.                                                    |
+| optionalKeyword         | `string`               | `"(optional)"`              | The keyword to use for optional values.                                             |
+| defaultKeyword          | `string`               | `"(default: {{ value }})"`  | The keyword to indicate default values, with `{{ value }}` replaced by the default. |
+| usageTitle              | `string`               | `"USAGE"`                   | The title to use for the usage section.                                             |
+| descriptionTitle        | `string`               | `"DESCRIPTION"`             | The title to use for the description section.                                       |
+| commandsTitle           | `string`               | `"COMMANDS"`                | The title to use for the commands section.                                          |
+| optionsTitle            | `string`               | `"OPTIONS"`                 | The title to use for the options section.                                           |
+| argumentsTitle          | `string`               | `"ARGUMENTS"`               | The title to use for the arguments section.                                         |
+| exampleTitle            | `string`               | `"EXAMPLE"`                 | The title to use for the examples section.                                          |
 
 ## Example
 

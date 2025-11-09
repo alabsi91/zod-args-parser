@@ -60,6 +60,16 @@ describe("Testing Arguments Utils".padEnd(spaceToColumn + spaceColumnEnd + 2), (
     assert.deepEqual(parseArgv(input), ["a", "b c", "d\\", "e", "f g"]);
   });
 
+  test("double quotes has single quotes".padEnd(spaceToColumn), () => {
+    const input = `"hello 'world'"`;
+    assert.deepEqual(parseArgv(input), ["hello 'world'"]);
+  });
+
+  test("single quotes has double quotes".padEnd(spaceToColumn), () => {
+    const input = `'hello "world"'`;
+    assert.deepEqual(parseArgv(input), ["hello \"world\""]);
+  });
+
   test("options like --flag and -x".padEnd(spaceToColumn), () => {
     const input = "--verbose -x file";
     assert.deepEqual(parseArgv(input), ["--verbose", "-x", "file"]);

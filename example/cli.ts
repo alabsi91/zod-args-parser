@@ -52,9 +52,8 @@ export const listyCLI = defineCLI({
 
   arguments: {
     list: {
-      requires: ["help"],
       schema: z.array(z.string()).default(["value"]),
-      coerce: coerce.stringArray(","),
+      coerce: coerce.json<string[]>(),
       meta: {
         description: "List name.",
       },

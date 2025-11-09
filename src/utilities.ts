@@ -181,7 +181,11 @@ export function parseArgv(input: string): string[] {
         continue;
       }
 
-      // error
+      // quote inside quote
+      if (currentQuote !== undefined && char !== currentQuote) {
+        currentArgument += char;
+        continue;
+      }
       continue;
     }
 
