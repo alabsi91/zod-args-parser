@@ -43,7 +43,7 @@ A strictly typed command-line arguments parser powered by schema validation.
 ## Installation
 
 > [!IMPORTANT]  
-> A validation library is needed that supports **StandardSchemaV1** like `zod`, `arktype`, `yup`, `valibot`.
+> A validation library is required that supports **StandardSchemaV1** and allows primitive types to be optional or have default values.
 
 ```bash
 npm install zod zod-args-parser
@@ -51,11 +51,11 @@ npm install zod zod-args-parser
 
 ## Usage
 
-The following example is using `zod` as the validation library but you can use any validation library that supports **StandardSchemaV1** as long as its support optional and default values for primitive types.
+The following example uses `zod` as the validation library, but you can use any library that supports **StandardSchemaV1**, as long as it allows primitive types to be optional or have default values.
 
 ```ts
-import { defineCLI, coerce } from "zod-args-parser";
 import * as z from "zod";
+import { defineCLI, coerce } from "zod-args-parser";
 
 // Define the CLI program (main command)
 const listyCLI = defineCLI({
@@ -118,14 +118,23 @@ if (results.error) {
 
 ### Type Schemas
 
-Other validation libraries can be used as long as they support **StandardSchemaV1** and allows for optional and default values for primitive types.
+Other validation libraries can be used as long as they support **StandardSchemaV1** and allow primitive types to be optional or have default values.
 
-| Vendor   | optional string          | string with default               |
-| -------- | ------------------------ | --------------------------------- |
-| Zod      | `z.string().optional()`  | `z.string().default("value")`     |
-| Valibot  | `v.optional(v.string())` | `v.optional(v.string(), "value")` |
-| Decoders | `d.optional(v.string())` | `d.optional(v.string(), "value")` |
-| Sury     | `S.optional(v.string())` | `S.optional(v.string(), "value")` |
+Here are some examples:
+
+| Vendor   | `string?`                | `string="value"`                  | coerce          |
+| -------- | ------------------------ | --------------------------------- | --------------- |
+| Zod      | `z.string().optional()`  | `z.string().default("value")`     | `coerce.string` |
+| Valibot  | `v.optional(v.string())` | `v.optional(v.string(), "value")` | `coerce.string` |
+| Decoders | `d.optional(v.string())` | `d.optional(v.string(), "value")` | `coerce.string` |
+| Sury     | `S.optional(v.string())` | `S.optional(v.string(), "value")` | `coerce.string` |
+
+| Vendor   | `string[]?`                       | `string[]=["value"]`                         | coerce                    |
+| -------- | --------------------------------- | -------------------------------------------- | ------------------------- |
+| Zod      | `z.array(z.string()).optional()`  | `z.array(z.string()).default(["value"])`     | `coerce.stringArray(",")` |
+| Valibot  | `v.optional(v.array(v.string()))` | `v.optional(v.array(v.string()), ["value"])` | `coerce.stringArray(",")` |
+| Decoders | `d.optional(d.array(d.string))`   | `d.optional(d.array(d.string), ["value"])`   | `coerce.stringArray(",")` |
+| Sury     | `S.optional(S.array(S.string))`   | `S.optional(S.array(S.string), ["value"])`   | `coerce.stringArray(",")` |
 
 ### Options
 
@@ -234,15 +243,15 @@ type OutputType = InferOutputType<typeof subcommand>;
 
 #### Option Definition
 
-| Property        | Type                         | Description                                                                                                                                                   |
-| --------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aliases?`      | `string[]`                   | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                                                        |
-| `schema`        | `Schema`                     | A schema to validate the user input. Use an object schema with the key `value` to specify the type (e.g., Zod: `z.object({ value: z.string().optional() })`). |
-| `coerce`        | `(input: string) => unknown` | Coercion function used to convert terminal `string` input to the schema's expected type. Use provided `coerce` helpers.                                       |
-| `exclusive?`    | `boolean`                    | When `true`, this option must appear on its own (except for entries listed in `requires`). Defaults to `false`.                                               |
-| `requires?`     | `string[]`                   | Names of other options/arguments that must be explicitly provided when this option is used (defaults do not satisfy this requirement).                        |
-| `conflictWith?` | `string[]`                   | Names of other options/arguments that conflict with this option; supplying both results in an error. Defaults do not trigger conflicts.                       |
-| `meta?`         | `OptionMeta`                 | Metadata used for help messages and documentation generation. Inlined in the table below.                                                                     |
+| Property        | Type                         | Description                                                                                                                              |
+| --------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `aliases?`      | `string[]`                   | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                                   |
+| `schema`        | `Schema`                     | A schema to validate the user input. Use an object schema with the key `value` to specify the type (e.g., Zod: `z.string().optional()`). |
+| `coerce`        | `(input: string) => unknown` | Coercion function used to convert terminal `string` input to the schema's expected type. Use provided `coerce` helpers.                  |
+| `exclusive?`    | `boolean`                    | When `true`, this option must appear on its own (except for entries listed in `requires`).                                               |
+| `requires?`     | `string[]`                   | Names of other options/arguments that must be explicitly provided when this option is used.                                              |
+| `conflictWith?` | `string[]`                   | Names of other options/arguments that conflict with this option.                                                                         |
+| `meta?`         | `OptionMeta`                 | Metadata used for help messages and documentation generation. Inlined in the table below.                                                |
 
 **OptionMeta**
 
@@ -254,14 +263,14 @@ type OutputType = InferOutputType<typeof subcommand>;
 
 #### Argument Definition
 
-| Property        | Type                | Description                                                                                                                             |
-| --------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `schema`        | `Schema`            | Schema to validate the user input. Use an object schema with the key `value` to specify the type.                                       |
-| `coerce`        | `CoerceMethod<...>` | Coercion function used to convert string input to the schema's output type.                                                             |
-| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).                                              |
-| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used. Defaults do not satisfy this requirement. |
-| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument; supplying both results in an error.                                  |
-| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.                                               |
+| Property        | Type                | Description                                                                                       |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
+| `schema`        | `Schema`            | Schema to validate the user input. Use an object schema with the key `value` to specify the type. |
+| `coerce`        | `CoerceMethod<...>` | Coercion function used to convert string input to the schema's output type.                       |
+| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).        |
+| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used.     |
+| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument.                                |
+| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.         |
 
 **ArgumentMeta**
 

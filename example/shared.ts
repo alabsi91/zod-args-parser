@@ -1,5 +1,5 @@
-import { defineArguments, defineOptions, coerce } from "zod-args-parser";
 import * as z from "zod";
+import { defineArguments, defineOptions, coerce } from "zod-args-parser";
 
 export const sharedOptions = defineOptions({
   verbose: {

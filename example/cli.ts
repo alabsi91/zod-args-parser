@@ -49,11 +49,25 @@ export const listyCLI = defineCLI({
       },
     },
   },
+
+  arguments: {
+    list: {
+      requires: ["help"],
+      schema: z.array(z.string()).default(["value"]),
+      coerce: coerce.stringArray(","),
+      meta: {
+        description: "List name.",
+      },
+    },
+  },
 });
 
 // Execute this function when the CLI is run
 listyCLI.onExecute(results => {
   const { help, version } = results.options;
+  const { list } = results.arguments;
+  //         ^?
+  console.log("list :", list);
 
   if (help) {
     if (!listyCLI.formatCliHelpMessage) {
