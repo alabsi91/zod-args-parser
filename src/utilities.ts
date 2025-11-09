@@ -283,7 +283,7 @@ export function stripAnsi(string: string): string {
   return string.replace(regex, "");
 }
 
-export function findDuplicateStrings(values: string[]): string[] {
+export function findDuplicateStrings(values: readonly string[]): string[] {
   const seen = new Set<string>();
   const duplicates = new Set<string>();
 

@@ -1,5 +1,5 @@
-import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
-import { getOptionsMetadata } from "./get-options-metadata.ts";
+import { getArgumentsMetadata } from "./arguments-metadata.ts";
+import { getOptionsMetadata } from "./options-metadata.ts";
 
 import type { Subcommand } from "../types/definitions-types.ts";
 import type { SubcommandMetadata } from "../types/metadata-types.ts";

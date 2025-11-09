@@ -1,6 +1,6 @@
-import { getArgumentsMetadata } from "./get-arguments-metadata.ts";
-import { getOptionsMetadata } from "./get-options-metadata.ts";
-import { getSubcommandsMetadata } from "./get-subcommands-metadata.ts";
+import { getArgumentsMetadata } from "./arguments-metadata.ts";
+import { getOptionsMetadata } from "./options-metadata.ts";
+import { getSubcommandsMetadata } from "./subcommands-metadata.ts";
 
 import type { Cli } from "../types/definitions-types.ts";
 import type { CliMetadata } from "../types/metadata-types.ts";

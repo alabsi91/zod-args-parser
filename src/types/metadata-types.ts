@@ -2,103 +2,103 @@ import type { SchemaType } from "./schema-types.ts";
 
 export interface MetadataBase {
   /** Empty string if not provided */
-  readonly description: string;
+  description: string;
 
   /** Empty string if not provided */
-  readonly descriptionMarkdown: string;
+  descriptionMarkdown: string;
 
   /** Empty string if not provided */
-  readonly example: string;
+  example: string;
 
   /** Whether the metadata is hidden from the documentation. */
-  readonly hidden: boolean;
+  hidden: boolean;
 }
 
 export interface CliMetadata extends Omit<MetadataBase, "hidden"> {
   /** The name of the cli program. */
-  readonly name: string;
+  name: string;
 
   /** Empty string if not provided */
-  readonly usage: string;
+  usage: string;
 
   /** Whether the cli program allows positionals arguments. */
-  readonly allowPositionals: boolean;
+  allowPositionals: boolean;
 
   /** Empty array if not provided */
-  readonly options: OptionMetadata[];
+  options: OptionMetadata[];
 
   /** Empty array if not provided */
-  readonly arguments: ArgumentMetadata[];
+  arguments: ArgumentMetadata[];
 
   /** Empty array if not provided */
-  readonly subcommands: SubcommandMetadata[];
+  subcommands: SubcommandMetadata[];
 }
 
 export interface SubcommandMetadata extends MetadataBase {
   /** The subcommand name. */
-  readonly name: string;
+  name: string;
 
   /** Empty array if not provided */
-  readonly aliases: string[];
+  aliases: string[];
 
   /** Empty string if not provided */
-  readonly placeholder: string;
+  placeholder: string;
 
   /** Empty string if not provided */
-  readonly usage: string;
+  usage: string;
 
   /** Whether the subcommand allows positionals arguments. */
-  readonly allowPositionals: boolean;
+  allowPositionals: boolean;
 
   /** Empty array if not provided */
-  readonly options: OptionMetadata[];
+  options: OptionMetadata[];
 
   /** Empty array if not provided */
-  readonly arguments: ArgumentMetadata[];
+  arguments: ArgumentMetadata[];
 }
 
 export interface OptionMetadata extends MetadataBase {
   /** The option name. */
-  readonly name: string;
+  name: string;
 
   /** The option name as argument. E.g. `--option-name` */
-  readonly nameAsArg: string;
+  nameAsArg: string;
 
   /** Empty array if not provided. */
-  readonly aliases: string[];
+  aliases: string[];
 
   /** Empty array if not provided. E.g. `[--alias-name, ...]` */
-  readonly aliasesAsArgs: string[];
+  aliasesAsArgs: string[];
 
   /** Empty string if not provided */
-  readonly placeholder: string;
+  placeholder: string;
 
   /** The default value of the option. */
-  readonly defaultValue: unknown;
+  defaultValue: unknown;
 
   /** Empty string if not provided. */
-  readonly defaultValueAsString: string;
+  defaultValueAsString: string;
 
   /** Is optional. */
-  readonly optional: boolean;
+  optional: boolean;
 
   /** Standard Schema V1. */
-  readonly schema: SchemaType;
+  schema: SchemaType;
 }
 
 export interface ArgumentMetadata extends MetadataBase {
   /** The argument name. */
-  readonly name: string;
+  name: string;
 
   /** The default value of the argument. */
-  readonly defaultValue: unknown;
+  defaultValue: unknown;
 
   /** The default value of the argument as string. */
-  readonly defaultValueAsString: string;
+  defaultValueAsString: string;
 
   /** Is optional. */
-  readonly optional: boolean;
+  optional: boolean;
 
   /** Standard Schema V1. */
-  readonly schema: SchemaType;
+  schema: SchemaType;
 }

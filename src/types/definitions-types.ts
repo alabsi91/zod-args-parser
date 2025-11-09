@@ -14,10 +14,10 @@ export interface PreparedType {
 // Derived from `Subcommand`
 export interface Cli extends Omit<Subcommand, "name" | "aliases" | "meta"> {
   /** The name of the CLI program (main command). */
-  readonly cliName: string;
+  cliName: string;
 
   /** Array of subcommands. Do not pass them directly instead use `defineSubcommand` */
-  subcommands?: readonly [Subcommand, ...Subcommand[]];
+  subcommands?: [Subcommand, ...Subcommand[]];
 
   /** The metadata for the CLI. */
   meta?: Omit<SubcommandMeta, "placeholder" | "hidden">;
@@ -77,7 +77,7 @@ export interface Subcommand {
    *   name: "test-app";
    *   name: "run-app";
    */
-  readonly name: string;
+  name: string;
 
   /**
    * A list of aliases that can be used to invoke this subcommand.
@@ -268,6 +268,7 @@ export interface ArgumentMeta extends MetaBase {
   /** Override the argument name in the help message and documentation. */
 
   name?: string;
+
   /**
    * Custom default value.
    *

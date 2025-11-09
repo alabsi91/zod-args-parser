@@ -7,10 +7,10 @@ export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/pow
 export { generateZshAutocompleteScript } from "./autocomplete-scripts/zsh-autocomplete-script.ts";
 export { generateMarkdown } from "./markdown/generate-markdown.ts";
 
-export { getArgumentsMetadata } from "./metadata/get-arguments-metadata.ts";
-export { getCliMetadata } from "./metadata/get-cli-metadata.ts";
-export { getOptionsMetadata } from "./metadata/get-options-metadata.ts";
-export { getSubcommandsMetadata } from "./metadata/get-subcommands-metadata.ts";
+export { getArgumentsMetadata } from "./metadata/arguments-metadata.ts";
+export { getCliMetadata } from "./metadata/cli-metadata.ts";
+export { getOptionsMetadata } from "./metadata/options-metadata.ts";
+export { getSubcommandsMetadata } from "./metadata/subcommands-metadata.ts";
 
 export { defineArguments } from "./definitions/define-arguments.ts";
 export { defineCLI } from "./definitions/define-cli.ts";

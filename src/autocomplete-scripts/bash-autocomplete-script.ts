@@ -16,6 +16,7 @@ export function generateBashAutocompleteScript(cliDefinition: Cli): string {
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
   const mappedCommands: MappedCommands = {};
+
   for (const subcommand of subcommands) {
     mappedCommands[subcommand.name] = {
       options: subcommand.options ? Object.keys(subcommand.options).map(key => transformOptionToArgument(key)) : [],

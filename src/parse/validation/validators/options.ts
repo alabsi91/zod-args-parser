@@ -13,6 +13,7 @@ interface ValidateOptions {
   output: OutputTypeWide;
 }
 
+/** @throws {Error} */
 export function validateOptions({ commandDefinition, context, output }: ValidateOptions) {
   if (!context.options) return;
 
@@ -20,7 +21,7 @@ export function validateOptions({ commandDefinition, context, output }: Validate
 
   const optionsDefinition = commandDefinition.options;
   if (!optionsDefinition) {
-    throw new Error(`Subcommand "${context.subcommand}" does not have options`);
+    throw new Error(`subcommand "${context.subcommand}" does not have options`);
   }
 
   for (const [optionName, option] of Object.entries(optionsDefinition)) {
@@ -34,7 +35,7 @@ export function validateOptions({ commandDefinition, context, output }: Validate
   for (const [optionName, { passedValue, stringValue, flag, source, schema }] of optionContextEntries) {
     const option = optionsDefinition[optionName];
     if (!option) {
-      throw new Error(`Subcommand "${context.subcommand}" does not have option "${optionName}"`);
+      throw new Error(`subcommand "${context.subcommand}" does not have option "${optionName}"`);
     }
 
     if (!option._preparedType) {
@@ -49,7 +50,7 @@ export function validateOptions({ commandDefinition, context, output }: Validate
 
     if (safeParseResult.issues) {
       throw new Error(
-        `Invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
+        `invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
       );
     }
 

@@ -13,6 +13,7 @@ interface ValidateArgument {
   output: OutputTypeWide;
 }
 
+/** @throws {Error} */
 export function validateArguments({ commandDefinition, context, output }: ValidateArgument) {
   if (!context.arguments) return;
 

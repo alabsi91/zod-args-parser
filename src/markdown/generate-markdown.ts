@@ -1,4 +1,4 @@
-import { getCliMetadata } from "../metadata/get-cli-metadata.ts";
+import { getCliMetadata } from "../metadata/cli-metadata.ts";
 import { escapeHtmlTags, stripAnsi } from "../utilities.ts";
 
 import type { Cli } from "../types/definitions-types.ts";
