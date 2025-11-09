@@ -5,7 +5,7 @@ import type { CoerceMethod } from "./types/types.ts";
 
 /** @throws */
 export function validateSync(schema: SchemaType, value?: unknown): SchemaResult {
-  const results = schema["~standard"].validate(value === undefined ? {} : { value });
+  const results = schema["~standard"].validate(value);
   if (results instanceof Promise) {
     throw new TypeError("async schema validation not supported");
   }
@@ -20,7 +20,7 @@ export function defaultValueAndIsOptional(schema: SchemaType): { defaultValue: u
     return { defaultValue: undefined, optional: false };
   }
 
-  return { defaultValue: results.value.value, optional: true };
+  return { defaultValue: results.value, optional: true };
 }
 
 export function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unknown>): PreparedType {
@@ -35,22 +35,12 @@ export function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unkn
   };
 }
 
-export function prepareOptionsTypes(options: Record<string, Option> | undefined) {
-  if (!options) return;
+export function prepareDefinitionTypes(definition: Record<string, Argument> | Record<string, Option> | undefined) {
+  if (!definition) return;
 
-  for (const option of Object.values(options)) {
-    if (!option._preparedType) {
-      option._preparedType = PrepareType(option.type, option.coerce);
-    }
-  }
-}
-
-export function prepareArgumentsTypes(arguments_: Record<string, Argument> | undefined) {
-  if (!arguments_) return;
-
-  for (const argument of Object.values(arguments_)) {
-    if (!argument._preparedType) {
-      argument._preparedType = PrepareType(argument.type, argument.coerce);
+  for (const object of Object.values<Argument | Option>(definition)) {
+    if (!object._preparedType) {
+      object._preparedType = PrepareType(object.schema, object.coerce);
     }
   }
 }

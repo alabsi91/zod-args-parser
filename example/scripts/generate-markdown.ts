@@ -1,9 +1,9 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { generateMarkdown } from "typed-arg-parser";
+import { generateMarkdown } from "zod-args-parser";
 
-import { listCli } from "../cli.ts";
+import { listyCLI } from "../cli.ts";
 
-const markdown = generateMarkdown(listCli);
+const markdown = generateMarkdown(listyCLI);
 
 writeFileSync(path.join(import.meta.dirname, "..", "README.md"), markdown, { encoding: "utf8" });

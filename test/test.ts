@@ -20,7 +20,7 @@ describe("-h, --help (default: false)".padEnd(spaceToColumn + spaceColumnEnd + 2
     options: {
       help: {
         aliases: ["h"],
-        type: z.object({ value: z.boolean().default(false) }),
+        schema: z.boolean().default(false),
         coerce: coerce.boolean,
       },
     },
@@ -45,7 +45,7 @@ describe("-n, --number (optional: number)".padEnd(spaceToColumn + spaceColumnEnd
     options: {
       number: {
         aliases: ["n"],
-        type: z.object({ value: z.number().optional() }),
+        schema: z.number().optional(),
         coerce: coerce.number,
       },
     },
@@ -70,7 +70,7 @@ describe("-n, --number (default: 0.1)".padEnd(spaceToColumn + spaceColumnEnd + 2
     options: {
       number: {
         aliases: ["n"],
-        type: z.object({ value: z.number().default(0.1) }),
+        schema: z.number().default(0.1),
         coerce: coerce.number,
       },
     },
@@ -95,7 +95,7 @@ describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd
     options: {
       string: {
         aliases: ["s"],
-        type: z.object({ value: z.string().optional() }),
+        schema: z.string().optional(),
         coerce: coerce.string,
       },
     },
@@ -120,7 +120,7 @@ describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceCol
     options: {
       string: {
         aliases: ["s"],
-        type: z.object({ value: z.string().default("hello world") }),
+        schema: z.string().default("hello world"),
         coerce: coerce.string,
       },
     },
@@ -146,10 +146,10 @@ describe("-abcd, booleans flags".padEnd(spaceToColumn + spaceColumnEnd + 2), () 
   const cli = defineCLI({
     cliName: "test-cli",
     options: {
-      a: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
-      b: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
-      c: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
-      d: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
+      a: { schema: z.boolean(), coerce: coerce.boolean },
+      b: { schema: z.boolean(), coerce: coerce.boolean },
+      c: { schema: z.boolean(), coerce: coerce.boolean },
+      d: { schema: z.boolean(), coerce: coerce.boolean },
     },
   });
 

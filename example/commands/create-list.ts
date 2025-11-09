@@ -1,5 +1,5 @@
-import { coerce, defineSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineSubcommand, type InferArgumentsInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -16,7 +16,7 @@ const createListCommand = defineSubcommand({
   options: {
     overwrite: {
       aliases: ["o"],
-      type: z.object({ value: z.boolean().default(false) }),
+      schema: z.boolean().default(false),
       coerce: coerce.boolean,
       meta: {
         description: "Overwrite the list if it already exists.",
@@ -27,14 +27,14 @@ const createListCommand = defineSubcommand({
 
   arguments: {
     listName: {
-      type: z.object({ value: z.string() }),
+      schema: z.string(),
       coerce: coerce.string,
       meta: {
         description: "The name of the list to create.",
       },
     },
     listDescription: {
-      type: z.object({ value: z.string().optional() }),
+      schema: z.string().optional(),
       coerce: coerce.string,
       meta: {
         description: "The description of the list to create.",

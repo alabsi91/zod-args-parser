@@ -1,17 +1,17 @@
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
+import { prepareDefinitionTypes } from "../utilities.ts";
 
 import type { Argument, Option, Subcommand } from "../types/definitions-types.ts";
 import type { AttachedMethods, AttachedMethodsWide } from "../types/types.ts";
 import type { Prettify } from "../types/utilities-types.ts";
 
 type OptionsInput<T extends Record<string, Option>> = {
-  [OptionName in keyof T]: Option<T[OptionName]["type"]>;
+  [OptionName in keyof T]: Option<T[OptionName]["schema"]>;
 };
 
 type ArgumentsInput<T extends Record<string, Argument>> = {
-  [ArgumentName in keyof T]: Argument<T[ArgumentName]["type"]>;
+  [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]>;
 };
 
 // This will prevent extra keys and enable jsdoc on hover
@@ -28,8 +28,8 @@ type SubcommandInput<T extends Subcommand> = {
 export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T> & Subcommand) {
   const subcommandSchema = input as Prettify<T & AttachedMethods<T>>;
 
-  prepareOptionsTypes(subcommandSchema.options);
-  prepareArgumentsTypes(subcommandSchema.arguments);
+  prepareDefinitionTypes(subcommandSchema.options);
+  prepareDefinitionTypes(subcommandSchema.arguments);
 
   const onExecute = (handler: (Subcommand["_onExecute"] & {})[number]) => {
     subcommandSchema._onExecute ??= [];

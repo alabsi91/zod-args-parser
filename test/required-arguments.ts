@@ -8,9 +8,9 @@ import { err, expectsFailure, expectsSuccess, spaceColumnEnd, spaceToColumn } fr
 const cli = defineCLI({
   cliName: "test-cli",
   arguments: {
-    booleanArg: { type: z.object({ value: z.boolean() }), coerce: coerce.boolean },
-    stringArg: { type: z.object({ value: z.string() }), coerce: coerce.string },
-    numberArg: { type: z.object({ value: z.number() }), coerce: coerce.number },
+    booleanArg: { schema: z.boolean(), coerce: coerce.boolean },
+    stringArg: { schema: z.string(), coerce: coerce.string },
+    numberArg: { schema: z.number(), coerce: coerce.number },
   },
 });
 

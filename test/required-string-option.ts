@@ -10,7 +10,7 @@ const cli = defineCLI({
   options: {
     string: {
       aliases: ["s"],
-      type: z.object({ value: z.string() }),
+      schema: z.string(),
       coerce: coerce.string,
     },
   },

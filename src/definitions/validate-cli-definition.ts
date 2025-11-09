@@ -96,8 +96,8 @@ function validateOptions(commandDefinition: Cli | Subcommand) {
 
   for (const [name, option] of optionsDefinitionEntries) {
     // required type
-    if (!option.type) {
-      throw createError(`the option "${name}" missing a required property: "type".`);
+    if (!option.schema) {
+      throw createError(`the option "${name}" missing a required property: "schema".`);
     }
 
     // should not happen
@@ -233,8 +233,8 @@ function validateArguments(commandDefinition: Cli | Subcommand) {
       }
 
       // no missing type
-      if (!argument.type) {
-        throw createError(`the argument "${name}" missing a required property: "type".`);
+      if (!argument.schema) {
+        throw createError(`the argument "${name}" missing a required property: "schema".`);
       }
 
       // no conflicting option

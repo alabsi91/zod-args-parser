@@ -1,12 +1,12 @@
 {
-  "name": "typed-arg-parser",
-  "version": "1.0.0-alpha.0",
+  "name": "zod-args-parser",
+  "version": "2.0.0-alpha.0",
   "description": "A TypeScript-first CLI argument parser with schema-based validation.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alabsi91/typed-arg-parser.git"
+    "url": "https://github.com/alabsi91/zod-args-parser.git"
   },
   "type": "module",
   "scripts": {
@@ -38,10 +38,13 @@
     "typescript"
   ],
   "devDependencies": {
+    "@arrirpc/schema": "^0.80.3",
     "@eslint/js": "^9.39.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/node": "^24.10.0",
     "@typescript/native-preview": "^7.0.0-dev.20251104.1",
+    "decoders": "^2.7.5",
+    "effect": "^3.19.3",
     "esbuild": "^0.25.12",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -54,11 +57,15 @@
     "terser": "^5.44.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
+    "unhoax": "^0.12.6",
+    "valibot": "^1.1.0",
+    "yup": "^1.7.1",
     "zod": "^4.1.12"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
     "chalk": "^5.6.2",
-    "marked": "^17.0.0"
+    "marked": "^17.0.0",
+    "sury": "^11.0.0-alpha.4"
   }
 }

@@ -4,9 +4,9 @@ import {
   generateBashAutocompleteScript,
   generatePowerShellAutocompleteScript,
   generateZshAutocompleteScript,
-} from "typed-arg-parser";
+} from "zod-args-parser";
 
-import { listCli } from "../cli.ts";
+import { listyCLI } from "../cli.ts";
 
 const outdir = path.join(import.meta.dirname, "..", "autocomplete-scripts");
 
@@ -17,7 +17,7 @@ const outdir = path.join(import.meta.dirname, "..", "autocomplete-scripts");
   - Add the following line: `source <path to listy-autocomplete.sh>`
   - Save and reopen bash to take effect
 */
-const bashScript = generateBashAutocompleteScript(listCli);
+const bashScript = generateBashAutocompleteScript(listyCLI);
 writeFileSync(path.join(outdir, "bash-autocomplete.sh"), bashScript, { encoding: "utf8" });
 
 /*
@@ -29,7 +29,7 @@ writeFileSync(path.join(outdir, "bash-autocomplete.sh"), bashScript, { encoding:
     - Add the following line: `. "<path to listy-autocomplete.ps1>"`
     - Save and reopen powershell to take effect
 */
-const powershellScript = generatePowerShellAutocompleteScript(listCli);
+const powershellScript = generatePowerShellAutocompleteScript(listyCLI);
 writeFileSync(path.join(outdir, "powershell-autocomplete.ps1"), powershellScript, { encoding: "utf8" });
 
 /**
@@ -40,5 +40,5 @@ writeFileSync(path.join(outdir, "powershell-autocomplete.ps1"), powershellScript
  *   - Add the following line: `source <generated script path>`
  *   - Save and reopen zsh to take effect
  */
-const zshScript = generateZshAutocompleteScript(listCli);
+const zshScript = generateZshAutocompleteScript(listyCLI);
 writeFileSync(path.join(outdir, "zsh-autocomplete.zsh"), zshScript, { encoding: "utf8" });

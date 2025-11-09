@@ -176,10 +176,10 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    *   libraries support **optional** and **default values** for primitive types.
    *
    * @example
-   *   type: z.object({ value: z.string().optional() }); // Zod
+   *   type: z.string().optional(); // Zod
    *   type: type({ "value?": "string" }); // ArkType
    */
-  type: Schema;
+  schema: Schema;
 
   /**
    * Since the terminal input is a string, we need to coerce it.
@@ -190,10 +190,10 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    * - The output type of the `coerce` method should match the output type of the schema.
    *
    * @example
-   *   type: z.object({ value: z.boolean() });
+   *   type: z.boolean();
    *   coerce: coerce.boolean;
    *
-   *   type: z.object({ value: z.string().array() });
+   *   type: z.string().array();
    *   coerce: coerce.stringArray(",");
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
@@ -282,7 +282,7 @@ export interface ArgumentMeta extends MetaBase {
 
 export interface Argument<Schema extends SchemaType = SchemaType> {
   /** The schema to validate the user input. */
-  type: Schema;
+  schema: Schema;
 
   /**
    * Since the terminal input is a string, we need to coerce it.
@@ -293,7 +293,7 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
    * - The output type of the `coerce` method should match the output type of the schema.
    *
    * @example
-   *   type: z.object({ value: z.boolean() });
+   *   type: z.boolean();
    *   coerce: coerce.boolean;
    */
   coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;

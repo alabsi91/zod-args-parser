@@ -9,7 +9,7 @@ export function getArgumentsMetadata(argumentsDefinition: Record<string, Argumen
   for (const [name, argument] of Object.entries(argumentsDefinition)) {
     const meta = argument.meta ?? {};
 
-    const { optional, defaultValue } = argument._preparedType ?? defaultValueAndIsOptional(argument.type);
+    const { optional, defaultValue } = argument._preparedType ?? defaultValueAndIsOptional(argument.schema);
 
     outputMetadata.push({
       name: meta.name ?? name,
@@ -19,7 +19,7 @@ export function getArgumentsMetadata(argumentsDefinition: Record<string, Argumen
       defaultValueAsString: meta.default ?? stringifyValue(defaultValue) ?? "",
       optional: meta.optional ?? optional,
       example: meta.example ?? "",
-      schema: argument.type,
+      schema: argument.schema,
       hidden: meta.hidden ?? false,
     });
   }

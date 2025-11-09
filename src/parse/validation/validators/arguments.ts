@@ -54,6 +54,6 @@ export function validateArguments({ commandDefinition, context, output }: Valida
       );
     }
 
-    output.arguments[name] = safeParseResult.value.value;
+    output.arguments[name] = safeParseResult.value;
   }
 }

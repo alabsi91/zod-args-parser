@@ -2,7 +2,7 @@ import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-messa
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { prepareArgumentsTypes, prepareOptionsTypes } from "../utilities.ts";
+import { prepareDefinitionTypes } from "../utilities.ts";
 
 import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
 import type { PrintHelpOptions } from "../types/help-message-types.ts";
@@ -10,11 +10,11 @@ import type { AttachedMethods, AttachedMethodsWide, ValidateMethods } from "../t
 import type { Prettify } from "../types/utilities-types.ts";
 
 type OptionsInput<T extends Record<string, Option>> = {
-  [OptionName in keyof T]: Option<T[OptionName]["type"]>;
+  [OptionName in keyof T]: Option<T[OptionName]["schema"]>;
 };
 
 type ArgumentsInput<T extends Record<string, Argument>> = {
-  [ArgumentName in keyof T]: Argument<T[ArgumentName]["type"]>;
+  [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]>;
 };
 
 type SubcommandsInput<T extends readonly [Subcommand, ...Subcommand[]]> = {
@@ -43,13 +43,13 @@ type CliInput<T extends Cli> = {
 export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
   const cliSchema = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
 
-  prepareOptionsTypes(cliSchema.options);
-  prepareArgumentsTypes(cliSchema.arguments);
+  prepareDefinitionTypes(cliSchema.options);
+  prepareDefinitionTypes(cliSchema.arguments);
 
   if (cliSchema.subcommands) {
     for (const subcommand of Object.values(cliSchema.subcommands)) {
-      prepareOptionsTypes(subcommand.options);
-      prepareArgumentsTypes(subcommand.arguments);
+      prepareDefinitionTypes(subcommand.options);
+      prepareDefinitionTypes(subcommand.arguments);
     }
   }
 

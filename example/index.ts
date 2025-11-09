@@ -1,17 +1,17 @@
-import { listCli } from "./cli.ts";
+import { listyCLI } from "./cli.ts";
 
 // import "./scripts/generate-autocomplete-script.ts";
 // import "./scripts/generate-markdown.ts";
 
 // * Test different inputs 👇
 
-// const input = "-h";
+const input = "-v";
 // const input = "--version --verbose";
 
 // const input = "help --verbose";
 // const input = "help help --verbose";
 // const input = "help add-items --verbose";
-const input = "help create-list --verbose";
+// const input = "help create-list --verbose";
 // const input = "help delete-list --verbose";
 // const input = "help remove-items --verbose";
 
@@ -20,7 +20,7 @@ const input = "help create-list --verbose";
 
 // const input = process.argv.slice(2); // 👈 use this in production
 
-const results = listCli.run(input);
+const results = listyCLI.run(input);
 
 // ! Error
 if (results.error) {

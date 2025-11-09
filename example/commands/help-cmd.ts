@@ -1,5 +1,5 @@
-import { coerce, defineSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineSubcommand, type InferArgumentsInputType } from "zod-args-parser";
 
 import { sharedOptions } from "../shared.ts";
 import { logCliContext } from "../utilities.ts";
@@ -16,7 +16,7 @@ const helpCommand = defineSubcommand({
 
   arguments: {
     commandName: {
-      type: z.object({ value: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional() }),
+      schema: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional(),
       coerce: coerce.string,
       meta: {
         descriptionMarkdown:

@@ -10,7 +10,7 @@ const cli = defineCLI({
   options: {
     help: {
       aliases: ["h"],
-      type: z.object({ value: z.boolean() }),
+      schema: z.boolean(),
       coerce: coerce.boolean,
     },
   },

@@ -1,5 +1,5 @@
-import { coerce, defineCLI, helpMessageStyles } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineCLI, helpMessageStyles } from "zod-args-parser";
 
 import { addItemsCommand } from "./commands/add-items.ts";
 import { createListCommand } from "./commands/create-list.ts";
@@ -8,7 +8,7 @@ import { helpCommand } from "./commands/help-cmd.ts";
 import { removeItemsCommand } from "./commands/remove-items.ts";
 import { viewListCommand } from "./commands/view-list.ts";
 
-export const listCli = defineCLI({
+export const listyCLI = defineCLI({
   cliName: "listy",
   meta: {
     descriptionMarkdown: "**Listy** is a simple CLI to showcase arguments **parsing** and **validation**.",
@@ -34,7 +34,7 @@ export const listCli = defineCLI({
     help: {
       aliases: ["h"],
       exclusive: true,
-      type: z.object({ value: z.boolean().optional() }),
+      schema: z.boolean().optional(),
       coerce: coerce.boolean,
       meta: {
         description: "Show help message.",
@@ -42,37 +42,26 @@ export const listCli = defineCLI({
     },
     version: {
       aliases: ["v"],
-      type: z.object({ value: z.boolean().optional() }),
+      schema: z.boolean().optional(),
       coerce: coerce.boolean,
       meta: {
         description: "Show listy version.",
       },
     },
   },
-
-  arguments: {
-    list: {
-      requires: ["help"],
-      type: z.object({ value: z.string().optional() }),
-      coerce: coerce.string,
-      meta: {
-        description: "List name.",
-      },
-    },
-  },
 });
 
 // Execute this function when the CLI is run
-listCli.onExecute(results => {
+listyCLI.onExecute(results => {
   const { help, version } = results.options;
 
   if (help) {
-    if (!listCli.formatCliHelpMessage) {
+    if (!listyCLI.formatCliHelpMessage) {
       console.error("Cli schema is not initialized.");
       return;
     }
 
-    const helpMessage = listCli.formatCliHelpMessage({ style: helpMessageStyles.gruvboxDark });
+    const helpMessage = listyCLI.formatCliHelpMessage({ style: helpMessageStyles.gruvboxDark });
     console.log(helpMessage);
     return;
   }

@@ -1,5 +1,5 @@
-import { coerce, defineSubcommand, type inferOptionsInputType } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineSubcommand, type inferOptionsInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -18,7 +18,7 @@ const addItemsCommand = defineSubcommand({
   options: {
     list: {
       aliases: ["l"],
-      type: z.object({ value: z.string() }),
+      schema: z.string(),
       coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
@@ -27,7 +27,7 @@ const addItemsCommand = defineSubcommand({
     },
     items: {
       aliases: ["i"],
-      type: z.object({ value: z.set(z.string()) }),
+      schema: z.set(z.string()),
       coerce: coerce.stringSet(","),
       meta: {
         placeholder: "<item, ...items>",
@@ -36,7 +36,7 @@ const addItemsCommand = defineSubcommand({
     },
     tags: {
       aliases: ["t"],
-      type: z.object({ value: z.string().array().optional() }),
+      schema: z.string().array().optional(),
       coerce: coerce.stringArray(","),
       meta: {
         placeholder: "<tag, ...tags>",

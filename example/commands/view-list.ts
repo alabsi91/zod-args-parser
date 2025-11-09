@@ -1,5 +1,5 @@
-import { coerce, defineSubcommand, type InferArgumentsInputType } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineSubcommand, type InferArgumentsInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -17,7 +17,7 @@ const viewListCommand = defineSubcommand({
 
   arguments: {
     listName: {
-      type: z.object({ value: z.string().optional() }),
+      schema: z.string().optional(),
       coerce: coerce.string,
       meta: {
         description: "The name of the list to view. Leave blank to view all lists.",

@@ -145,11 +145,11 @@ export type ArgumentContext<S extends SchemaType> =
   | ArgumentContextProgrammatic<S>;
 
 export type OptionsRecordToOptionContext<T extends Record<string, Option>> = {
-  [K in keyof T]: OptionContext<T[K]["type"]>;
+  [K in keyof T]: OptionContext<T[K]["schema"]>;
 };
 
 export type ArgumentsRecordToArgumentContext<T extends Record<string, Argument>> = {
-  [K in keyof T]: ArgumentContext<T[K]["type"]>;
+  [K in keyof T]: ArgumentContext<T[K]["schema"]>;
 };
 
 export type Context<S extends readonly Partial<Subcommand>[]> = {

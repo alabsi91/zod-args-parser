@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "paths": {
-      "typed-arg-parser": ["./src/index.ts"]
+      "zod-args-parser": ["./src/index.ts"]
     },
     "target": "ESNext",
     "moduleDetection": "force",

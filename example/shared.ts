@@ -1,9 +1,9 @@
-import { defineArguments, defineOptions, coerce } from "typed-arg-parser";
+import { defineArguments, defineOptions, coerce } from "zod-args-parser";
 import * as z from "zod";
 
 export const sharedOptions = defineOptions({
   verbose: {
-    type: z.object({ value: z.boolean().optional() }),
+    schema: z.boolean().optional(),
     coerce: coerce.boolean,
     meta: {
       description: "Enable verbose mode.",
@@ -11,7 +11,7 @@ export const sharedOptions = defineOptions({
   },
 
   debug: {
-    type: z.object({ value: z.boolean().optional() }),
+    schema: z.boolean().optional(),
     coerce: coerce.boolean,
     meta: {
       description: "Enable debug mode.",
@@ -24,7 +24,7 @@ export const sharedOptions = defineOptions({
 
 export const sharedArguments = defineArguments({
   "input-path": {
-    type: z.object({ value: z.string().optional() }),
+    schema: z.string().optional(),
     coerce: coerce.string,
     meta: {
       description: "The path to the input file",

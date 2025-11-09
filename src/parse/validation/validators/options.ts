@@ -54,6 +54,6 @@ export function validateOptions({ commandDefinition, context, output }: Validate
       );
     }
 
-    output.options[optionName] = safeParseResult.value.value;
+    output.options[optionName] = safeParseResult.value;
   }
 }

@@ -5,22 +5,22 @@ import type { Prettify, ToOptional, AllowUndefinedIfOptional as AddUndefinedIfAl
 
 /** Output options type */
 type OptionsOutputType<T extends Record<string, Option>> = Prettify<
-  ToOptional<{ [K in keyof T]: InferSchemaOutputType<T[K]["type"]> }>
+  ToOptional<{ [K in keyof T]: InferSchemaOutputType<T[K]["schema"]> }>
 >;
 
 /** Input options type */
 type OptionsInputType<T extends Record<string, Option>> = Prettify<
-  ToOptional<{ [K in keyof T]: InferSchemaInputType<T[K]["type"]> }>
+  ToOptional<{ [K in keyof T]: InferSchemaInputType<T[K]["schema"]> }>
 >;
 
 /** Output arguments type */
 type ArgumentsOutputType<T extends Record<string, Argument>> = Prettify<
-  ToOptional<{ [K in keyof T]: InferSchemaOutputType<T[K]["type"]> }>
+  ToOptional<{ [K in keyof T]: InferSchemaOutputType<T[K]["schema"]> }>
 >;
 
 /** Input arguments type */
 type ArgumentsInputType<T extends Record<string, Argument>> = Prettify<
-  ToOptional<{ [K in keyof T]: InferSchemaInputType<T[K]["type"]> }>
+  ToOptional<{ [K in keyof T]: InferSchemaInputType<T[K]["schema"]> }>
 >;
 
 /**
@@ -64,7 +64,7 @@ export type inferOptionsInputType<T extends Cli | Subcommand> =
   T["options"] extends Record<string, Option> ? OptionsInputType<T["options"]> : undefined;
 
 /**
- * - Infer schema input type.
+ * - Infer options, arguments, and positionals input types from the CLI/subcommand definition.
  *
  * @example
  *   const myCommand = defineSubcommand({ name: "my-command", ... });

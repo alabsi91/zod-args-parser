@@ -1,5 +1,5 @@
-import { coerce, defineSubcommand, type InferInputType } from "typed-arg-parser";
 import * as z from "zod";
+import { coerce, defineSubcommand, type InferInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -17,7 +17,7 @@ const removeItemsCommand = defineSubcommand({
   options: {
     list: {
       aliases: ["l"],
-      type: z.object({ value: z.string() }),
+      schema: z.string(),
       coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
