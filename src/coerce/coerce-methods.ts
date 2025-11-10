@@ -13,9 +13,6 @@ boolean.type = "boolean";
 const number: CoerceMethod<number> = terminalInput => stringToNumber(terminalInput);
 number.type = "number";
 
-// const json: CoerceMethod<unknown> = terminalInput => JSON.parse(terminalInput);
-// json.type = "unknown";
-
 const json = <T>(reviver?: (this: any, key: string, value: any) => any): CoerceMethod<T> => {
   const coerceMethod: CoerceMethod<T> = terminalInput => JSON.parse(terminalInput, reviver) as T;
   coerceMethod.type = "unknown";

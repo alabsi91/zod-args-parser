@@ -22,7 +22,6 @@ export const listyCLI = defineCLI({
   },
 
   subcommands: [
-    // buildCommandSchema,
     addItemsCommand,
     removeItemsCommand,
     createListCommand,

@@ -8,7 +8,7 @@ import { err, expectsSuccess, spaceColumnEnd, spaceToColumn } from "./test-utils
 const cli = defineCLI({
   cliName: "test-cli",
   arguments: {
-    stringArg: { schema: z.string(), coerce: coerce.string },
+    stringArg: { schema: z.string() },
     numberArg: { schema: z.number(), coerce: coerce.number },
     booleanDefaultArg: { schema: z.boolean().default(true), coerce: coerce.boolean },
   },

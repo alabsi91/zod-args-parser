@@ -14,15 +14,24 @@ describe("Testing Arguments Utils".padEnd(spaceToColumn + spaceColumnEnd + 2), (
     const testValues = new Map([
       ["I", "-i"],
       ["i", "-i"],
+
       ["Input", "--input"],
       ["input", "--input"],
+      ["INPUT", "--input"],
+
       ["InputDir", "--input-dir"],
       ["inputDir", "--input-dir"],
-      ["input_Dir", "--input-dir"],
+      ["input_dir", "--input-dir"],
       ["INPUT_DIR", "--input-dir"],
+
       ["Help", "--help"],
       ["help", "--help"],
       ["HELP", "--help"],
+
+      ["NoH", "--no-h"],
+      ["noH", "--no-h"],
+      ["no-h", "--no-h"],
+      ["NO_H", "--no-h"],
     ]);
 
     for (const [key, value] of testValues) {

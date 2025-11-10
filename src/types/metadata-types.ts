@@ -1,6 +1,6 @@
 import type { SchemaType } from "./schema-types.ts";
 
-export interface MetadataBase {
+interface MetadataBase {
   /** Empty string if not provided */
   description: string;
 

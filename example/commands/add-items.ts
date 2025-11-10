@@ -11,15 +11,14 @@ const addItemsCommand = defineSubcommand({
   meta: {
     description: "Add new items to the list.",
     example:
-      "listy add --list groceries --items egg,milk,bread --tags food\n" +
-      "listy add --list todos --items clean,cook --tags chores,work",
+      "listy add-items --list groceries --items egg,milk,bread --tags food\n" +
+      "listy add-items --list todos --items clean,cook --tags chores,work",
   },
 
   options: {
     list: {
       aliases: ["l"],
       schema: z.string(),
-      coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
         description: "The name of the list to add items to.",

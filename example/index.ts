@@ -6,7 +6,7 @@ import { listyCLI } from "./cli.ts";
 // * Test different inputs 👇
 
 const input = `--help`;
-// const input = "--version --verbose";
+// const input = "-v";
 
 // const input = "help --verbose";
 // const input = "help help --verbose";
@@ -15,8 +15,11 @@ const input = `--help`;
 // const input = "help delete-list --verbose";
 // const input = "help remove-items --verbose";
 
-// const input = "add --list groceries --items egg,milk,bread --tags food --verbose";
+// const input = `create-list groceries "List of groceries" --verbose`;
+// const input = "add-items --list groceries --items egg,milk,bread --tags food --verbose";
+// const input = "remove-items --list groceries Egg Milk";
 // const input = "view-list --verbose";
+// const input = "delete-list groceries --verbose";
 
 // const input = process.argv.slice(2); // 👈 use this in production
 

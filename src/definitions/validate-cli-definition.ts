@@ -1,3 +1,4 @@
+import { transformOptionToArgument } from "../parse/parser-utilities.ts";
 import { findDuplicateStrings } from "../utilities.ts";
 
 import type { Cli, Subcommand } from "../types/definitions-types.ts";
@@ -105,6 +106,11 @@ function validateOptions(commandDefinition: Cli | Subcommand) {
       throw createError(`internal error: missing prepared type for option "${name}".`);
     }
 
+    // no negated option name for boolean options
+    if (isNegatedOptionName(name)) {
+      throw createError(`the option "${name}" is a negated option name.`);
+    }
+
     // no conflict with argument name
     if (commandDefinition.arguments && name in commandDefinition.arguments) {
       throw createError(`the option "${name}" name conflicts with an argument name.`);
@@ -121,6 +127,11 @@ function validateOptions(commandDefinition: Cli | Subcommand) {
         // no empty string aliases
         if (alias === "") {
           throw createError(`the option "${name}" has an empty string alias.`);
+        }
+
+        // no negated alias name for boolean options
+        if (isNegatedOptionName(alias)) {
+          throw createError(`the alias "${alias}" of the option "${name}" is a negated option name.`);
         }
 
         // no alias name should conflict with any option name
@@ -313,4 +324,8 @@ function validateArguments(commandDefinition: Cli | Subcommand) {
       }
     }
   }
+}
+
+function isNegatedOptionName(name: string) {
+  return transformOptionToArgument(name).startsWith("--no-");
 }

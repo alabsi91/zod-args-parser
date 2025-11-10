@@ -9,7 +9,7 @@ const cli = defineCLI({
   cliName: "test-cli",
   arguments: {
     booleanArg: { schema: z.boolean(), coerce: coerce.boolean },
-    stringArg: { schema: z.string(), coerce: coerce.string },
+    stringArg: { schema: z.string() },
     numberArg: { schema: z.number(), coerce: coerce.number },
   },
 });

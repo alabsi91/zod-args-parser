@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { coerce, defineSubcommand } from "zod-args-parser";
+import { defineSubcommand } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -18,7 +18,6 @@ const deleteListCommand = defineSubcommand({
   arguments: {
     listName: {
       schema: z.string(),
-      coerce: coerce.string,
       meta: {
         description: "The name of the list to delete.",
       },

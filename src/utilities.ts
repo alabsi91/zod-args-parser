@@ -39,6 +39,10 @@ export function prepareDefinitionTypes(definition: Record<string, Argument> | Re
   if (!definition) return;
 
   for (const object of Object.values<Argument | Option>(definition)) {
+    if (!object.coerce) {
+      object.coerce = (value: string) => value;
+    }
+
     if (!object._preparedType) {
       object._preparedType = PrepareType(object.schema, object.coerce);
     }

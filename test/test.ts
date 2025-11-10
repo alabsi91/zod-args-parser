@@ -96,7 +96,6 @@ describe("-s, --string (optional: string)".padEnd(spaceToColumn + spaceColumnEnd
       string: {
         aliases: ["s"],
         schema: z.string().optional(),
-        coerce: coerce.string,
       },
     },
   });
@@ -121,7 +120,6 @@ describe("-s, --string (default: 'hello world')".padEnd(spaceToColumn + spaceCol
       string: {
         aliases: ["s"],
         schema: z.string().default("hello world"),
-        coerce: coerce.string,
       },
     },
   });

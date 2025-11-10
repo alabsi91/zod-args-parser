@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { coerce, defineSubcommand, type InferInputType } from "zod-args-parser";
+import { defineSubcommand, type InferInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -11,14 +11,13 @@ const removeItemsCommand = defineSubcommand({
   meta: {
     placeholder: "[options] <...items>",
     description: "Remove items from the list.",
-    example: "listy remove --list groceries egg milk bread\n" + "listy remove --list todos clean cook",
+    example: "listy remove-items --list groceries egg milk bread\n" + "listy remove-items --list todos clean cook",
   },
 
   options: {
     list: {
       aliases: ["l"],
       schema: z.string(),
-      coerce: coerce.string,
       meta: {
         placeholder: "<list-name>",
         description: "The name of the list to remove items from.",
@@ -50,9 +49,20 @@ removeItemsCommand.onExecute(results => {
     return;
   }
 
-  getList.items = getList.items.filter(item => !items.includes(item.name));
+  let removedCount = 0;
 
-  console.log(`Removed ${items.length} items from the list`);
+  for (const item of items) {
+    const index = getList.items.findIndex(listItem => listItem.name === item);
+    if (index === -1) {
+      console.error(`Item "${item}" not found in list "${list}"`);
+      continue;
+    }
+
+    getList.items.splice(index, 1);
+    removedCount++;
+  }
+
+  console.log(`Removed ${removedCount} items from the list`);
 });
 
 type InputType = InferInputType<typeof removeItemsCommand>;
@@ -62,4 +72,4 @@ function executeRemoveItemsCommand(listName: InputType["options"]["list"], ...it
   removeItemsCommand.execute({ options: { list: listName }, positionals: items });
 }
 
-export { removeItemsCommand, executeRemoveItemsCommand };
+export { executeRemoveItemsCommand, removeItemsCommand };

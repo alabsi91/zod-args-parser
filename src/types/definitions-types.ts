@@ -11,6 +11,22 @@ export interface PreparedType {
   validate: (value: string | undefined) => SchemaResult;
 }
 
+// NOTE:
+// Putting these interfaces (`RequiredCoerce` and `OptionalCoerce`) in a union makes TypeScript treat them as a
+// combined structural type, so JSDoc doesn’t appear on hover.
+
+/** `schema` (generic) with required `coerce` */
+interface RequiredCoerce<Schema extends SchemaType> {
+  schema: Schema;
+  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
+}
+
+/** `schema` (string) with optional `coerce` */
+interface OptionalCoerce {
+  schema: SchemaType<string | undefined>;
+  coerce?: CoerceMethod<string | undefined>;
+}
+
 // Derived from `Subcommand`
 export interface Cli extends Omit<Subcommand, "name" | "aliases" | "meta"> {
   /** The name of the CLI program (main command). */
@@ -156,7 +172,7 @@ interface OptionMeta extends MetaBase {
   optional?: boolean;
 }
 
-export interface Option<Schema extends SchemaType = SchemaType> {
+interface OptionBase {
   /**
    * For the option alias, use a valid **JavaScript** variable name.\
    * **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.\
@@ -167,36 +183,6 @@ export interface Option<Schema extends SchemaType = SchemaType> {
    * - `Help`, `help`, or `HELP` => `--help`
    */
   aliases?: string[];
-
-  /**
-   * A schema to validate the user input.
-   *
-   * - Any validation library that supports `StandardSchemaV1` can be used.
-   * - Use an object schema with the key `value` to specify the type. The reason behind that is that not all validation
-   *   libraries support **optional** and **default values** for primitive types.
-   *
-   * @example
-   *   type: z.string().optional(); // Zod
-   *   type: type({ "value?": "string" }); // ArkType
-   */
-  schema: Schema;
-
-  /**
-   * Since the terminal input is a string, we need to coerce it.
-   *
-   * **NOTE:**
-   *
-   * - You can use the provided `coerce` methods to coerce the terminal input.
-   * - The output type of the `coerce` method should match the output type of the schema.
-   *
-   * @example
-   *   type: z.boolean();
-   *   coerce: coerce.boolean;
-   *
-   *   type: z.string().array();
-   *   coerce: coerce.stringArray(",");
-   */
-  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
 
   /**
    * When `true`, this option must appear on its own. It cannot be used together with any other option or argument,
@@ -264,6 +250,10 @@ export interface Option<Schema extends SchemaType = SchemaType> {
   _preparedType?: PreparedType;
 }
 
+export type Option<Schema extends SchemaType = SchemaType> =
+  | (OptionBase & RequiredCoerce<Schema>)
+  | (OptionBase & OptionalCoerce);
+
 interface ArgumentMeta extends MetaBase {
   /** Override the argument name in the help message and documentation. */
 
@@ -280,24 +270,7 @@ interface ArgumentMeta extends MetaBase {
   optional?: boolean;
 }
 
-export interface Argument<Schema extends SchemaType = SchemaType> {
-  /** The schema to validate the user input. */
-  schema: Schema;
-
-  /**
-   * Since the terminal input is a string, we need to coerce it.
-   *
-   * **NOTE:**
-   *
-   * - You can use the provided `coerce` methods to coerce the user input.
-   * - The output type of the `coerce` method should match the output type of the schema.
-   *
-   * @example
-   *   type: z.boolean();
-   *   coerce: coerce.boolean;
-   */
-  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
-
+interface ArgumentBase {
   /**
    * When `true`, this argument must appear on its own. It cannot be used together with any other option or argument,
    * except those explicitly listed in `requires`.
@@ -361,3 +334,7 @@ export interface Argument<Schema extends SchemaType = SchemaType> {
   /** @deprecated For internal use only */
   _preparedType?: PreparedType;
 }
+
+export type Argument<Schema extends SchemaType = SchemaType> =
+  | (ArgumentBase & RequiredCoerce<Schema>)
+  | (ArgumentBase & OptionalCoerce);

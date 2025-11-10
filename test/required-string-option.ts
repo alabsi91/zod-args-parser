@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { coerce, defineCLI } from "../src/index.ts";
+import { defineCLI } from "../src/index.ts";
 import { err, expectsFailure, expectsString, spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
 const cli = defineCLI({
@@ -11,7 +11,6 @@ const cli = defineCLI({
     string: {
       aliases: ["s"],
       schema: z.string(),
-      coerce: coerce.string,
     },
   },
 });

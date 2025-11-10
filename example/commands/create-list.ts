@@ -28,14 +28,12 @@ const createListCommand = defineSubcommand({
   arguments: {
     listName: {
       schema: z.string(),
-      coerce: coerce.string,
       meta: {
         description: "The name of the list to create.",
       },
     },
     listDescription: {
       schema: z.string().optional(),
-      coerce: coerce.string,
       meta: {
         description: "The description of the list to create.",
       },

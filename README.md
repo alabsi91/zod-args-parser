@@ -233,7 +233,8 @@ const createListCommand = defineSubcommand({
       // Required string for this option
       schema: z.string(),
 
-      // Converts raw input into a typed string (no transformation)
+      // Converts the raw terminal input into a string.
+      // In this case, because the schema already expects a string, this coercion is redundant
       coerce: coerce.string,
 
       // When true: this option cannot appear alongside other options/arguments,
@@ -312,7 +313,7 @@ const createListCommand = defineSubcommand({
     argumentName: {
       // Same fields as options, but arguments do not support aliases
       schema: z.string(),
-      coerce: coerce.string,
+      coerce: coerce.string, // redundant (the input is already a string)
       exclusive: false,
       requires: [],
       conflictWith: [],
@@ -633,15 +634,15 @@ See [`PrintHelpOptions`](#printhelpoptions) and [`Subcommand`](#subcommand).
 
 ### Option
 
-| Property        | Type                         | Description                                                                                                             |
-| --------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `aliases?`      | `string[]`                   | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                  |
-| `schema`        | `Schema`                     | A schema to validate the user input. (e.g., Zod: `z.string().optional()`).                                              |
-| `coerce`        | `(input: string) => unknown` | Coercion function used to convert terminal `string` input to the schema's expected type. Use provided `coerce` helpers. |
-| `exclusive?`    | `boolean`                    | When `true`, this option must appear on its own (except for entries listed in `requires`).                              |
-| `requires?`     | `string[]`                   | Names of other options/arguments that must be explicitly provided when this option is used.                             |
-| `conflictWith?` | `string[]`                   | Names of other options/arguments that conflict with this option.                                                        |
-| `meta?`         | `OptionMeta`                 | Metadata used for help messages and documentation generation. Inlined in the table below.                               |
+| Property        | Type                | Description                                                                                                                          |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `aliases?`      | `string[]`          | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                               |
+| `schema`        | `Schema`            | A schema to validate the user input. (e.g., Zod: `z.string().optional()`).                                                           |
+| `coerce?`       | `CoerceMethod<...>` | Coercion function used to convert `string` input to the schema's output type. Not required when the expected input type is `string`. |
+| `exclusive?`    | `boolean`           | When `true`, this option must appear on its own (except for entries listed in `requires`).                                           |
+| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this option is used.                                          |
+| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this option.                                                                     |
+| `meta?`         | `OptionMeta`        | Metadata used for help messages and documentation generation. Inlined in the table below.                                            |
 
 ### OptionMeta
 
@@ -653,14 +654,14 @@ See [`PrintHelpOptions`](#printhelpoptions) and [`Subcommand`](#subcommand).
 
 ### Argument
 
-| Property        | Type                | Description                                                                                   |
-| --------------- | ------------------- | --------------------------------------------------------------------------------------------- |
-| `schema`        | `Schema`            | Schema to validate the user input.                                                            |
-| `coerce`        | `CoerceMethod<...>` | Coercion function used to convert string input to the schema's output type.                   |
-| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).    |
-| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used. |
-| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument.                            |
-| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.     |
+| Property        | Type                | Description                                                                                                                          |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `schema`        | `Schema`            | Schema to validate the user input.                                                                                                   |
+| `coerce?`       | `CoerceMethod<...>` | Coercion function used to convert `string` input to the schema's output type. Not required when the expected input type is `string`. |
+| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).                                           |
+| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used.                                        |
+| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument.                                                                   |
+| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.                                            |
 
 ### ArgumentMeta
 

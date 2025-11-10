@@ -2,7 +2,7 @@ import type { Subcommand } from "./definitions-types.ts";
 import type { Argument, Option } from "./definitions-types.ts";
 import type { InferSchemaInputType, InferSchemaOutputType, SchemaType } from "./schema-types.ts";
 
-export interface ContextBase<S extends SchemaType> {
+interface ContextBase<S extends SchemaType> {
   /** The schema that validates this option. */
   schema: S;
 
@@ -13,7 +13,7 @@ export interface ContextBase<S extends SchemaType> {
   defaultValue: InferSchemaOutputType<S> | undefined;
 }
 
-export interface OptionContextCli<S extends SchemaType> extends ContextBase<S> {
+interface OptionContextCli<S extends SchemaType> extends ContextBase<S> {
   /**
    * The CLI flag as provided by the user (e.g. `--foo` or `-f`).
    *
@@ -40,7 +40,7 @@ export interface OptionContextCli<S extends SchemaType> extends ContextBase<S> {
   source: "terminal";
 }
 
-export interface OptionContextDefault<S extends SchemaType> extends ContextBase<S> {
+interface OptionContextDefault<S extends SchemaType> extends ContextBase<S> {
   flag?: never;
 
   stringValue?: never;
@@ -57,7 +57,7 @@ export interface OptionContextDefault<S extends SchemaType> extends ContextBase<
   source: "default";
 }
 
-export interface OptionContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
+interface OptionContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
   flag?: never;
 
   stringValue?: never;
@@ -84,7 +84,7 @@ export type OptionContext<S extends SchemaType> =
   | OptionContextDefault<S>
   | OptionContextProgrammatic<S>;
 
-export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S> {
+interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S> {
   /**
    * The raw string value provided directly from the CLI.
    *
@@ -104,7 +104,7 @@ export interface ArgumentContextCli<S extends SchemaType> extends ContextBase<S>
   source: "terminal";
 }
 
-export interface ArgumentContextDefault<S extends SchemaType> extends ContextBase<S> {
+interface ArgumentContextDefault<S extends SchemaType> extends ContextBase<S> {
   stringValue?: never;
 
   passedValue?: never;
@@ -119,7 +119,7 @@ export interface ArgumentContextDefault<S extends SchemaType> extends ContextBas
   source: "default";
 }
 
-export interface ArgumentContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
+interface ArgumentContextProgrammatic<S extends SchemaType> extends ContextBase<S> {
   stringValue?: never;
 
   /**
@@ -144,11 +144,11 @@ export type ArgumentContext<S extends SchemaType> =
   | ArgumentContextDefault<S>
   | ArgumentContextProgrammatic<S>;
 
-export type OptionsRecordToOptionContext<T extends Record<string, Option>> = {
+type OptionsRecordToOptionContext<T extends Record<string, Option>> = {
   [K in keyof T]: OptionContext<T[K]["schema"]>;
 };
 
-export type ArgumentsRecordToArgumentContext<T extends Record<string, Argument>> = {
+type ArgumentsRecordToArgumentContext<T extends Record<string, Argument>> = {
   [K in keyof T]: ArgumentContext<T[K]["schema"]>;
 };
 

@@ -42,14 +42,16 @@ export function findSubcommandDefinition(
  */
 export function findOption(optionArgument: string, options: Record<string, Option>): [string, Option] | undefined {
   const validVariableNames = optionArgumentToVariableNames(optionArgument);
-  const isNegative = optionArgument.startsWith("--no-");
+  const isNegated = optionArgument.startsWith("--no-");
 
   const option = Object.entries(options).find(([optionName, option]) => {
     if (validVariableNames.has(optionName)) {
       return true;
     }
 
-    if (isNegative && validVariableNames.has(negateOption(optionName))) {
+    const isBool = option._preparedType && option._preparedType.coerceTo === "boolean";
+
+    if (isNegated && isBool && validVariableNames.has(negateOption(optionName))) {
       return true;
     }
 
@@ -61,7 +63,7 @@ export function findOption(optionArgument: string, options: Record<string, Optio
       return true;
     }
 
-    if (isNegative && option.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
+    if (isNegated && isBool && option.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
       return true;
     }
 
@@ -96,13 +98,20 @@ export function decoupleFlags(arguments_: string[]): string[] {
 }
 
 /**
- * - Transforms an option argument name to a valid JavaScript variable name
+ * Transforms an option name to a set of variants: `camelCase`, `PascalCase`, `snake_case`, `SCREAMING_SNAKE_CASE`.
+ *
+ * **Example** for `--input-dir`
+ *
+ * - CamelCase: `inputDir`
+ * - PascalCase: `InputDir`
+ * - Snake_case: `input_dir`
+ * - SCREAMING_SNAKE_CASE: `INPUT_DIR`
  *
  * @param name - Should start with `'--'` or `'-'`
  */
 export function optionArgumentToVariableNames(name: string): Set<string> {
   if (!name.startsWith("-")) {
-    throw new Error(`[parseArgOptionName] Invalid arg name: ${name}`);
+    throw new Error(`invalid option name: ${name}`);
   }
 
   name = name.startsWith("--") ? name.slice(2) : name.slice(1); // remove prefix
@@ -147,14 +156,12 @@ export function isOptionArgument(name: string | boolean): boolean {
 }
 
 /**
- * - Transform option name to no name. E.g. `include` -> `noInclude`
- * - For short name like `-i` it will be ignored
+ * Transform option name to no name.
+ *
+ * - `verbose` -> `noVerbose`
+ * - `v` -> `noV`
  */
 export function negateOption(name: string): string {
-  if (name.length === 1) {
-    return name;
-  }
-
   return "no" + name.replace(/^[a-z]/, g => g.toUpperCase());
 }
 
@@ -166,12 +173,15 @@ export function transformOptionToArgument(name: string): string {
   }
 
   // snake_case, SCREAMING_SNAKE_CASE
-  if (name.includes("_") || /[A-Z]+$/.test(name)) {
+  if (/^[a-z_]+$/.test(name) || /^[A-Z_]+$/.test(name)) {
     name = name.replace(/_/g, "-");
     return `--${name.toLowerCase()}`;
   }
 
   // camelCase, PascalCase
-  name = name.replace(/[A-Z]/g, (match, index: number) => (index > 0 ? "-" + match : match)); // add "-" before camel case letters except for the first letter
+
+  // add "-" before camel case letters except for the first letter
+  name = name.replace(/[A-Z]/g, (match, index: number) => (index > 0 ? "-" + match : match));
+
   return `--${name.toLowerCase()}`;
 }
