@@ -16,7 +16,7 @@ const helpCommand = defineSubcommand({
 
   arguments: {
     commandName: {
-      schema: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help"]).optional(),
+      schema: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help", "view-list"]).optional(),
       coerce: coerce.string,
       meta: {
         descriptionMarkdown:

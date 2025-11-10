@@ -1,7 +1,7 @@
 export { generateCliHelpMessage } from "./help-message/generate-for-cli.ts";
 export { generateSubcommandHelpMessage } from "./help-message/generate-for-subcommand.ts";
 export { printCliHelp, printSubcommandHelp } from "./help-message/print-help.ts";
-export { helpMessageStyles, HelpMessageStyle } from "./help-message/styles.ts";
+export { HelpMessageStyle, helpMessageStyles } from "./help-message/styles.ts";
 
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.ts";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.ts";
@@ -20,15 +20,9 @@ export { defineSubcommand } from "./definitions/define-subcommand.ts";
 
 export { coerce } from "./coerce/coerce-methods.ts";
 
-export type { ContextWide } from "./types/context-types.ts";
-export type { Argument, Cli, Option, Subcommand } from "./types/definitions-types.ts";
-export type {
-  InferArgumentsInputType,
-  InferArgumentsOutputType,
-  InferInputType,
-  inferOptionsInputType,
-  InferOptionsOutputType,
-  InferOutputType,
-} from "./types/io-types.ts";
-export type { ArgumentMetadata, OptionMetadata, SubcommandMetadata } from "./types/metadata-types.ts";
-export type { CoerceMethod } from "./types/types.ts";
+export type * from "./types/context-types.ts";
+export type * from "./types/definitions-types.ts";
+export type * from "./types/help-message-types.ts";
+export type * from "./types/io-types.ts";
+export type * from "./types/metadata-types.ts";
+export type * from "./types/types.ts";
