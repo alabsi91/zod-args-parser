@@ -61,7 +61,7 @@ listyCLI.onExecute(results => {
       return;
     }
 
-    const helpMessage = listyCLI.generateCliHelpMessage({ style: helpMessageStyles.dracula });
+    const helpMessage = listyCLI.generateCliHelpMessage({ style: helpMessageStyles.catppuccin });
     console.log(helpMessage);
     return;
   }
