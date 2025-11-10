@@ -2,7 +2,7 @@ import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts"
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { SubcommandMetadata } from "../types/metadata-types.ts";
-import type { FormatOptions } from "./format-cli.ts";
+import type { FormatOptions } from "./generate-for-cli.ts";
 
 export function formatHelpMessageCommands(subcommandsMetadata: SubcommandMetadata[], options: FormatOptions): string {
   if (subcommandsMetadata.length === 0) return "";

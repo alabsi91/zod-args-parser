@@ -5,7 +5,7 @@ import { listyCLI } from "./cli.ts";
 
 // * Test different inputs 👇
 
-const input = `-v '["a", "b", "c"]'`;
+const input = `-h`;
 // const input = "--version --verbose";
 
 // const input = "help --verbose";

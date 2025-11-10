@@ -1,6 +1,7 @@
-export { formatCliHelpMessage, formatSubcommandHelpMessage } from "./help-message/format-cli.ts";
+export { generateCliHelpMessage } from "./help-message/generate-for-cli.ts";
+export { generateSubcommandHelpMessage } from "./help-message/generate-for-subcommand.ts";
 export { printCliHelp, printSubcommandHelp } from "./help-message/print-help.ts";
-export { helpMessageStyles } from "./help-message/styles.ts";
+export { helpMessageStyles, HelpMessageStyle } from "./help-message/styles.ts";
 
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.ts";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.ts";
@@ -30,3 +31,4 @@ export type {
   InferOutputType,
 } from "./types/io-types.ts";
 export type { ArgumentMetadata, OptionMetadata, SubcommandMetadata } from "./types/metadata-types.ts";
+export type { CoerceMethod } from "./types/types.ts";

@@ -6,20 +6,18 @@ import type { Argument, Option, Subcommand } from "../types/definitions-types.ts
 import type { AttachedMethods, AttachedMethodsWide } from "../types/types.ts";
 import type { Prettify } from "../types/utilities-types.ts";
 
-type OptionsInput<T extends Record<string, Option>> = {
-  [OptionName in keyof T]: Option<T[OptionName]["schema"]>;
-};
+type OptionsInput<T> =
+  T extends Record<string, Option> ? { [OptionName in keyof T]: Option<T[OptionName]["schema"]> } : T;
 
-type ArgumentsInput<T extends Record<string, Argument>> = {
-  [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]>;
-};
+type ArgumentsInput<T> =
+  T extends Record<string, Argument> ? { [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]> } : T;
 
 // This will prevent extra keys and enable jsdoc on hover
 type SubcommandInput<T extends Subcommand> = {
   [K in keyof T]: K extends keyof Subcommand
-    ? T[K] extends Record<string, Option>
+    ? K extends "options"
       ? OptionsInput<T[K]>
-      : T[K] extends Record<string, Argument>
+      : K extends "arguments"
         ? ArgumentsInput<T[K]>
         : T[K]
     : never;

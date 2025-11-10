@@ -2,7 +2,7 @@ import { indent, indentLines, insertAtEndOfFirstLine, ln, toKebabCase } from "..
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { ArgumentMetadata } from "../types/metadata-types.ts";
-import type { FormatOptions } from "./format-cli.ts";
+import type { FormatOptions } from "./generate-for-cli.ts";
 
 export function formatHelpMessageArguments(argumentsMetadata: ArgumentMetadata[], options: FormatOptions): string {
   if (argumentsMetadata.length === 0) return "";

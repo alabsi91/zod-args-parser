@@ -49,32 +49,19 @@ export const listyCLI = defineCLI({
       },
     },
   },
-
-  arguments: {
-    list: {
-      schema: z.array(z.string()).default(["value"]),
-      coerce: coerce.json<string[]>(),
-      meta: {
-        description: "List name.",
-      },
-    },
-  },
 });
 
 // Execute this function when the CLI is run
 listyCLI.onExecute(results => {
   const { help, version } = results.options;
-  const { list } = results.arguments;
-  //         ^?
-  console.log("list :", list);
 
   if (help) {
-    if (!listyCLI.formatCliHelpMessage) {
+    if (!listyCLI.generateCliHelpMessage) {
       console.error("Cli schema is not initialized.");
       return;
     }
 
-    const helpMessage = listyCLI.formatCliHelpMessage({ style: helpMessageStyles.gruvboxDark });
+    const helpMessage = listyCLI.generateCliHelpMessage({ style: helpMessageStyles.dracula });
     console.log(helpMessage);
     return;
   }

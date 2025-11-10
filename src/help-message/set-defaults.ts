@@ -1,7 +1,7 @@
 import { helpMessageStyles } from "./styles.ts";
 
 import type { PrintHelpOptions } from "../types/help-message-types.ts";
-import type { FormatOptions } from "./format-cli.ts";
+import type { FormatOptions } from "./generate-for-cli.ts";
 
 export function setPrintHelpOptionsDefaults(options: PrintHelpOptions) {
   const clone = { ...options };

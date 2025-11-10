@@ -1,9 +1,33 @@
 import chalk from "chalk";
 
-import type { HelpMessageStyle } from "../types/help-message-types.ts";
+import type { HelpMessageStyleImpl } from "../types/help-message-types.ts";
+
+export class HelpMessageStyle implements HelpMessageStyleImpl {
+  static noColor = (...text: unknown[]) => text.join(" ");
+
+  title = HelpMessageStyle.noColor;
+  description = HelpMessageStyle.noColor;
+  default = HelpMessageStyle.noColor;
+  optional = HelpMessageStyle.noColor;
+  exampleTitle = HelpMessageStyle.noColor;
+  example = HelpMessageStyle.noColor;
+  command = HelpMessageStyle.noColor;
+  option = HelpMessageStyle.noColor;
+  argument = HelpMessageStyle.noColor;
+  placeholder = HelpMessageStyle.noColor;
+  punctuation = HelpMessageStyle.noColor;
+
+  constructor(style: Partial<HelpMessageStyleImpl>, baseStyle?: HelpMessageStyleImpl) {
+    if (baseStyle) {
+      Object.assign(this, baseStyle);
+    }
+
+    Object.assign(this, style);
+  }
+}
 
 export const helpMessageStyles = Object.freeze({
-  default: {
+  default: new HelpMessageStyle({
     title: chalk.bold.blue,
     description: chalk.white,
     default: chalk.dim.italic,
@@ -15,8 +39,9 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.green,
     placeholder: chalk.hex("#FF9800"),
     punctuation: chalk.white.dim,
-  },
-  dracula: {
+  }),
+
+  dracula: new HelpMessageStyle({
     title: chalk.bold.hex("#BD93F9"),
     description: chalk.hex("#F8F8F2"),
     default: chalk.italic.hex("#6272A4"),
@@ -28,8 +53,9 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#FF79C6"),
     placeholder: chalk.hex("#F1FA8C"),
     punctuation: chalk.hex("#6272A4"),
-  },
-  solarizedDark: {
+  }),
+
+  solarizedDark: new HelpMessageStyle({
     title: chalk.bold.hex("#268BD2"),
     description: chalk.hex("#93A1A1"),
     default: chalk.italic.hex("#586E75"),
@@ -41,8 +67,9 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#859900"),
     placeholder: chalk.hex("#CB4B16"),
     punctuation: chalk.hex("#657B83"),
-  },
-  nord: {
+  }),
+
+  nord: new HelpMessageStyle({
     title: chalk.bold.hex("#81A1C1"),
     description: chalk.hex("#D8DEE9"),
     default: chalk.italic.hex("#4C566A"),
@@ -54,13 +81,13 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#BF616A"),
     placeholder: chalk.hex("#D08770"),
     punctuation: chalk.hex("#4C566A"),
-  },
+  }),
 
   /**
    * - Wrap the output in a <pre> element to preserve whitespace.
    * - If using `descriptionMarkdown`, set `markdownRenderer` to `html` instead of `terminal`.
    */
-  html: {
+  html: new HelpMessageStyle({
     title: (...string) => `<span style="color: #89dceb; font-weight: bold;">${escapeHTML(string.join(" "))}</span>`,
     description: (...string) => `<span style="color: #cdd6e8;">${escapeHTML(string.join(" "))}</span>`,
     default: (...string) => `<span style="color: #6c7086; font-style: italic;">${escapeHTML(string.join(" "))}</span>`,
@@ -72,8 +99,9 @@ export const helpMessageStyles = Object.freeze({
     argument: (...string) => `<span style="color: #00ff00;">${escapeHTML(string.join(" "))}</span>`,
     placeholder: (...string) => `<span style="color: #db9518;">${escapeHTML(string.join(" "))}</span>`,
     punctuation: (...string) => `<span style="color: #6c7086;">${escapeHTML(string.join(" "))}</span>`,
-  },
-  gruvboxDark: {
+  }),
+
+  gruvboxDark: new HelpMessageStyle({
     title: chalk.bold.hex("#FABD2F"),
     description: chalk.hex("#EBDBB2"),
     default: chalk.italic.hex("#928374"),
@@ -85,8 +113,9 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#D3869B"),
     placeholder: chalk.hex("#FB4934"),
     punctuation: chalk.hex("#928374"),
-  },
-  monokai: {
+  }),
+
+  monokai: new HelpMessageStyle({
     title: chalk.bold.hex("#AE81FF"),
     description: chalk.hex("#F8F8F2"),
     default: chalk.italic.hex("#75715E"),
@@ -98,8 +127,9 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#F92672"),
     placeholder: chalk.hex("#E6DB74"),
     punctuation: chalk.hex("#75715E"),
-  },
-  oneDark: {
+  }),
+
+  oneDark: new HelpMessageStyle({
     title: chalk.bold.hex("#61AFEF"),
     description: chalk.hex("#ABB2BF"),
     default: chalk.italic.hex("#5C6370"),
@@ -111,15 +141,10 @@ export const helpMessageStyles = Object.freeze({
     argument: chalk.hex("#E06C75"),
     placeholder: chalk.hex("#C678DD"),
     punctuation: chalk.hex("#5C6370"),
-  },
-  get noColors() {
-    return new Proxy(this.default, {
-      get() {
-        return (...string: string[]) => string.join(" ");
-      },
-    }) as HelpMessageStyle;
-  },
-}) satisfies Record<string, HelpMessageStyle>;
+  }),
+
+  noColors: new HelpMessageStyle({}),
+});
 
 function escapeHTML(string: string) {
   return string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

@@ -35,14 +35,14 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
     : never;
 
   /** **WARNING**: This will only be available after the CLI schema has been created */
-  formatCliHelpMessage?: (options?: PrintHelpOptions) => string;
+  generateCliHelpMessage?: (options?: PrintHelpOptions) => string;
 
   /**
    * **WARNING**: This will only be available after the CLI schema has been created
    *
    * @throws {Error} - When the subcommand is not found
    */
-  formatSubcommandHelpMessage?: (
+  generateSubcommandHelpMessage?: (
     subcommandName: GetSubcommandsNames<T> | (string & {}),
     options?: PrintHelpOptions,
   ) => string;
@@ -51,8 +51,9 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
 export interface AttachedMethodsWide {
   onExecute: (handler: (data: OutputTypeWide) => void) => Unsubscribe;
   execute: (input?: InputTypeWide) => void;
-  printCliHelp?: (options?: PrintHelpOptions) => void;
-  printSubcommandHelp?: (subcommandName: string, options?: PrintHelpOptions) => void;
+  generateCliHelpMessage?: (options?: PrintHelpOptions) => void;
+  /** @throws {Error} - When the subcommand is not found */
+  generateSubcommandHelpMessage?: (subcommandName: string, options?: PrintHelpOptions) => void;
 }
 
 export type CliOutputType<S extends Cli> =

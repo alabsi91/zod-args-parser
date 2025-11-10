@@ -23,7 +23,7 @@ export interface Cli extends Omit<Subcommand, "name" | "aliases" | "meta"> {
   meta?: Omit<SubcommandMeta, "placeholder" | "hidden">;
 }
 
-export interface MetaBase {
+interface MetaBase {
   /**
    * Short explanation.
    *
@@ -59,7 +59,7 @@ export interface MetaBase {
   hidden?: boolean;
 }
 
-export interface SubcommandMeta extends MetaBase {
+interface SubcommandMeta extends MetaBase {
   /** Text to display as a placeholder for the expected arguments (e.g. `[options] <arg1> <arg2>`). */
   placeholder?: string;
 
@@ -141,7 +141,7 @@ export interface Subcommand {
   _onExecute?: ((result: OutputTypeWide) => void)[];
 }
 
-export interface OptionMeta extends MetaBase {
+interface OptionMeta extends MetaBase {
   /** Text to display as a placeholder for the expected value (e.g. `<path>`, `<value>`). */
   placeholder?: string;
 
@@ -264,7 +264,7 @@ export interface Option<Schema extends SchemaType = SchemaType> {
   _preparedType?: PreparedType;
 }
 
-export interface ArgumentMeta extends MetaBase {
+interface ArgumentMeta extends MetaBase {
   /** Override the argument name in the help message and documentation. */
 
   name?: string;

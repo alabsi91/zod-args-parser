@@ -35,18 +35,18 @@ helpCommand.onExecute(results => {
     logCliContext(results.context);
   }
 
-  if (!helpCommand.formatSubcommandHelpMessage || !helpCommand.formatCliHelpMessage) {
+  if (!helpCommand.generateSubcommandHelpMessage || !helpCommand.generateCliHelpMessage) {
     console.error("Print help methods are not initialized yet.");
     return;
   }
 
   if (commandName) {
-    const helpMessage = helpCommand.formatSubcommandHelpMessage(commandName);
+    const helpMessage = helpCommand.generateSubcommandHelpMessage(commandName);
     console.log(helpMessage);
     return;
   }
 
-  const helpMessage = helpCommand.formatCliHelpMessage();
+  const helpMessage = helpCommand.generateCliHelpMessage();
   console.log(helpMessage);
 });
 

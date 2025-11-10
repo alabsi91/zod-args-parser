@@ -1,6 +1,6 @@
 export interface PrintHelpOptions {
   /** The style to use for the help message. */
-  style?: Partial<HelpMessageStyle>;
+  style?: Partial<HelpMessageStyleImpl>;
 
   /**
    * Whether to transform the argument (not option) name to kebab case.
@@ -138,7 +138,7 @@ export interface ColorFunctionType {
 }
 
 /** - The colors to use for the help message. */
-export interface HelpMessageStyle {
+export interface HelpMessageStyleImpl {
   title: ColorFunctionType;
   description: ColorFunctionType;
   default: ColorFunctionType;

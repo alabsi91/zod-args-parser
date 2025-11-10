@@ -1,4 +1,5 @@
-import { formatCliHelpMessage, formatSubcommandHelpMessage } from "../help-message/format-cli.ts";
+import { generateCliHelpMessage } from "../help-message/generate-for-cli.ts";
+import { generateSubcommandHelpMessage } from "../help-message/generate-for-subcommand.ts";
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
 import { validate } from "../parse/validation/validate-context.ts";
@@ -9,13 +10,11 @@ import type { PrintHelpOptions } from "../types/help-message-types.ts";
 import type { AttachedMethods, AttachedMethodsWide, ValidateMethods } from "../types/types.ts";
 import type { Prettify } from "../types/utilities-types.ts";
 
-type OptionsInput<T extends Record<string, Option>> = {
-  [OptionName in keyof T]: Option<T[OptionName]["schema"]>;
-};
+type OptionsInput<T> =
+  T extends Record<string, Option> ? { [OptionName in keyof T]: Option<T[OptionName]["schema"]> } : T;
 
-type ArgumentsInput<T extends Record<string, Argument>> = {
-  [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]>;
-};
+type ArgumentsInput<T> =
+  T extends Record<string, Argument> ? { [ArgumentName in keyof T]: Argument<T[ArgumentName]["schema"]> } : T;
 
 type SubcommandsInput<T extends readonly [Subcommand, ...Subcommand[]]> = {
   [SubcommandIndex in keyof T]: {
@@ -32,9 +31,9 @@ type CliInput<T extends Cli> = {
   [K in keyof T]: K extends keyof Cli
     ? T[K] extends readonly [Subcommand, ...Subcommand[]]
       ? SubcommandsInput<T[K]>
-      : T[K] extends Record<string, Option>
+      : K extends "options"
         ? OptionsInput<T[K]>
-        : T[K] extends Record<string, Argument>
+        : K extends "arguments"
           ? ArgumentsInput<T[K]>
           : T[K]
     : never;
@@ -78,22 +77,22 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
   };
 
   // Add print methods for CLI schema and its subcommands
-  const printMethods = {
-    formatCliHelpMessage(options?: PrintHelpOptions) {
-      return formatCliHelpMessage(cliSchema, options);
+  const generateHelpMethods: Pick<AttachedMethodsWide, "generateCliHelpMessage" | "generateSubcommandHelpMessage"> = {
+    generateCliHelpMessage(options?: PrintHelpOptions) {
+      return generateCliHelpMessage(cliSchema, options);
     },
-    formatSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
+    generateSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
       const foundSubcommand = cliSchema.subcommands?.find(s => s.name === subcommandName);
       if (!foundSubcommand) throw new Error(`Subcommand ${subcommandName} not found`);
-      return formatSubcommandHelpMessage(foundSubcommand, options, cliSchema.cliName);
+      return generateSubcommandHelpMessage(foundSubcommand, options, cliSchema.cliName);
     },
   };
 
-  Object.assign(cliSchema, printMethods);
+  Object.assign(cliSchema, generateHelpMethods);
 
   if (cliSchema.subcommands) {
     for (const subcommandSchema of cliSchema.subcommands) {
-      Object.assign(subcommandSchema, printMethods);
+      Object.assign(subcommandSchema, generateHelpMethods);
     }
   }
 

@@ -11,39 +11,46 @@ A strictly typed command-line arguments parser powered by schema validation.
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Example](#example)
 - [Guide](#guide)
-  - [Subcommands](#subcommands)
-  - [Type Schemas](#type-schemas)
-  - [Options](#options)
-  - [Arguments](#arguments)
-  - [Positionals](#positionals)
-  - [Help Message](#help-message)
-  - [Zod Utilities](#zod-utilities)
+  - [Creating a subcommand](#creating-a-subcommand)
+  - [Creating options](#creating-options)
+  - [Creating typed arguments](#creating-typed-arguments)
+  - [Using Schemas](#using-schemas)
+  - [Default Values and Optional Inputs](#default-values-and-optional-inputs)
+  - [Positionals vs Typed Arguments](#positionals-vs-typed-arguments)
+  - [Option and Argument Constraints](#option-and-argument-constraints)
+  - [Negating a boolean option](#negating-a-boolean-option)
+  - [Creating a Custom Help Message Style](#creating-a-custom-help-message-style)
+  - [Help Message as HTML](#help-message-as-html)
 - [API Reference](#api-reference)
   - [Type Utilities](#type-utilities)
   - [Coerce Helpers](#coerce-helpers)
-  - [Cli Definition](#cli-definition)
-  - [Subcommand Definition](#subcommand-definition)
-  - [Option Definition](#option-definition)
-  - [Argument Definition](#argument-definition)
-  - [Help Message Options](#help-message-options)
-- [Example](#example)
+  - [Markdown Generation](#markdown-generation)
+  - [Autocompletion Script Generation](#autocompletion-script-generation)
+  - [Help Message](#help-message)
+  - [PrintHelpOptions](#printhelpoptions)
+  - [Cli](#cli)
+  - [Subcommand](#subcommand)
+  - [Option](#option)
+  - [Argument](#argument)
 - [License](#license)
 
 ## Features
 
-- **Strict TypeScript typing** backed by schema **validation**.
-- **Flag coupling support**: e.g., `-rf` to combine `-r` and `-f` flags.
-- **Negative flag support**: e.g., `--no-verbose` to negate `--verbose`.
-- **Flexible option value formatting**: Supports both `--input-dir path` and `--input-dir=path` styles.
-- **Help message generation**: Built-in methods to generate help text for the CLI and each subcommand with markdown support.
-- **Auto completion**: Generate shell (bash, zsh, powershell) completion scripts for your CLI.
-- **Documentation**: Generate a markdown documentation for your CLI.
+- **Strictly typed & validated**: Fully TypeScript-typed CLI arguments, backed by schema validation.
+- **Flexible option syntax**: Supports both `--option value` and `--option=value`.
+- **Boolean flags**: Handles negation (`--no-verbose`) and short flag coupling (`-rf`).
+- **Typed subcommands**: Define subcommands with their own typed options and arguments.
+- **Automatic help & docs**: Generate user-friendly CLI help messages and Markdown documentation.
+- **Shell autocompletion**: Auto-generate scripts for Bash, Zsh, and PowerShell.
+- **Schema-agnostic**: Works with any validation library supporting [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema) and default/optional primitives.
+- **Cross-platform**: Fully supports Node.js, Bun, Deno, and modern browsers.
 
 ## Installation
 
 > [!IMPORTANT]  
-> A validation library is required that supports **StandardSchemaV1** and allows primitive types to be optional or have default values.
+> A validation library is required that supports [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema) and allows primitive types to be optional or have default values.
 
 ```bash
 npm install zod zod-args-parser
@@ -51,7 +58,7 @@ npm install zod zod-args-parser
 
 ## Usage
 
-The following example uses `zod` as the validation library, but you can use any library that supports **StandardSchemaV1**, as long as it allows primitive types to be optional or have default values.
+The following example uses `zod` as the validation library, but you can use any library that supports [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema), as long as it allows primitive types to be optional or have default values.
 
 ```ts
 import * as z from "zod";
@@ -66,12 +73,8 @@ const listyCLI = defineCLI({
   ],
 
   options: {
-    // The name of the option `--help`
-    // you can use camelCase, PascalCase, snake_case, or SCREAMING_SNAKE_CASE.
     help: {
       schema: z.boolean().optional(),
-
-      // Terminal input is a string, so we need to coerce it to a boolean
       coerce: coerce.boolean,
     },
   },
@@ -83,42 +86,250 @@ const listyCLI = defineCLI({
 
 // When the CLI (main command) is executed
 listyCLI.onExecute(results => {
-  const { help, version } = results.options;
+  const { help } = results.options;
 
-  // print help for CLI
-  if (help && listyCLI.formatCliHelpMessage) {
-    const helpMessage = listyCLI.formatCliHelpMessage({ style: helpMessageStyles.default });
-    console.log(helpMessage);
+  // print help for the CLI
+  if (help && listyCLI.generateCliHelpMessage) {
+    console.log(listyCLI.generateCliHelpMessage());
     return;
   }
 
   console.error("Please try `listy --help`");
 });
 
-// optionally expose a function to execute the main command programmatically
-export const executeListy = (help: boolean) => {
-  listyCLI.execute({ options: { help: help } });
-};
-
 // Run the CLI and pass in the command line arguments
 const results = listyCLI.run(process.argv.slice(2));
 
-// ! Error
+// Inspect parsed results
 if (results.error) {
   console.error(results.error.message);
   console.log("\n`listy --help` for more information");
 }
 ```
 
+## Example
+
+- [Listy CLI Example](https://github.com/alabsi91/zod-args-parser/tree/main/example)
+
 ## Guide
 
-### Subcommands
+### Creating a subcommand
 
-- Subcommands are defined using the `defineSubcommand` function.
+Subcommands are defined using the `defineSubcommand` function, which accepts a [`Subcommand`](#subcommand) definition object.
 
-### Type Schemas
+```ts
+import { defineSubcommand, helpMessageStyles } from "zod-args-parser";
 
-Other validation libraries can be used as long as they support **StandardSchemaV1** and allow primitive types to be optional or have default values.
+import type { InferInputType, InferOutputType } from "zod-args-parser";
+
+const createListCommand = defineSubcommand({
+  // The name used to call this subcommand from the CLI
+  name: "add",
+
+  // Additional names that can be used to run the same subcommand
+  aliases: ["cl", "create"],
+
+  // When true: positional (untyped) arguments are allowed and parsed as string[]
+  // When typed arguments exist: they are parsed first, and leftover arguments become `positionals`
+  allowPositionals: false,
+
+  // Extra information used for CLI help output and generated documentation
+  meta: {
+    // Shown in the terminal when displaying the help text for this subcommand
+    // Ignored in Markdown docs
+    usage: "listy add --list <list> --items <items> --tags <tags>",
+
+    // Shown in terminal help alongside the subcommand name
+    // Also shown in Markdown docs next to the subcommand name
+    placeholder: "<list> <items> <tags>",
+
+    // Shown in terminal help if both description and descriptionMarkdown exist
+    // Not preferred in Markdown docs
+    description: "Plain text description shown in terminal help when both formats are provided.",
+
+    // Used as-is in Markdown docs and preferred over `description`
+    // When printed in the terminal, it will be parsed by `marked` and formatted for the terminal output
+    descriptionMarkdown: "**Formatted** for terminal and preferred when generating **Markdown documentation**.",
+
+    // Displayed at the bottom of terminal help
+    // In Markdown docs, it is output inside a code block
+    example:
+      "listy add --list groceries --items egg,milk,bread --tags food\n" +
+      "listy add --list todos --items clean,cook --tags chores|work",
+
+    // If true, this subcommand is hidden from both help output and documentation
+    // Useful for internal commands
+    hidden: false,
+  },
+
+  // Available CLI options for this subcommand
+  options: {
+    // ...
+  },
+
+  // Typed command-line arguments for this subcommand
+  arguments: {
+    // ...
+  },
+});
+
+// Runs when the subcommand is executed
+// Multiple handlers can be attached if needed
+const unsubscribe = createListCommand.onExecute(results => {
+  const { ...options } = results.options;
+  const { ...args } = results.arguments;
+  const positionals = results.positionals;
+
+  // Inspect parsed results in detail
+  console.log(results.context.options);
+
+  // Print help for this subcommand
+  if (createListCommand.generateSubcommandHelpMessage) {
+    console.log(
+      createListCommand.generateSubcommandHelpMessage(results.subcommand, { style: helpMessageStyles.default }),
+    );
+    return;
+  }
+
+  // Print help for the CLI
+  if (listyCLI.generateCliHelpMessage) {
+    console.log(listyCLI.generateCliHelpMessage({ style: helpMessageStyles.default }));
+    return;
+  }
+});
+
+// Programmatic API for executing this subcommand
+export const executeCreateListCommand = createListCommand.execute;
+
+// Useful inferred types for input/output payloads
+type CreateListInput = InferInputType<typeof createListCommand>;
+type CreateListOutput = InferOutputType<typeof createListCommand>;
+```
+
+### Creating options
+
+Options can be defined directly inside the CLI or subcommand definition. Or using the `defineOptions` function.
+
+Option names can use any common case style:
+`camelCase`, `PascalCase`, `snake_case`, or `SCREAMING_SNAKE_CASE`.
+
+- ListName `=>` --list-name
+- list-name `=>` --list-name
+- listName `=>` --list-name
+- LIST_NAME `=>` --list-name
+
+```ts
+import { defineSubcommand, coerce } from "zod-args-parser";
+
+const createListCommand = defineSubcommand({
+  // ...
+
+  options: {
+    // The key is the option name
+    listName: {
+      // Aliases generate equivalent flags (e.g. -n, --name)
+      aliases: ["list", "name", "n"],
+
+      // Required string for this option
+      schema: z.string(),
+
+      // Converts raw input into a typed string (no transformation)
+      coerce: coerce.string,
+
+      // When true: this option cannot appear alongside other options/arguments,
+      // except those listed in `requires`
+      exclusive: false,
+
+      // If this option is used, the listed options/arguments must also be provided
+      requires: [],
+
+      // Options/arguments that cannot be used together with this one
+      // Avoid using `conflictWith` when `exclusive` is true
+      conflictWith: [],
+
+      // Extra metadata used for help output and documentation
+      meta: {
+        // Shown next to the option name in terminal help and Markdown docs
+        placeholder: "<list> <items> <tags>",
+
+        // Displayed in terminal help if both descriptions exist
+        // Not preferred in Markdown
+        description: "Plain text description shown in terminal help when both formats are provided.",
+
+        // Preferred in Markdown and kept formatted when printed in terminal output
+        descriptionMarkdown: "**Formatted** for terminal and preferred when generating **Markdown documentation**.",
+
+        // Appears at the end of this option’s description in terminal help
+        // Rendered inside a code block in Markdown
+        example:
+          "listy add --list groceries --items egg,milk,bread --tags food\n" +
+          "listy add --list todos --items clean,cook --tags chores|work",
+
+        // Shows this value as the default in help/docs (does not change runtime default)
+        default: `"default-list"`,
+
+        // Shows this option as optional/required in help/docs (visual override only)
+        optional: false,
+
+        // When true, hides this option from both help output and docs
+        hidden: false,
+      },
+    },
+
+    items: {
+      schema: z.string().array(),
+      // Parses comma-separated lists into string[]
+      coerce: coerce.stringArray(","),
+    },
+
+    tags: {
+      schema: z.enum(["food", "work", "chores"]).array(),
+      // Parses pipe-separated tags into Set<string>
+      coerce: coerce.stringSet("|"),
+    },
+  },
+});
+```
+
+### Creating typed arguments
+
+Arguments can be defined directly inside the CLI or subcommand definition. Or using the `defineArguments` function.
+
+The order of argument definitions matters.
+
+**Rules**:
+
+1. If `allowPositionals: true` → typed arguments cannot be optional.
+2. If `allowPositionals: false` → only the last typed argument may be optional.
+3. Argument names cannot be numeric, because it affects argument ordering.
+
+```ts
+import { defineSubcommand, coerce } from "zod-args-parser";
+
+const createListCommand = defineSubcommand({
+  arguments: {
+    // In help output, argument names are automatically converted to kebab-case by default.
+    argumentName: {
+      // Same fields as options, but arguments do not support aliases
+      schema: z.string(),
+      coerce: coerce.string,
+      exclusive: false,
+      requires: [],
+      conflictWith: [],
+      meta: {
+        // Overrides the displayed argument name in help and documentation
+        name: "argument-name",
+
+        // Other meta fields work the same way as option metadata
+      },
+    },
+  },
+});
+```
+
+### Using schemas
+
+Other validation libraries can be used as long as they support [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema) and allow primitive types to be optional or have default values.
 
 Here are some examples:
 
@@ -136,61 +347,140 @@ Here are some examples:
 | Decoders | `d.optional(d.array(d.string))`   | `d.optional(d.array(d.string), ["value"])`   | `coerce.stringArray(",")` |
 | Sury     | `S.optional(S.array(S.string))`   | `S.optional(S.array(S.string), ["value"])`   | `coerce.stringArray(",")` |
 
-### Options
+### Default Values and Optional Inputs
 
-- Option names and aliases must use a valid **JavaScript** variable name.
-  - **Supports:** `camelCase`, `PascalCase`, `snake_case`, and `SCREAMING_SNAKE_CASE`.
-  - **Examples:**
-    - `I` or `i` ➡️ `-i`
-    - `InputDir`, `inputDir`, or `INPUT_DIR` ➡️ `--input-dir`
-    - `Help`, `help`, or `HELP` ➡️ `--help`
-- Do not use same options/aliases name with different casing.
-- Do not reuse the option/alias name within the same CLI/subcommand. TypeScript will throw a type error if duplicates exist.
-- The following properties are optional and used only for **metadata** such as help messages and documentation:
-  - `description`
-  - `example`
-  - `placeholder`
+- Optional values and defaults for **options and typed arguments** are controlled by the schema used for validation.
+- `meta.optional` and `meta.default` only affect help/documentation output; they do **not** affect runtime behavior.
+- The CLI parser enforces types and applies defaults according to the schema.
+- Example schemas:
+  - `z.string().optional()` → optional input
+  - `z.string().default("value")` → input with default value
 
-### Arguments
+### Positionals vs Typed Arguments
 
-- Arguments are strictly typed **positional values**, defined as a tuple: `[arg1, arg2, arg3]`.
-- Each argument must have a **name**, which is used for help messages and documentation. TypeScript will throw a type error if duplicates name exist within the same CLI/subcommand.
-- The following properties are optional and used only for **metadata**:
-  - `description`
-  - `example`
+Command-line arguments can be handled in two ways:
 
-> [!IMPORTANT]  
->  Arguments are parsed strictly **in order**.
->
-> - Only the **last argument** may be optional (when `allowPositional` is disabled).
-> - Mixing required and optional arguments (e.g., required → optional → required) will cause parsing errors because the parser cannot determine which value belongs to which argument.
-> - This means you **cannot have any optional arguments** if `allowPositional` is enabled.
-> - TypeScript will throw a type error if required and optional arguments are mixed, or when using `allowPositional: true` with optional arguments.
+#### 1. Positional Arguments
 
-### Positionals
+- Requires `allowPositionals: true` to be enabled.
+- Captured as raw `string[]` in `results.positionals`.
+- Untyped and flexible.
+- Only parsed **after all typed arguments** have been processed.
 
-### Help Message
+#### 2. Typed Arguments
 
-### API Reference
+- Defined in `arguments` with a schema and coerce function.
+- Provide strong type safety and validation.
+- Arguments are parsed **in order**: the first input is validated against the first schema, the second input against the second schema, etc.
+- Optional arguments **Not allowed** if `allowPositionals` is `true`, otherwise only the last argument may be optional.
+- When `allowPositionals: true`, any remaining arguments are captured as raw `string[]` in `results.positionals`.
 
-#### Type Utilities
+### Option and Argument Constraints
 
-**`InferInputType<T extends Cli | Subcommand>`**  
+Both options and typed arguments support rules to control valid combinations:
+
+#### `exclusive: boolean`
+
+- Cannot be used together with other options or arguments, except those explicitly listed in `requires`.
+
+#### `requires: string[]`
+
+- Lists other options/arguments names (not aliases) that **must be provided** if this one is used.
+- Helps enforce dependencies between flags or arguments.
+
+#### `conflictWith: string[]`
+
+- Lists other options/arguments names (not aliases) that **cannot be used together** with this one.
+- Prevents incompatible combinations and avoids ambiguous behavior.
+
+### Negating a boolean option
+
+Boolean options can be negated by prefixing them with `no-` or by using the equals sign `=`.
+
+```sh
+--bool        true
+--no-bool     false
+
+--bool=true   true
+--bool=false  false
+
+-v            true
+--no-v        false
+```
+
+### Creating a Custom Help Message Style
+
+You can define a custom style for CLI help messages by implementing the `HelpMessageStyle` interface. A common approach is to start from an existing style and override only the parts you want.
+
+```ts
+import chalk from "chalk";
+import { HelpMessageStyle, helpMessageStyles } from "zod-args-parser";
+
+// Example: create a new style based on the default style
+const myCustomStyle = new HelpMessageStyle(
+  {
+    title: chalk.bold.magenta,
+    option: chalk.yellow,
+    argument: chalk.green,
+  },
+  // optionally use default style as base
+  helpMessageStyles.default,
+);
+
+// Use the custom style when generating help
+console.log(myCli.generateCliHelpMessage({ style: myCustomStyle }));
+```
+
+### Help Message as HTML
+
+You can generate the CLI help message as HTML using the `html` style and insert it into a `<pre>` element.
+
+```ts
+import { listyCLI, helpMessageStyles, generateCliHelpMessage } from "zod-args-parser";
+
+// Generate help message as HTML string
+const htmlHelp = generateCliHelpMessage(listyCLI, { style: helpMessageStyles.html, markdownRenderer: "html" });
+
+// Insert into a <pre> element in your page
+const pre = document.createElement("pre");
+pre.innerHTML = htmlHelp;
+document.body.appendChild(pre);
+```
+
+You can style Markdown content using CSS:
+
+```css
+span._markdown * {
+  white-space: initial;
+}
+```
+
+## API Reference
+
+### Type Utilities
+
+#### `InferInputType<T extends Cli | Subcommand>`
+
 Infer options, arguments, and positionals input types from the CLI/subcommand definition.
 
-**`InferOutputType<T extends Cli | Subcommand>`**  
+#### `InferOutputType<T extends Cli | Subcommand>`
+
 Infer options, arguments, and positionals output types from the CLI/subcommand definition.
 
-**`InferOptionsInputType<T extends Cli | Subcommand>`**  
+#### `InferOptionsInputType<T extends Cli | Subcommand>`
+
 Infer options input type from the CLI/subcommand definition.
 
-**`InferOptionsOutputType<T extends Cli | Subcommand>`**  
+#### `InferOptionsOutputType<T extends Cli | Subcommand>`
+
 Infer options output type from the CLI/subcommand definition.
 
-**`InferArgumentsInputType<T extends Cli | Subcommand>`**  
+#### `InferArgumentsInputType<T extends Cli | Subcommand>`
+
 Infer arguments input type from the CLI/subcommand definition.
 
-**`InferArgumentsOutputType<T extends Cli | Subcommand>`**  
+#### `InferArgumentsOutputType<T extends Cli | Subcommand>`
+
 Infer arguments output type from the CLI/subcommand definition.
 
 ```ts
@@ -204,7 +494,7 @@ type InputType = InferInputType<typeof subcommand>;
 type OutputType = InferOutputType<typeof subcommand>;
 ```
 
-#### Coerce Helpers
+### Coerce Helpers
 
 - `coerce.string`
 - `coerce.number`
@@ -217,88 +507,65 @@ type OutputType = InferOutputType<typeof subcommand>;
 - `coerce.booleanSet(separator: string)`
 - `coerce.json<T>()`
 
-#### Cli Definition
+### Markdown Generation
 
-| Property            | Type                       | Description                                                                                                                                                                                     |
-| ------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cliName`           | `string`                   | The name of the CLI program (main command).                                                                                                                                                     |
-| `subcommands?`      | `Subcommand[]`             | Array of subcommands. Do not pass them directly; use `defineSubcommand`. See [`Subcommand Definition`](#subcommand-definition).                                                                 |
-| `allowPositionals?` | `boolean`                  | When `true`, enables positional arguments for the CLI; positionals are untyped `string[]`. If typed `arguments` are present, they are parsed first and any remaining args become `positionals`. |
-| `options?`          | `Record<string, Option>`   | A dictionary of option definitions keyed by a valid JavaScript variable name (e.g., `inputDir` → `--input-dir`). See [`Option Definition`](#option-definition).                                 |
-| `arguments?`        | `Record<string, Argument>` | Strictly ordered, typed arguments (order matters). See [`Argument Definition`](#argument-definition).                                                                                           |
-| `meta?`             | `CliMeta`                  | Metadata for the CLI used for help messages and documentation generation.                                                                                                                       |
+#### generateMarkdown
 
-**CliMeta**
+`(cliDefinition: Cli) => string`
 
-| Property               | Type     | Description                                                                                                                     |
-| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `usage?`               | `string` | Usage string example (e.g., `cliName subcommand [options] <arg1> <arg2>`).                                                      |
-| `description?`         | `string` | Short explanation. Supports multi-line text and ANSI colors. Preferred for terminal output when present.                        |
-| `descriptionMarkdown?` | `string` | Markdown-formatted description used for generated documentation and terminal markdown. Used for Markdown generation if present. |
-| `example?`             | `string` | Example shown to the user (displayed as a code block in Markdown).                                                              |
+Generate markdown documentation for a **CLI definition** and return it as a `string`.
 
-#### Subcommand Definition
+### Autocomplete Script Generation
 
-| Property            | Type                       | Description                                                                                                                                                                                             |
-| ------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`              | `string`                   | The subcommand name. Must be unique within a CLI across names and aliases.                                                                                                                              |
-| `aliases?`          | `string[]`                 | A list of aliases that can be used to invoke this subcommand. Must not collide with other names or aliases in the same CLI.                                                                             |
-| `allowPositionals?` | `boolean`                  | When `true`, enables positional arguments for this subcommand. Positionals are untyped `string[]`. If typed `arguments` are present, they are parsed first and any remaining args become `positionals`. |
-| `options?`          | `Record<string, Option>`   | A dictionary of option definitions keyed by a valid JavaScript variable name (e.g., `inputDir` → `--input-dir`). See [`Option Definition`](#option-definition).                                         |
-| `arguments?`        | `Record<string, Argument>` | Strictly ordered, typed arguments (the order matters). [`Argument Definition`](#argument-definition).                                                                                                   |
-| `meta?`             | `SubcommandMeta`           | Metadata used for help messages and documentation generation. Inlined in the table below.                                                                                                               |
+#### generateBashAutocompleteScript
 
-**SubcommandMeta**
+`(cliDefinition: Cli) => string`
 
-| Property               | Type      | Description                                                                                                                                                                                                 |
-| ---------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `placeholder?`         | `string`  | Text to display as a placeholder for expected arguments (e.g. `[options] <arg1> <arg2>`).                                                                                                                   |
-| `usage?`               | `string`  | Usage string example (e.g. `cliName subcommand [options] <arg1> <arg2>`).                                                                                                                                   |
-| `description?`         | `string`  | Short explanation. Supports multi-line text and ANSI color styles. Preferred for terminal output if both `description` and `descriptionMarkdown` are provided.                                              |
-| `descriptionMarkdown?` | `string`  | Markdown-formatted description used for generated documentation and terminal markdown. If both `description` and `descriptionMarkdown` are provided, `descriptionMarkdown` is used for Markdown generation. |
-| `example?`             | `string`  | Example shown to the user (displayed inside a code block in markdown).                                                                                                                                      |
-| `hidden?`              | `boolean` | When `true`, hide this item from documentation/help output. Useful for internal or undocumented commands/options.                                                                                           |
+Generate a Bash autocomplete script for a **CLI definition** and return it as a `string`.
 
-#### Option Definition
+#### generateZshAutocompleteScript
 
-| Property        | Type                         | Description                                                                                                                              |
-| --------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `aliases?`      | `string[]`                   | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                                   |
-| `schema`        | `Schema`                     | A schema to validate the user input. Use an object schema with the key `value` to specify the type (e.g., Zod: `z.string().optional()`). |
-| `coerce`        | `(input: string) => unknown` | Coercion function used to convert terminal `string` input to the schema's expected type. Use provided `coerce` helpers.                  |
-| `exclusive?`    | `boolean`                    | When `true`, this option must appear on its own (except for entries listed in `requires`).                                               |
-| `requires?`     | `string[]`                   | Names of other options/arguments that must be explicitly provided when this option is used.                                              |
-| `conflictWith?` | `string[]`                   | Names of other options/arguments that conflict with this option.                                                                         |
-| `meta?`         | `OptionMeta`                 | Metadata used for help messages and documentation generation. Inlined in the table below.                                                |
+`(cliDefinition: Cli) => string`
 
-**OptionMeta**
+Generate a zsh autocomplete script for a **CLI definition** and return it as a `string`.
 
-| OptionMeta Property | Type      | Description                                                                                    |
-| ------------------- | --------- | ---------------------------------------------------------------------------------------------- |
-| `placeholder?`      | `string`  | Text to display as a placeholder for the expected value (e.g., `<path>`).                      |
-| `default?`          | `string`  | Custom default value shown in docs/help. Use an empty string to intentionally show no default. |
-| `optional?`         | `boolean` | Override whether this option is considered optional in the generated help documentation.       |
+#### generatePowerShellAutocompleteScript
 
-#### Argument Definition
+`(cliDefinition: Cli) => string`
 
-| Property        | Type                | Description                                                                                       |
-| --------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| `schema`        | `Schema`            | Schema to validate the user input. Use an object schema with the key `value` to specify the type. |
-| `coerce`        | `CoerceMethod<...>` | Coercion function used to convert string input to the schema's output type.                       |
-| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).        |
-| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used.     |
-| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument.                                |
-| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.         |
+Generate a PowerShell autocomplete script for a **CLI definition** and return it as a `string`.
 
-**ArgumentMeta**
+### Help Message
 
-| Property    | Type      | Description                                                                                    |
-| ----------- | --------- | ---------------------------------------------------------------------------------------------- |
-| `name?`     | `string`  | Override the argument name in the help message and documentation.                              |
-| `default?`  | `string`  | Custom default value shown in docs/help. Use an empty string to intentionally show no default. |
-| `optional?` | `boolean` | Override whether this argument is considered optional in the generated help documentation.     |
+#### generateCliHelpMessage
 
-#### Help Message Options
+`(cliDefinition: Cli, printOptions?: PrintHelpOptions) => string`
+
+Generate a help message for a **CLI definition** and return it as a `string`.  
+See [`PrintHelpOptions`](#printhelpoptions) and [`Cli`](#cli).
+
+#### generateSubcommandHelpMessage
+
+`(commandDefinition: Subcommand, options?: PrintHelpOptions, cliName?: string) => string`
+
+Generate a help message for a **subcommand definition** and return it as a `string`.  
+See [`PrintHelpOptions`](#printhelpoptions) and [`Subcommand`](#subcommand).
+
+#### printCliHelp
+
+`(cliDefinition: Cli, options?: PrintHelpOptions) => void`
+
+Print a help message for a **CLI definition**.  
+See [`PrintHelpOptions`](#printhelpoptions) and [`Cli`](#cli).
+
+#### printSubcommandHelp
+
+`(commandDefinition: Subcommand, options?: PrintHelpOptions, cliName?: string) => void`
+
+Print a help message for a **subcommand definition**.  
+See [`PrintHelpOptions`](#printhelpoptions) and [`Subcommand`](#subcommand).
+
+### PrintHelpOptions
 
 | Option                  | Type                   | Default                     | Description                                                                         |
 | ----------------------- | ---------------------- | --------------------------- | ----------------------------------------------------------------------------------- |
@@ -322,9 +589,86 @@ type OutputType = InferOutputType<typeof subcommand>;
 | argumentsTitle          | `string`               | `"ARGUMENTS"`               | The title to use for the arguments section.                                         |
 | exampleTitle            | `string`               | `"EXAMPLE"`                 | The title to use for the examples section.                                          |
 
-## Example
+### Cli
 
-- [Example code](https://github.com/alabsi91/zod-args-parser/tree/main/example)
+| Property            | Type                       | Description                                                                                                                                                                                          |
+| ------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cliName`           | `string`                   | The name of the CLI program (main command).                                                                                                                                                          |
+| `subcommands?`      | `Subcommand[]`             | Array of subcommands. Do not manually construct subcommand objects; always create them via `defineSubcommand()` and pass the returned object. See [`Subcommand Definition`](#subcommand-definition). |
+| `allowPositionals?` | `boolean`                  | When `true`, enables positional arguments for the CLI; positionals are untyped `string[]`. If typed `arguments` are present, they are parsed first and any remaining args become `positionals`.      |
+| `options?`          | `Record<string, Option>`   | A dictionary of option definitions keyed by a valid JavaScript variable name (e.g., `inputDir` → `--input-dir`). See [`Option Definition`](#option-definition).                                      |
+| `arguments?`        | `Record<string, Argument>` | Strictly ordered typed arguments. See [`Argument Definition`](#argument-definition).                                                                                                                 |
+| `meta?`             | `CliMeta`                  | Metadata for the CLI used for help messages and documentation generation.                                                                                                                            |
+
+### CliMeta
+
+| Property               | Type     | Description                                                                                                                     |
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `usage?`               | `string` | Usage string example (e.g., `cliName subcommand [options] <arg1> <arg2>`).                                                      |
+| `description?`         | `string` | Short explanation. Supports multi-line text and ANSI colors. Preferred for terminal output when present.                        |
+| `descriptionMarkdown?` | `string` | Markdown-formatted description used for generated documentation and terminal markdown. Used for Markdown generation if present. |
+| `example?`             | `string` | Examples shown to the user (displayed as a code block in Markdown).                                                             |
+
+### Subcommand
+
+| Property            | Type                       | Description                                                                                                                                                                                             |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`              | `string`                   | The subcommand name. Must be unique within a CLI across names and aliases.                                                                                                                              |
+| `aliases?`          | `string[]`                 | A list of aliases that can be used to invoke this subcommand. Must not collide with other names or aliases in the same CLI.                                                                             |
+| `allowPositionals?` | `boolean`                  | When `true`, enables positional arguments for this subcommand. Positionals are untyped `string[]`. If typed `arguments` are present, they are parsed first and any remaining args become `positionals`. |
+| `options?`          | `Record<string, Option>`   | A dictionary of option definitions keyed by a valid JavaScript variable name (e.g., `inputDir` → `--input-dir`). See [`Option Definition`](#option-definition).                                         |
+| `arguments?`        | `Record<string, Argument>` | Strictly ordered, typed arguments (the order matters). [`Argument Definition`](#argument-definition).                                                                                                   |
+| `meta?`             | `SubcommandMeta`           | Metadata used for help messages and documentation generation. Inlined in the table below.                                                                                                               |
+
+### SubcommandMeta
+
+| Property               | Type      | Description                                                                                                                                                                                                 |
+| ---------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `placeholder?`         | `string`  | Text displayed after the subcommand name to show expected arguments (e.g., `<list> <items>`).                                                                                                               |
+| `usage?`               | `string`  | Usage string example (e.g. `cliName subcommand [options] <arg1> <arg2>`).                                                                                                                                   |
+| `description?`         | `string`  | Short explanation. Supports multi-line text and ANSI color styles. Preferred for terminal output if both `description` and `descriptionMarkdown` are provided.                                              |
+| `descriptionMarkdown?` | `string`  | Markdown-formatted description used for generated documentation and terminal markdown. If both `description` and `descriptionMarkdown` are provided, `descriptionMarkdown` is used for Markdown generation. |
+| `example?`             | `string`  | Examples shown to the user (displayed inside a code block in markdown).                                                                                                                                     |
+| `hidden?`              | `boolean` | When `true`, hide this item from documentation/help output. Useful for internal or undocumented commands/options.                                                                                           |
+
+### Option
+
+| Property        | Type                         | Description                                                                                                             |
+| --------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `aliases?`      | `string[]`                   | A list of short alias keys (JavaScript variable names) that map to short CLI flags (e.g., `i` → `-i`).                  |
+| `schema`        | `Schema`                     | A schema to validate the user input. (e.g., Zod: `z.string().optional()`).                                              |
+| `coerce`        | `(input: string) => unknown` | Coercion function used to convert terminal `string` input to the schema's expected type. Use provided `coerce` helpers. |
+| `exclusive?`    | `boolean`                    | When `true`, this option must appear on its own (except for entries listed in `requires`).                              |
+| `requires?`     | `string[]`                   | Names of other options/arguments that must be explicitly provided when this option is used.                             |
+| `conflictWith?` | `string[]`                   | Names of other options/arguments that conflict with this option.                                                        |
+| `meta?`         | `OptionMeta`                 | Metadata used for help messages and documentation generation. Inlined in the table below.                               |
+
+### OptionMeta
+
+| Property       | Type      | Description                                                                                    |
+| -------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| `placeholder?` | `string`  | Text to display as a placeholder for the expected value (e.g., `<path>`).                      |
+| `default?`     | `string`  | Custom default value shown in docs/help. Use an empty string to intentionally show no default. |
+| `optional?`    | `boolean` | Override whether this option is considered optional in the generated help documentation.       |
+
+### Argument
+
+| Property        | Type                | Description                                                                                   |
+| --------------- | ------------------- | --------------------------------------------------------------------------------------------- |
+| `schema`        | `Schema`            | Schema to validate the user input.                                                            |
+| `coerce`        | `CoerceMethod<...>` | Coercion function used to convert string input to the schema's output type.                   |
+| `exclusive?`    | `boolean`           | When `true`, this argument must appear on its own (except for items listed in `requires`).    |
+| `requires?`     | `string[]`          | Names of other options/arguments that must be explicitly provided when this argument is used. |
+| `conflictWith?` | `string[]`          | Names of other options/arguments that conflict with this argument.                            |
+| `meta?`         | `ArgumentMeta`      | Metadata used for help messages and documentation generation. Inlined in the table below.     |
+
+### ArgumentMeta
+
+| Property    | Type      | Description                                                                                    |
+| ----------- | --------- | ---------------------------------------------------------------------------------------------- |
+| `name?`     | `string`  | Override the argument name in the help message and documentation.                              |
+| `default?`  | `string`  | Custom default value shown in help/docs. Use an empty string to intentionally show no default. |
+| `optional?` | `boolean` | Override whether this argument is considered optional in the generated help documentation.     |
 
 ## License
 
