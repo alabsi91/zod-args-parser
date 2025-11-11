@@ -34,6 +34,7 @@ A strictly typed command-line arguments parser powered by schema validation.
   - [Subcommand](#subcommand)
   - [Option](#option)
   - [Argument](#argument)
+  - [Context Type](#context-type)
 - [License](#license)
 
 ## Features
@@ -359,22 +360,17 @@ Here are some examples:
 
 ### Positionals vs Typed Arguments
 
-Command-line arguments can be handled in two ways:
+Think of typed arguments as **reserved seats** at the front of the line, and positionals as **everyone standing behind them**.
 
-#### 1. Positional Arguments
+- Typed arguments are filled **in order from left to right**.
+- Any remaining inputs become positionals **only if `allowPositionals: true`**.
 
-- Requires `allowPositionals: true` to be enabled.
-- Captured as raw `string[]` in `results.positionals`.
-- Untyped and flexible.
-- Only parsed **after all typed arguments** have been processed.
+#### Rules
 
-#### 2. Typed Arguments
-
-- Defined in `arguments` with a schema and coerce function.
-- Provide strong type safety and validation.
-- Arguments are parsed **in order**: the first input is validated against the first schema, the second input against the second schema, etc.
-- Optional arguments **Not allowed** if `allowPositionals` is `true`, otherwise only the last argument may be optional.
-- When `allowPositionals: true`, any remaining arguments are captured as raw `string[]` in `results.positionals`.
+| Setting                   | Behavior                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `allowPositionals: true`  | Typed arguments are parsed first. Remaining inputs go into `positionals`. Typed arguments **cannot** be optional in this mode. |
+| `allowPositionals: false` | All inputs must match typed arguments. Only the **last** typed argument may be optional. Extra inputs cause an error.          |
 
 ### Option and Argument Constraints
 
@@ -670,6 +666,43 @@ See [`PrintHelpOptions`](#printhelpoptions) and [`Subcommand`](#subcommand).
 | `name?`     | `string`  | Override the argument name in the help message and documentation.                              |
 | `default?`  | `string`  | Custom default value shown in help/docs. Use an empty string to intentionally show no default. |
 | `optional?` | `boolean` | Override whether this argument is considered optional in the generated help documentation.     |
+
+### Context Type
+
+Represents detailed information about how each option or argument was provided (terminal, default, or programmatic).  
+Useful for inspecting where values came from and what raw input was used.
+
+#### Context
+
+| Field         | Type                              | Description                                       |
+| ------------- | --------------------------------- | ------------------------------------------------- |
+| `subcommand`  | `string` \| `undefined`           | Name of the executed subcommand, if any.          |
+| `options`     | `Record<string, OptionContext>`   | Per-option context, with source and raw values.   |
+| `arguments`   | `Record<string, ArgumentContext>` | Per-argument context, with source and raw values. |
+| `positionals` | `string[]` \| `never`             | Raw positional arguments when allowed.            |
+
+#### OptionContext
+
+| Property       | Description                                                                          |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `schema`       | Schema used to validate the option.                                                  |
+| `optional`     | Whether the option schema is optional.                                               |
+| `defaultValue` | Default value from the schema, if any.                                               |
+| `flag`         | CLI flag used (e.g., `--foo`, `-f`) when source is `terminal`.                       |
+| `stringValue`  | Raw string provided from CLI when source is `terminal`.                              |
+| `passedValue`  | Value passed programmatically when source is `programmatic`.                         |
+| `source`       | `"terminal"`, `"default"`, or `"programmatic"` indicates how the value was supplied. |
+
+#### ArgumentContext
+
+| Property       | Description                                                                          |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `schema`       | Schema used to validate the argument.                                                |
+| `optional`     | Whether the argument schema is optional.                                             |
+| `defaultValue` | Default value from the schema, if any.                                               |
+| `stringValue`  | Raw string from CLI when source is `terminal`.                                       |
+| `passedValue`  | Value passed programmatically when source is `programmatic`.                         |
+| `source`       | `"terminal"`, `"default"`, or `"programmatic"` indicates how the value was supplied. |
 
 ## License
 
