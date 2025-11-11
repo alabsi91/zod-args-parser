@@ -60,7 +60,7 @@ export type InferArgumentsInputType<T extends Cli | Subcommand> =
  *   const myCommand = defineSubcommand({ name: "my-command", options: [...] });
  *   type MyCommandOptionsInput = inferOptionsInputType<typeof myCommand>;
  */
-export type inferOptionsInputType<T extends Cli | Subcommand> =
+export type InferOptionsInputType<T extends Cli | Subcommand> =
   T["options"] extends Record<string, Option> ? OptionsInputType<T["options"]> : undefined;
 
 /**

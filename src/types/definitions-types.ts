@@ -154,7 +154,7 @@ export interface Subcommand {
    *   const myCli = defineCLI({ name: "my-cli", subcommands: [helpCommand] });
    *   myCli.onExecute((result) => console.log(result));
    */
-  _onExecute?: ((result: OutputTypeWide) => void)[];
+  _onExecute?: ((result: OutputTypeWide) => void | Promise<void>)[];
 }
 
 interface OptionMeta extends MetaBase {

@@ -24,34 +24,53 @@ type SubcommandInput<T extends Subcommand> = {
 };
 
 export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T> & Subcommand) {
-  const subcommandSchema = input as Prettify<T & AttachedMethods<T>>;
+  const subcommandDefinition = input as Prettify<T & AttachedMethods<T>>;
 
-  prepareDefinitionTypes(subcommandSchema.options);
-  prepareDefinitionTypes(subcommandSchema.arguments);
+  prepareDefinitionTypes(subcommandDefinition.options);
+  prepareDefinitionTypes(subcommandDefinition.arguments);
 
   const onExecute = (handler: (Subcommand["_onExecute"] & {})[number]) => {
-    subcommandSchema._onExecute ??= [];
-    subcommandSchema._onExecute.push(handler);
+    subcommandDefinition._onExecute ??= [];
+    subcommandDefinition._onExecute.push(handler);
 
     return () => {
-      const handlerIndex = subcommandSchema._onExecute?.indexOf(handler);
+      const handlerIndex = subcommandDefinition._onExecute?.indexOf(handler);
       if (!handlerIndex || handlerIndex < 0) return;
-      subcommandSchema._onExecute?.splice(handlerIndex, 1);
+      subcommandDefinition._onExecute?.splice(handlerIndex, 1);
     };
   };
 
   const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
-    if (!subcommandSchema._onExecute) throw new Error("Action is not defined");
-    const context = buildObjectContext(inputValues, subcommandSchema);
-    const validateResult = validate(context, subcommandSchema);
 
-    if (subcommandSchema._onExecute) {
-      for (const handler of subcommandSchema._onExecute) {
-        handler(validateResult);
-      }
+    const handlers = subcommandDefinition._onExecute;
+
+    if (!handlers) {
+      throw new Error("OnExecute is not defined");
+    }
+
+    const context = buildObjectContext(inputValues, subcommandDefinition);
+    const validateResult = validate(context, subcommandDefinition);
+
+    for (const handler of handlers) {
+      void handler(validateResult);
     }
   };
 
-  return Object.assign(subcommandSchema, { onExecute, execute });
+  const executeAsync: AttachedMethodsWide["executeAsync"] = async inputValues => {
+    inputValues ??= {};
+
+    const handlers = subcommandDefinition._onExecute;
+
+    if (!handlers) {
+      throw new Error("OnExecute is not defined");
+    }
+
+    const context = buildObjectContext(inputValues, subcommandDefinition);
+    const validateResult = validate(context, subcommandDefinition);
+
+    await Promise.all(handlers.map(async handler => await handler(validateResult)));
+  };
+
+  return Object.assign(subcommandDefinition, { onExecute, execute, executeAsync });
 }

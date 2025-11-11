@@ -40,66 +40,86 @@ type CliInput<T extends Cli> = {
 };
 
 export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
-  const cliSchema = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
+  const cliDefinition = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
 
-  prepareDefinitionTypes(cliSchema.options);
-  prepareDefinitionTypes(cliSchema.arguments);
+  prepareDefinitionTypes(cliDefinition.options);
+  prepareDefinitionTypes(cliDefinition.arguments);
 
-  if (cliSchema.subcommands) {
-    for (const subcommand of Object.values(cliSchema.subcommands)) {
+  if (cliDefinition.subcommands) {
+    for (const subcommand of Object.values(cliDefinition.subcommands)) {
       prepareDefinitionTypes(subcommand.options);
       prepareDefinitionTypes(subcommand.arguments);
     }
   }
 
   const onExecute = (handler: (Cli["_onExecute"] & {})[number]) => {
-    cliSchema._onExecute ??= [];
-    cliSchema._onExecute.push(handler);
+    cliDefinition._onExecute ??= [];
+    cliDefinition._onExecute.push(handler);
 
     return () => {
-      const handlerIndex = cliSchema._onExecute?.indexOf(handler);
+      const handlerIndex = cliDefinition._onExecute?.indexOf(handler);
       if (!handlerIndex || handlerIndex < 0) return;
-      cliSchema._onExecute?.splice(handlerIndex, 1);
+      cliDefinition._onExecute?.splice(handlerIndex, 1);
     };
   };
 
   const execute: AttachedMethodsWide["execute"] = inputValues => {
     inputValues ??= {};
-    if (!cliSchema._onExecute) throw new Error("Action is not defined");
-    const context = buildObjectContext(inputValues, cliSchema);
-    const validateResult = validate(context, cliSchema);
 
-    if (cliSchema._onExecute) {
-      for (const handler of cliSchema._onExecute) {
-        handler(validateResult);
-      }
+    const handlers = cliDefinition._onExecute;
+
+    if (!handlers) {
+      throw new Error("OnExecute is not defined");
     }
+
+    const context = buildObjectContext(inputValues, cliDefinition);
+    const validateResult = validate(context, cliDefinition);
+
+    for (const handler of handlers) {
+      void handler(validateResult);
+    }
+  };
+
+  const executeAsync: AttachedMethodsWide["executeAsync"] = async inputValues => {
+    inputValues ??= {};
+
+    const handlers = cliDefinition._onExecute;
+
+    if (!handlers) {
+      throw new Error("OnExecute is not defined");
+    }
+
+    const context = buildObjectContext(inputValues, cliDefinition);
+    const validateResult = validate(context, cliDefinition);
+
+    await Promise.all(handlers.map(async handler => await handler(validateResult)));
   };
 
   // Add print methods for CLI schema and its subcommands
   const generateHelpMethods: Pick<AttachedMethodsWide, "generateCliHelpMessage" | "generateSubcommandHelpMessage"> = {
     generateCliHelpMessage(options?: PrintHelpOptions) {
-      return generateCliHelpMessage(cliSchema, options);
+      return generateCliHelpMessage(cliDefinition, options);
     },
     generateSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
-      const foundSubcommand = cliSchema.subcommands?.find(s => s.name === subcommandName);
+      const foundSubcommand = cliDefinition.subcommands?.find(s => s.name === subcommandName);
       if (!foundSubcommand) throw new Error(`Subcommand ${subcommandName} not found`);
-      return generateSubcommandHelpMessage(foundSubcommand, options, cliSchema.cliName);
+      return generateSubcommandHelpMessage(foundSubcommand, options, cliDefinition.cliName);
     },
   };
 
-  Object.assign(cliSchema, generateHelpMethods);
+  Object.assign(cliDefinition, generateHelpMethods);
 
-  if (cliSchema.subcommands) {
-    for (const subcommandSchema of cliSchema.subcommands) {
+  if (cliDefinition.subcommands) {
+    for (const subcommandSchema of cliDefinition.subcommands) {
       Object.assign(subcommandSchema, generateHelpMethods);
     }
   }
 
-  return Object.assign(cliSchema, {
+  return Object.assign(cliDefinition, {
     execute,
     onExecute,
-    run: (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliSchema),
-    runAsync: (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliSchema),
+    executeAsync,
+    run: (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliDefinition),
+    runAsync: (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliDefinition),
   });
 }

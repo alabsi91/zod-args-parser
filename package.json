@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0-beta.1",
   "description": "A TypeScript-first CLI argument parser with schema-based validation.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",

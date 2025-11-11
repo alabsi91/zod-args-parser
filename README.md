@@ -392,17 +392,43 @@ Both options and typed arguments support rules to control valid combinations:
 
 ### Negating a boolean option
 
-Boolean options can be negated by prefixing them with `no-` or by using the equals sign `=`.
+Boolean flags are `true` when they appear on the command line.  
+Prefixing a flag with `--no-` inverts its final value.
+
+When a value is explicitly assigned (`=true` or `=false`), the assignment is applied first, then the `--no-` prefix flips the result.
+
+Examples:
 
 ```sh
---bool        true
---no-bool     false
+--bool           true
+--no-bool        false
+```
 
---bool=true   true
---bool=false  false
+```sh
+--bool=true      true
+--bool=false     false
+```
 
--v            true
---no-v        false
+```sh
+--no-bool=true   false   # assigned true → inverted
+--no-bool=false  true    # assigned false → inverted
+```
+
+Short-form flags follow the same logic, but do **not** accept `=value` syntax:
+
+```sh
+-v               true
+--no-v           false
+```
+
+```sh
+-v=true          ERROR
+-v=false         ERROR
+```
+
+```sh
+--no-v=true      false
+--no-v=false     true
 ```
 
 ### Creating a Custom Help Message Style

@@ -16,7 +16,7 @@ export function safeParse(stringOrArgv: string | string[], cliDefinition: Cli): 
   // Fire action (throw errors caused by the usage of the action hook)
   if (subcommandObject._onExecute) {
     for (const handler of subcommandObject._onExecute) {
-      handler(validateResult);
+      void handler(validateResult);
     }
   }
 
@@ -31,10 +31,7 @@ export async function safeParseAsync(stringOrArgv: string | string[], cliDefinit
 
   // Fire action (throw errors caused by the usage of the action hook)
   if (subcommandObject._onExecute) {
-    for (const handler of subcommandObject._onExecute) {
-      // eslint-disable-next-line @typescript-eslint/await-thenable
-      await handler(validateResult);
-    }
+    await Promise.all(subcommandObject._onExecute.map(async handler => await handler(validateResult)));
   }
 
   return { error: undefined, value: validateResult };

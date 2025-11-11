@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { coerce, defineSubcommand, type inferOptionsInputType } from "zod-args-parser";
+import { coerce, defineSubcommand, type InferOptionsInputType } from "zod-args-parser";
 
 import { lists } from "../lists.ts";
 import { sharedOptions } from "../shared.ts";
@@ -71,7 +71,7 @@ addItemsCommand.onExecute(results => {
 });
 
 // Provide a programmatic way to execute the command
-function executeAddItemsCommand(options: inferOptionsInputType<typeof addItemsCommand>) {
+function executeAddItemsCommand(options: InferOptionsInputType<typeof addItemsCommand>) {
   addItemsCommand.execute({ options });
 }
 

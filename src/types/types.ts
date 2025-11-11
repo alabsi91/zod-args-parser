@@ -27,11 +27,18 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
    */
   onExecute: (handler: (data: OutputType<[T]>) => void) => Unsubscribe;
 
-  // Make the argument optional if it has undefined type
+  /** Execute the main command/subcommand programmatically */
   execute: InferInputType<T> extends infer InputType
     ? undefined extends InputType
       ? (input?: InputType) => void
       : (input: InputType) => void
+    : never;
+
+  /** Execute the main command/subcommand programmatically */
+  executeAsync: InferInputType<T> extends infer InputType
+    ? undefined extends InputType
+      ? (input?: InputType) => Promise<void>
+      : (input: InputType) => Promise<void>
     : never;
 
   /** **WARNING**: This will only be available after the CLI schema has been created */
@@ -49,8 +56,9 @@ export interface AttachedMethods<T extends Cli | Subcommand> {
 }
 
 export interface AttachedMethodsWide {
-  onExecute: (handler: (data: OutputTypeWide) => void) => Unsubscribe;
+  onExecute: (handler: (data: OutputTypeWide) => void | Promise<void>) => Unsubscribe;
   execute: (input?: InputTypeWide) => void;
+  executeAsync: (input?: InputTypeWide) => Promise<void>;
   generateCliHelpMessage?: (options?: PrintHelpOptions) => void;
   /** @throws {Error} - When the subcommand is not found */
   generateSubcommandHelpMessage?: (subcommandName: string, options?: PrintHelpOptions) => void;
