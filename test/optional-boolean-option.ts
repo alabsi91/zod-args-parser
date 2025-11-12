@@ -28,8 +28,9 @@ describe("-h, --help (optional: boolean)".padEnd(spaceToColumn + spaceColumnEnd 
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(
+    assert.equal(
       result.value.options.help,
+      true,
       err("Invalid value for option `-H`. Expected `true`, but received:", result.value.options.help),
     );
   });
@@ -40,8 +41,9 @@ describe("-h, --help (optional: boolean)".padEnd(spaceToColumn + spaceColumnEnd 
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(
-      result.value.options.help === undefined,
+    assert.equal(
+      result.value.options.help,
+      undefined,
       err("Invalid value for option `help`. Expected `undefined`, but received:", result.value.options.help),
     );
   });

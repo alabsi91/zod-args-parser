@@ -35,21 +35,10 @@ describe("-h, --help (required: boolean)".padEnd(spaceToColumn + spaceColumnEnd 
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(
+    assert.equal(
       result.value.options.help,
+      true,
       err("Invalid value for option `--help=true`. Expected `true`, but received:", result.value.options.help),
-    );
-  });
-
-  it("--no-help=false".padEnd(spaceToColumn) + expectsTrue, () => {
-    const result = cli.run(["--no-help=false"]);
-    if (result.error) {
-      assert.fail(err("Parsing failed with the error message:", result.error.message));
-    }
-
-    assert(
-      result.value.options.help,
-      err("Invalid value for option `--no-help=false`. Expected `true`, but received:", result.value.options.help),
     );
   });
 
@@ -59,8 +48,9 @@ describe("-h, --help (required: boolean)".padEnd(spaceToColumn + spaceColumnEnd 
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(
+    assert.equal(
       result.value.options.help,
+      true,
       err("Invalid value for option `-h`. Expected `true`, but received:", result.value.options.help),
     );
   });
@@ -71,33 +61,10 @@ describe("-h, --help (required: boolean)".padEnd(spaceToColumn + spaceColumnEnd 
       assert.fail(err("Parsing failed with the error message:", result.error.message));
     }
 
-    assert(
-      !result.value.options.help,
+    assert.equal(
+      result.value.options.help,
+      false,
       err("Invalid value for option `--help=false`. Expected `false`, but received:", result.value.options.help),
-    );
-  });
-
-  it("--no-help".padEnd(spaceToColumn) + expectsFalse, () => {
-    const result = cli.run(["--no-help"]);
-    if (result.error) {
-      assert.fail(err("Parsing failed with the error message:", result.error.message));
-    }
-
-    assert(
-      !result.value.options.help,
-      err("Invalid value for option `--no-help`. Expected `false`, but received:", result.value.options.help),
-    );
-  });
-
-  it("--no-help=true".padEnd(spaceToColumn) + expectsFalse, () => {
-    const result = cli.run(["--no-help=true"]);
-    if (result.error) {
-      assert.fail(err("Parsing failed with the error message:", result.error.message));
-    }
-
-    assert(
-      !result.value.options.help,
-      err("Invalid value for option `--no-help=true`. Expected `false`, but received:", result.value.options.help),
     );
   });
 

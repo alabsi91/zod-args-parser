@@ -25,7 +25,6 @@ export const sharedOptions = defineOptions({
 export const sharedArguments = defineArguments({
   "input-path": {
     schema: z.string().optional(),
-    coerce: coerce.string,
     meta: {
       description: "The path to the input file",
       example: "input.txt\ninput.json\ninput.csv",

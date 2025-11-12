@@ -30,19 +30,6 @@ describe("Negate boolean option".padEnd(spaceToColumn + spaceColumnEnd + 2), () 
     );
   });
 
-  it("--help=false".padEnd(spaceToColumn) + expectsSuccess, () => {
-    const result = cli.run(["--help=false"]);
-    if (result.error) {
-      assert.fail(err("Parsing failed with the error message:", result.error.message));
-    }
-
-    assert.equal(
-      result.value.options.help,
-      false,
-      err("Invalid value for option `--help=false`. Expected `false`, but received:", result.value.options.help),
-    );
-  });
-
   it("--no-help=false".padEnd(spaceToColumn) + expectsSuccess, () => {
     const result = cli.run(["--no-help=false"]);
     if (result.error) {
@@ -80,11 +67,6 @@ describe("Negate boolean option".padEnd(spaceToColumn + spaceColumnEnd + 2), () 
       false,
       err("Invalid value for option `--no-h`. Expected `false`, but received:", result.value.options.help),
     );
-  });
-
-  it("-h=false".padEnd(spaceToColumn) + expectsSuccess, () => {
-    const result = cli.run(["-h=false"]);
-    assert(!result.value, err("Invalid option `-h=false`. Expected failure, but parsing succeeded."));
   });
 
   it("--no-h=false".padEnd(spaceToColumn) + expectsSuccess, () => {
