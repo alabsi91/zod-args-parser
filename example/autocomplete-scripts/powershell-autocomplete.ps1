@@ -30,7 +30,7 @@ function listy {
 
 Register-ArgumentCompleter -CommandName 'listy' -ParameterName 'subcommand' -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-    $subcommands = @('add-items', 'remove-items', 'create-list', 'delete-list', 'help', '--help', '--version', '--verbose', '--debug')
+    $subcommands = @('add-items', 'remove-items', 'create-list', 'delete-list', 'view-list', 'help', '--help', '--version', '--db')
     $subcommands | Where-Object { $_ -like "$wordToComplete*" }
 }
 
@@ -38,18 +38,19 @@ Register-ArgumentCompleter -CommandName 'listy' -ParameterName 'arguments' -Scri
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $subcommand = $commandAst.CommandElements[1].Value
     $arguments = switch ($subcommand) {
-        'add-items' { @('--list', '--items', '--tags', '--verbose', '--debug') }
-        'a' { @('--list', '--items', '--tags', '--verbose', '--debug') }
-        'add' { @('--list', '--items', '--tags', '--verbose', '--debug') }
-        'remove-items' { @('--list', '--verbose', '--debug') }
-        'r' { @('--list', '--verbose', '--debug') }
-        'remove' { @('--list', '--verbose', '--debug') }
-        'create-list' { @('--overwrite', '--verbose', '--debug') }
-        'cl' { @('--overwrite', '--verbose', '--debug') }
-        'delete-list' { @('--verbose', '--debug') }
-        'dl' { @('--verbose', '--debug') }
-        'help' { @('--verbose', '--debug') }
-        default { @('--help', '--version', '--verbose', '--debug') }
+        'add-items' { @('--list', '--items', '--tags', '--verbose') }
+        'ai' { @('--list', '--items', '--tags', '--verbose') }
+        'remove-items' { @('--list', '--verbose') }
+        'ri' { @('--list', '--verbose') }
+        'create-list' { @('--overwrite', '--verbose') }
+        'cl' { @('--overwrite', '--verbose') }
+        'delete-list' { @('--verbose') }
+        'dl' { @('--verbose') }
+        'view-list' { @('--verbose') }
+        'vl' { @('--verbose') }
+        'help' { @('--verbose') }
+        'h' { @('--verbose') }
+        default { @('--help', '--version', '--db') }
     }
     $arguments | Where-Object { $_ -like "$wordToComplete*" }
 }
