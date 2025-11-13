@@ -7,23 +7,26 @@ _listy_autocomplete() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   subcommand="${COMP_WORDS[1]}"
 
-  commands="add-items remove-items create-list delete-list help"
+  commands="add-items remove-items create-list delete-list view-list help"
 
   case "$subcommand" in
-    add-items|a|add)
-      opts="--list --items --tags --verbose --debug"
+    add-items|ai)
+      opts="--list --items --tags --verbose"
       ;;
-    remove-items|r|remove)
-      opts="--list --verbose --debug"
+    remove-items|ri)
+      opts="--list --verbose"
       ;;
     create-list|cl)
-      opts="--overwrite --verbose --debug"
+      opts="--overwrite --verbose"
       ;;
     delete-list|dl)
-      opts="--verbose --debug"
+      opts="--verbose"
       ;;
-    help)
-      opts="--verbose --debug"
+    view-list|vl)
+      opts="--verbose"
+      ;;
+    help|h)
+      opts="--verbose"
       ;;
 
   esac
