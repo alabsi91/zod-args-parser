@@ -17,7 +17,6 @@ _listy_autocomplete() {
             '--items[]' \
             '--tags[]' \
             '--verbose[Enable verbose mode.]' \
-            '--debug[Enable debug mode.]' \
             '*: :_files' \
             && ret=0
           ;;
@@ -25,7 +24,6 @@ _listy_autocomplete() {
           _arguments \
             '--list[The name of the list to remove items from.]' \
             '--verbose[Enable verbose mode.]' \
-            '--debug[Enable debug mode.]' \
             '*: :_files' \
             && ret=0
           ;;
@@ -33,21 +31,24 @@ _listy_autocomplete() {
           _arguments \
             '--overwrite[Overwrite the list if it already exists.]' \
             '--verbose[Enable verbose mode.]' \
-            '--debug[Enable debug mode.]' \
             '*: :_files' \
             && ret=0
           ;;
         delete-list)
           _arguments \
             '--verbose[Enable verbose mode.]' \
-            '--debug[Enable debug mode.]' \
+            '*: :_files' \
+            && ret=0
+          ;;
+        view-list)
+          _arguments \
+            '--verbose[Enable verbose mode.]' \
             '*: :_files' \
             && ret=0
           ;;
         help)
           _arguments \
             '--verbose[Enable verbose mode.]' \
-            '--debug[Enable debug mode.]' \
             '*: :_files' \
             && ret=0
           ;;
@@ -69,7 +70,8 @@ _listy_commands() {
     "remove-items:Remove items from the list."
     "create-list:Create a new list."
     "delete-list:Delete a specific list."
-    "help:Print help message for command"
+    "view-list:View a specific list or all lists."
+    "help:Show help message for a specific command."
   )
 
   _describe -t subcommands 'subcommand' commands
