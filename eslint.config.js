@@ -46,6 +46,7 @@ export default defineConfig(
       "unicorn/prefer-string-replace-all": "off",
       "unicorn/no-nested-ternary": "off",
       "unicorn/consistent-function-scoping": "off",
+      "unicorn/prefer-at": "off",
     },
   },
 );

@@ -8,6 +8,16 @@ import { helpCommand } from "./commands/help-cmd.ts";
 import { removeItemsCommand } from "./commands/remove-items.ts";
 import { viewListCommand } from "./commands/view-list.ts";
 
+const defaultDB = {
+  host: "localhost",
+  port: 5432,
+  https: false,
+  credentials: {
+    user: "postgres",
+    pass: "postgres",
+  },
+};
+
 export const listyCLI = defineCLI({
   cliName: "listy",
   meta: {
@@ -31,6 +41,11 @@ export const listyCLI = defineCLI({
   ],
 
   options: {
+    /**
+     * 💡 **Tip:** Adding a **JSDoc** comment here will be displayed in IDE hovers alongside the TypeScript type.
+     *
+     * `--help` or `-h`
+     */
     help: {
       aliases: ["h"],
       exclusive: true,
@@ -40,6 +55,8 @@ export const listyCLI = defineCLI({
         description: "Show help message.",
       },
     },
+
+    /** `--version` or `-v` */
     version: {
       aliases: ["v"],
       schema: z.boolean().optional(),
@@ -48,6 +65,18 @@ export const listyCLI = defineCLI({
         description: "Show listy version.",
       },
     },
+
+    db: {
+      schema: z
+        .object({
+          host: z.string().default("localhost"),
+          port: z.number().default(5432),
+          https: z.boolean().default(false),
+          credentials: z.object({ user: z.string(), pass: z.string() }),
+        })
+        .default(defaultDB),
+      coerce: coerce.object({ coerceBoolean: ["https"], coerceNumber: ["port"] }),
+    },
   },
 });
 
@@ -55,6 +84,7 @@ export const listyCLI = defineCLI({
 listyCLI.onExecute(results => {
   const { help, version } = results.options;
 
+  console.log(results.options.db);
   if (help) {
     if (!listyCLI.generateCliHelpMessage) {
       console.error("Cli schema is not initialized.");

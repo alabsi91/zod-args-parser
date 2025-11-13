@@ -6,9 +6,9 @@ import { minify } from "terser";
 import ts from "typescript";
 
 const libDir = "lib";
-const tsLibDir = path.join(libDir, "typescript");
+const tsLibDir = path.join(libDir, "types");
 
-const tsFiles = globSync("src/**/*.ts");
+const tsFiles = globSync("src/**/*.ts", { ignore: "**/*.d.ts" });
 
 // Clean lib directory
 console.log("🧹", `Cleaning "${libDir}" directory ...`);
@@ -19,36 +19,45 @@ rmSync(libDir, { recursive: true, force: true });
   console.log("📦", `Generating TypeScript declaration files...`);
 
   const tsConfigPath = path.resolve("tsconfig.json");
-  const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
+
+  const tsConfigReadResult = ts.readConfigFile(tsConfigPath, path => ts.sys.readFile(path));
+  if (tsConfigReadResult.error) {
+    throw tsConfigReadResult.error;
+  }
+
+  const tsConfig = tsConfigReadResult.config as { compilerOptions: ts.CompilerOptions };
   tsConfig.compilerOptions.declarationDir = tsLibDir;
   tsConfig.compilerOptions.emitDeclarationOnly = true;
+  tsConfig.compilerOptions.noEmitOnError = false;
 
   const parsedCommandLine = ts.parseJsonConfigFileContent(tsConfig, ts.sys, path.dirname(tsConfigPath));
+  if (parsedCommandLine.errors.length > 0) {
+    throw new Error("Failed to parse tsconfig");
+  }
 
   const host = ts.createCompilerHost(parsedCommandLine.options);
   const program = ts.createProgram(tsFiles, parsedCommandLine.options, host);
-  program.emit();
+
+  const emitResult = program.emit();
+
+  const allDiagnostics = [
+    ...program.getSyntacticDiagnostics(),
+    ...program.getSemanticDiagnostics(),
+    ...program.getOptionsDiagnostics(),
+    ...program.getGlobalDiagnostics(),
+    ...program.getDeclarationDiagnostics(),
+    ...emitResult.diagnostics,
+  ];
+
+  if (allDiagnostics.length > 0) {
+    const diagnostics = ts.formatDiagnosticsWithColorAndContext(allDiagnostics, host);
+    console.log();
+    console.log(diagnostics);
+    throw new Error("Failed to emit typescript declaration files");
+  }
 }
 
-const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: "src/types/**" });
-
-// cjs
-{
-  console.log("⚙️ ", `Building for cjs...`);
-
-  await esbuild.build({
-    entryPoints: tsFilesWithoutTypes,
-    outdir: path.join(libDir, "cjs"),
-    outExtension: { ".js": ".cjs" },
-    format: "cjs",
-    platform: "node",
-    target: "es2020",
-    sourcemap: true,
-    bundle: true,
-    packages: "external",
-    plugins: [rewriteRelativeImportExtensionsPlugin({ replaceWith: ".cjs" })],
-  });
-}
+const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "**/*.d.ts"] });
 
 // mjs
 {
@@ -77,7 +86,7 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: "src/types/**" });
     outdir: path.join(libDir, "esm"),
     format: "esm",
     platform: "browser",
-    target: "es2020",
+    target: "esnext",
     sourcemap: true,
     bundle: true,
     packages: "external",
@@ -94,7 +103,7 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: "src/types/**" });
     outdir: path.join(libDir, "iife"),
     format: "iife",
     platform: "browser",
-    target: "es2020",
+    target: "esnext",
     treeShaking: true,
     sourcemap: true,
     bundle: true,

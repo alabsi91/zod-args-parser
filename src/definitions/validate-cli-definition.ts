@@ -1,5 +1,5 @@
 import { transformOptionToArgument } from "../parse/parser-utilities.ts";
-import { findDuplicateStrings } from "../utilities.ts";
+import { findDuplicateStrings } from "../utilities/utilities.ts";
 
 import type { Cli, Subcommand } from "../types/definitions-types.ts";
 

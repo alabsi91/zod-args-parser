@@ -15,6 +15,7 @@ const removeItemsCommand = defineSubcommand({
   },
 
   options: {
+    /** `--list` or `-l` */
     list: {
       aliases: ["l"],
       schema: z.string(),

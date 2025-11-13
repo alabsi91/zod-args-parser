@@ -16,6 +16,7 @@ const deleteListCommand = defineSubcommand({
   options: sharedOptions,
 
   arguments: {
+    /** `<list-name>` */
     listName: {
       schema: z.string(),
       meta: {

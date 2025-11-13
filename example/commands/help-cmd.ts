@@ -15,6 +15,7 @@ const helpCommand = defineSubcommand({
   options: sharedOptions,
 
   arguments: {
+    /** `<command-name>` */
     commandName: {
       schema: z.enum(["add-items", "create-list", "delete-list", "remove-items", "help", "view-list"]).optional(),
       meta: {

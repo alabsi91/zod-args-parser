@@ -1,5 +1,5 @@
 import { getCliMetadata } from "../metadata/cli-metadata.ts";
-import { escapeHtmlTags, stripAnsi } from "../utilities.ts";
+import { escapeHtmlTags, stripAnsi } from "../utilities/utilities.ts";
 
 import type { Cli } from "../types/definitions-types.ts";
 import type { ArgumentMetadata, OptionMetadata, SubcommandMetadata } from "../types/metadata-types.ts";
@@ -72,7 +72,6 @@ function renderOptions(optionsMetadata: OptionMetadata[] = [], h: number) {
     if (metadata.hidden) continue;
 
     const aliases = [metadata.nameAsArg].concat(metadata.aliasesAsArgs).join(", ");
-
     const placeholder = metadata.placeholder && ` ${metadata.placeholder}`;
 
     outString += `${"#".repeat(h)} \`${aliases + placeholder}\``;
@@ -92,7 +91,8 @@ function renderOptions(optionsMetadata: OptionMetadata[] = [], h: number) {
     }
 
     if (metadata.defaultValue !== undefined) {
-      outString += `\n**default:** \`${metadata.defaultValueAsString}\`\n`;
+      const nl = outString.endsWith("\n\n") ? "" : "\n";
+      outString += `${nl}**default:** \`${metadata.defaultValueAsString}\`\n`;
     }
 
     if (metadata.example) {
@@ -131,7 +131,8 @@ function renderArguments(argumentsMetadata: ArgumentMetadata[] = [], h: number) 
     }
 
     if (metadata.defaultValue !== undefined) {
-      outString += `\n**default:** \`${metadata.defaultValueAsString}\`\n`;
+      const nl = outString.endsWith("\n\n") ? "" : "\n";
+      outString += `${nl}**default:** \`${metadata.defaultValueAsString}\`\n`;
     }
 
     if (metadata.example) {

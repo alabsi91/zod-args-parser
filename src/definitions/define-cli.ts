@@ -3,7 +3,7 @@ import { generateSubcommandHelpMessage } from "../help-message/generate-for-subc
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { prepareDefinitionTypes } from "../utilities.ts";
+import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
 import type { PrintHelpOptions } from "../types/help-message-types.ts";
@@ -40,7 +40,7 @@ type CliInput<T extends Cli> = {
 };
 
 export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
-  const cliDefinition = input as Prettify<T & AttachedMethods<T> & ValidateMethods<T>>;
+  const cliDefinition = input as T;
 
   prepareDefinitionTypes(cliDefinition.options);
   prepareDefinitionTypes(cliDefinition.arguments);
@@ -115,11 +115,10 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
     }
   }
 
-  return Object.assign(cliDefinition, {
-    execute,
-    onExecute,
-    executeAsync,
-    run: (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliDefinition),
-    runAsync: (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliDefinition),
-  });
+  const run = (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliDefinition);
+  const runAsync = (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliDefinition);
+
+  return Object.assign(cliDefinition, { onExecute, execute, executeAsync, run, runAsync }) as Prettify<
+    T & AttachedMethods<T> & ValidateMethods<T>
+  >;
 }

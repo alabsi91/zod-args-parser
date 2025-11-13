@@ -14,6 +14,7 @@ const createListCommand = defineSubcommand({
   },
 
   options: {
+    /** `--overwrite` or `-o` */
     overwrite: {
       aliases: ["o"],
       schema: z.boolean().default(false),
@@ -22,16 +23,20 @@ const createListCommand = defineSubcommand({
         description: "Overwrite the list if it already exists.",
       },
     },
+
     ...sharedOptions,
   },
 
   arguments: {
+    /** `<list-name>` */
     listName: {
       schema: z.string(),
       meta: {
         description: "The name of the list to create.",
       },
     },
+
+    /** `<list-description>` */
     listDescription: {
       schema: z.string().optional(),
       meta: {

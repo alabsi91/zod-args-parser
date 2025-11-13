@@ -1,4 +1,4 @@
-import { validateSync } from "../../../utilities.ts";
+import { prettifyError, validateSync } from "../../../utilities/schema-utilities.ts";
 import { validateConflictWith } from "./conflict.ts";
 import { validateExclusive } from "./exclusive.ts";
 import { validateRequires } from "./requires.ts";
@@ -50,7 +50,9 @@ export function validateOptions({ commandDefinition, context, output }: Validate
 
     if (safeParseResult.issues) {
       throw new Error(
-        `invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
+        `invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${prettifyError(
+          safeParseResult.issues,
+        )}`,
       );
     }
 

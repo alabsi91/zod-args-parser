@@ -1,53 +1,4 @@
-import type { Argument, Option, PreparedType } from "./types/definitions-types.ts";
-import type { SubcommandMetadata } from "./types/metadata-types.ts";
-import type { SchemaResult, SchemaType } from "./types/schema-types.ts";
-import type { CoerceMethod } from "./types/types.ts";
-
-/** @throws */
-export function validateSync(schema: SchemaType, value?: unknown): SchemaResult {
-  const results = schema["~standard"].validate(value);
-  if (results instanceof Promise) {
-    throw new TypeError("async schema validation not supported");
-  }
-
-  return results;
-}
-
-export function defaultValueAndIsOptional(schema: SchemaType): { defaultValue: unknown; optional: boolean } {
-  const results = validateSync(schema);
-
-  if (results.issues) {
-    return { defaultValue: undefined, optional: false };
-  }
-
-  return { defaultValue: results.value, optional: true };
-}
-
-export function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unknown>): PreparedType {
-  const { optional, defaultValue } = defaultValueAndIsOptional(schema);
-
-  return {
-    schema,
-    optional,
-    defaultValue,
-    coerceTo: coerceHandler.type,
-    validate: (value?: string) => validateSync(schema, value && coerceHandler(value)),
-  };
-}
-
-export function prepareDefinitionTypes(definition: Record<string, Argument> | Record<string, Option> | undefined) {
-  if (!definition) return;
-
-  for (const object of Object.values<Argument | Option>(definition)) {
-    if (!object.coerce) {
-      object.coerce = (value: string) => value;
-    }
-
-    if (!object._preparedType) {
-      object._preparedType = PrepareType(object.schema, object.coerce);
-    }
-  }
-}
+import type { SubcommandMetadata } from "../types/metadata-types.ts";
 
 export function toKebabCase(input: string): string {
   return input.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
@@ -158,85 +109,6 @@ export function subcommandPlaceholder(metadata: SubcommandMetadata): string {
   return placeholder;
 }
 
-/** Parse a string into an argv (array of arguments) */
-export function parseArgv(input: string): string[] {
-  const argv = [];
-
-  let currentQuote: string | undefined = undefined;
-  let currentArgument: string | undefined = undefined;
-
-  for (let index = 0; index < input.length; index++) {
-    const char = input[index];
-    const previousChar = input[index - 1];
-    const nextChar = input[index + 1];
-    const end = index === input.length - 1;
-
-    // entering/leaving quote
-    if ((char === '"' || char === "'") && previousChar !== "\\") {
-      // leaving quote
-      if (currentQuote === char) {
-        currentQuote = undefined;
-        continue;
-      }
-
-      // entering quote
-      if (currentQuote === undefined) {
-        currentQuote = char;
-        continue;
-      }
-
-      // quote inside quote
-      if (currentQuote !== undefined && char !== currentQuote) {
-        currentArgument += char;
-        continue;
-      }
-      continue;
-    }
-
-    // new line
-    if (char === "\\" && nextChar === "\n") {
-      index++;
-      continue;
-    }
-
-    // Add to argv
-    if (currentArgument !== undefined && currentQuote === undefined) {
-      if (char === " ") {
-        argv.push(currentArgument);
-        currentArgument = undefined;
-        continue;
-      }
-
-      if (end) {
-        currentArgument += char;
-        argv.push(currentArgument);
-        currentArgument = undefined;
-        continue;
-      }
-    }
-
-    // Ignore spaces outside of quotes
-    if (char === " " && currentQuote === undefined) {
-      continue;
-    }
-
-    // Ignore escaped characters
-    if (char === "\\" && (nextChar === "'" || nextChar === '"')) {
-      continue;
-    }
-
-    currentArgument ??= "";
-    currentArgument += char;
-  }
-
-  // Add last argument
-  if (currentArgument !== undefined) {
-    argv.push(currentArgument);
-  }
-
-  return argv;
-}
-
 /**
  * Escape HTML characters inside HTML tags in a Markdown string, but leave code blocks, inline code, and HTML comments
  * unchanged.
@@ -295,4 +167,29 @@ export function findDuplicateStrings(values: readonly string[]): string[] {
   }
 
   return Array.from(duplicates);
+}
+
+type WalkCallback = (key: string, value: unknown, path: string) => unknown;
+
+/**
+ * Recursively walks through an object and calls a function for each key-value pair.
+ *
+ * @param object_ - The object to walk.
+ * @param onVisit - Function called on every visited property (key, value, path).
+ * @param basePath - (Internal) Used for recursion to build nested paths.
+ */
+export function walkObject(object_: Record<string, unknown>, onVisit: WalkCallback, basePath = ""): void {
+  for (const [key, value] of Object.entries(object_)) {
+    const path = basePath ? `${basePath}.${key}` : key;
+    const newValue = onVisit(key, value, path);
+
+    if (newValue !== undefined) {
+      object_[key] = newValue;
+    }
+
+    const target = object_[key];
+    if (target && typeof target === "object" && !Array.isArray(target)) {
+      walkObject(target as Record<string, unknown>, onVisit, path);
+    }
+  }
 }

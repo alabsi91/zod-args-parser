@@ -56,13 +56,23 @@ type OutputType = InferOutputType<typeof subcommand>;
 - `coerce.string`
 - `coerce.number`
 - `coerce.boolean`
+- `coerce.json`
 - `coerce.stringArray(separator: string)`
 - `coerce.numberArray(separator: string)`
 - `coerce.booleanArray(separator: string)`
 - `coerce.stringSet(separator: string)`
 - `coerce.numberSet(separator: string)`
 - `coerce.booleanSet(separator: string)`
-- `coerce.json<T>()`
+- `coerce.object(options?: ObjectCoerceMethodOptions)`
+
+**ObjectCoerceMethodOptions**
+
+| Option          | Type                  | Description                                                                                                                                          |
+| :-------------- | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `coerceBoolean` | `boolean \| string[]` | Converts `'true'` or `'false'` (case-sensitive) strings to boolean values after JSON parsing. Falls back to the original string if conversion fails. |
+| `coerceNumber`  | `boolean \| string[]` | Converts strings matching a valid number pattern to JavaScript numbers. Falls back to the original string if conversion fails.                       |
+| `coerceBigint`  | `boolean \| string[]` | Converts integer-like strings to `bigint` values after JSON parsing. Falls back to the original string if conversion fails.                          |
+| `coerceDate`    | `boolean \| string[]` | Attempts to convert any string into a `Date` object after JSON parsing. Falls back to the original string if conversion fails.                       |
 
 ## Markdown Generation
 

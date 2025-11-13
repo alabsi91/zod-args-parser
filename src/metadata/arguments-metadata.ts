@@ -1,4 +1,5 @@
-import { defaultValueAndIsOptional, stringifyValue } from "../utilities.ts";
+import { defaultValueAndIsOptional } from "../utilities/schema-utilities.ts";
+import { stringifyValue } from "../utilities/utilities.ts";
 
 import type { Argument } from "../types/definitions-types.ts";
 import type { ArgumentMetadata } from "../types/metadata-types.ts";

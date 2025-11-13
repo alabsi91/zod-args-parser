@@ -1,5 +1,5 @@
 import { getCliMetadata } from "../metadata/cli-metadata.ts";
-import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts";
+import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities/utilities.ts";
 import { formatHelpMessageArguments } from "./format-arguments.ts";
 import { formatHelpMessageOptions } from "./format-options.ts";
 import { formatHelpMessageCommands } from "./format-subcommands.ts";

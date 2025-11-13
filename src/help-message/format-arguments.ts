@@ -1,4 +1,4 @@
-import { indent, indentLines, insertAtEndOfFirstLine, ln, toKebabCase } from "../utilities.ts";
+import { indent, indentLines, insertAtEndOfFirstLine, ln, toKebabCase } from "../utilities/utilities.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { ArgumentMetadata } from "../types/metadata-types.ts";

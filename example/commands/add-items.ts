@@ -16,6 +16,7 @@ const addItemsCommand = defineSubcommand({
   },
 
   options: {
+    /** `--list` or `-l` */
     list: {
       aliases: ["l"],
       schema: z.string(),
@@ -24,6 +25,8 @@ const addItemsCommand = defineSubcommand({
         description: "The name of the list to add items to.",
       },
     },
+
+    /** `--items` or `-i` */
     items: {
       aliases: ["i"],
       schema: z.set(z.string()),
@@ -33,6 +36,8 @@ const addItemsCommand = defineSubcommand({
         descriptionMarkdown: "The items to add to the list. separated by a comma `,`.",
       },
     },
+
+    /** `--tags` or `-t` */
     tags: {
       aliases: ["t"],
       schema: z.string().array().optional(),
@@ -42,6 +47,7 @@ const addItemsCommand = defineSubcommand({
         descriptionMarkdown: "The tags to add to the list. separated by a comma `,`.",
       },
     },
+
     ...sharedOptions,
   },
 });

@@ -16,6 +16,7 @@ const viewListCommand = defineSubcommand({
   options: sharedOptions,
 
   arguments: {
+    /** `<list-name>` */
     listName: {
       schema: z.string().optional(),
       meta: {

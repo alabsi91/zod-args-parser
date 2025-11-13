@@ -14,13 +14,3 @@ export type AllowUndefinedIfOptional<T> = {
 }[keyof T] extends never
   ? T | undefined
   : T;
-
-/** Widen literal and tuples */
-// prettier-ignore
-export type Widen<T> =
-  T extends string ? string :
-  T extends number ? number :
-  T extends boolean ? boolean :
-  T extends readonly (infer U)[] ? Widen<U>[] :
-  T extends Set<infer U> ? Set<Widen<U>> :
-  T;

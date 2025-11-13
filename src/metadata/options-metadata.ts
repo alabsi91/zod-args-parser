@@ -1,5 +1,6 @@
 import { transformOptionToArgument } from "../parse/parser-utilities.ts";
-import { defaultValueAndIsOptional, stringifyValue } from "../utilities.ts";
+import { defaultValueAndIsOptional } from "../utilities/schema-utilities.ts";
+import { stringifyValue } from "../utilities/utilities.ts";
 
 import type { Option } from "../types/definitions-types.ts";
 import type { OptionMetadata } from "../types/metadata-types.ts";

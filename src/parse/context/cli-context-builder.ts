@@ -4,6 +4,7 @@ import {
   findSubcommandDefinition,
   isFlagArgument,
   isOptionArgument,
+  splitAndGetKeys,
   transformOptionToArgument,
 } from "../parser-utilities.ts";
 
@@ -44,8 +45,10 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
 
     const argumentAndValue = argvItem.split("=").filter(Boolean); // E.g --option=value -> ["--option", "value"]
     const argumentWithEquals = argvItem.includes("="); // E.g --option=value
-    const argument = argumentAndValue[0];
+    const [argument, keys] = splitAndGetKeys(argumentAndValue[0]); // E.g --option.foo.bar -> ["--option", ["foo", "bar"]]
+    const optionWithKeys = keys.length > 0; // E.g --option.foo.bar
     const argumentValue: string | undefined = argumentAndValue[1];
+    const isNegated = argument.startsWith("--no-");
 
     if (isOptionArgument(argument)) {
       if (isFlagArgument(argument) && argumentWithEquals) {
@@ -72,7 +75,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
 
       const [optionName, optionDefinition] = nameOptionTuple;
 
-      if (context.options && optionName in context.options) {
+      if (!optionWithKeys && context.options && optionName in context.options) {
         throw new Error(`duplicated option: "${argument}"`);
       }
 
@@ -84,15 +87,19 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
 
       const nextArgument = argv[index + 1];
 
-      let optionValue: string | boolean = argumentWithEquals ? argumentValue : nextArgument;
+      let optionValue: string | boolean | undefined = argumentWithEquals ? argumentValue : nextArgument;
+
+      const isBoolean = coerceTo === "boolean";
+
+      if (isNegated && !isBoolean) {
+        throw new Error(`cannot negate a non-boolean option: "${argument}"`);
+      }
 
       // infer value for boolean options
-      if (coerceTo === "boolean") {
+      if (isBoolean) {
         if (!argumentWithEquals) {
           optionValue = "true";
         }
-
-        const isNegated = argument.startsWith("--no-");
 
         if (isNegated && ["true", "false"].includes(optionValue.toLowerCase())) {
           optionValue = optionValue === "true" ? "false" : "true";
@@ -103,11 +110,37 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         throw new Error(`expected a value for "${argument}" but got nothing`);
       }
 
+      // Next argument is an option while expecting a value: E.g `--option --option2`
       if (!argumentWithEquals && isOptionArgument(optionValue)) {
         throw new Error(`expected a value for "${argument}" but got an argument "${nextArgument}"`);
       }
 
       context.options ??= {};
+
+      // Handle options with keys for type `object`
+      // E.g. `--option.key.nested=value`
+      if (optionWithKeys) {
+        const previousObject = JSON.parse(context.options[optionName]?.stringValue || "{}") as Record<string, any>;
+
+        let current = previousObject;
+        for (let index = 0; index < keys.length; index++) {
+          const key = keys[index];
+
+          if (current[key] === undefined) {
+            current[key] = {};
+          }
+
+          if (index === keys.length - 1) {
+            current[key] = optionValue;
+            continue;
+          }
+
+          current = current[key] as Record<string, any>;
+        }
+
+        optionValue = JSON.stringify(previousObject);
+      }
+
       context.options[optionName] = {
         schema,
         optional,
@@ -118,7 +151,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
       };
 
       // Skip to the next argument if it is the current option's value.
-      if (!argumentWithEquals && coerceTo !== "boolean") {
+      if (!argumentWithEquals && !isBoolean) {
         index++;
       }
 

@@ -17,10 +17,9 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/typescript/index.d.ts",
+      "types": "./lib/types/index.d.ts",
       "browser": "./lib/esm/index.js",
-      "import": "./lib/mjs/index.mjs",
-      "require": "./lib/cjs/index.cjs"
+      "node": "./lib/mjs/index.mjs"
     }
   },
   "jsdelivr": "./lib/iife/index.js",

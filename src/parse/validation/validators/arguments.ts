@@ -1,4 +1,4 @@
-import { validateSync } from "../../../utilities.ts";
+import { prettifyError, validateSync } from "../../../utilities/schema-utilities.ts";
 import { validateConflictWith } from "./conflict.ts";
 import { validateExclusive } from "./exclusive.ts";
 import { validateRequires } from "./requires.ts";
@@ -50,7 +50,9 @@ export function validateArguments({ commandDefinition, context, output }: Valida
 
     if (safeParseResult.issues) {
       throw new Error(
-        `The argument ${name} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${safeParseResult.issues.map(issue => issue.message).join(", ")}`,
+        `The argument ${name} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${prettifyError(
+          safeParseResult.issues,
+        )}`,
       );
     }
 

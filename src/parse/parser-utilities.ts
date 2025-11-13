@@ -49,9 +49,7 @@ export function findOption(optionArgument: string, options: Record<string, Optio
       return true;
     }
 
-    const isBool = option._preparedType && option._preparedType.coerceTo === "boolean";
-
-    if (isNegated && isBool && validVariableNames.has(negateOption(optionName))) {
+    if (isNegated && validVariableNames.has(negateOption(optionName))) {
       return true;
     }
 
@@ -63,7 +61,7 @@ export function findOption(optionArgument: string, options: Record<string, Optio
       return true;
     }
 
-    if (isNegated && isBool && option.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
+    if (isNegated && option.aliases.map(alias => negateOption(alias)).some(a => validVariableNames.has(a))) {
       return true;
     }
 
@@ -141,9 +139,14 @@ export function isFlagArgument(name: string): boolean {
   return /^-[A-Za-z]$/.test(name);
 }
 
-/** - Check if an arg string is a long arg. E.g. `--input-dir` -> `true` */
+/**
+ * - Check if an arg string is a long arg.
+ * - `--input-dir` -> `true`
+ * - `-h` -> `false`
+ * - `--db.https` -> `true`
+ */
 function isLongArgument(name: string): boolean {
-  return /^--[A-Za-z-]+[A-Za-z0-9]$/.test(name);
+  return /^--.{2,}/.test(name);
 }
 
 /** - Check if an arg string is an options arg. E.g. `--input-dir` -> `true` , `-i` -> `true` */
@@ -184,4 +187,19 @@ export function transformOptionToArgument(name: string): string {
   name = name.replace(/[A-Z]/g, (match, index: number) => (index > 0 ? "-" + match : match));
 
   return `--${name.toLowerCase()}`;
+}
+
+/**
+ * Split an option with keys into name and a set of keys
+ *
+ * - `--foo` -> `[--foo, []]`
+ * - `--foo.bar` -> `[--foo, ["bar"]]`
+ * - `--foo.bar.baz` -> `[--foo, ["bar", "baz"]]`
+ * - `--foo.bar.` -> `[--foo, Set(1) ["bar"]]`
+ */
+export function splitAndGetKeys(option: string): [string, string[]] {
+  const parts = option.split(".");
+  const optionName = parts[0];
+  const keys = parts.slice(1).filter(Boolean);
+  return [optionName, keys];
 }

@@ -1,4 +1,4 @@
-import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities.ts";
+import { indent, indentLines, ln, subcommandPlaceholder } from "../utilities/utilities.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { SubcommandMetadata } from "../types/metadata-types.ts";

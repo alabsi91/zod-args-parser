@@ -25,30 +25,28 @@ Show help message.
 
 Show listy version.
 
-### `--verbose` _optional_
+### `--db` _optional_
 
-Enable verbose mode.
+**default:** `{"host":"localhost","port":5432,"https":false,"credentials":{"user":"postgres","pass":"postgres"}}`
 
 ## Subcommands:
 
-### add-items, a, add
+### add-items, ai
 
 Add new items to the list.
 
 **Example:**
 
 ```bash
-listy add --list groceries --items egg,milk,bread --tags food
-listy add --list todos --items clean,cook --tags chores,work
+listy add-items --list groceries --items egg,milk,bread --tags food
+listy add-items --list todos --items clean,cook --tags chores,work
 ```
 
 #### Options:
 
-#### `--list, -l <list-name>` _optional_
+#### `--list, -l <list-name>`
 
 The name of the list to add items to.
-
-**default:** `"default"`
 
 #### `--items, -i <item, ...items>`
 
@@ -64,15 +62,15 @@ Enable verbose mode.
 
 ---
 
-### remove-items, r, remove [options] &lt;...items&gt;
+### remove-items, ri [options] &lt;...items&gt;
 
 Remove items from the list.
 
 **Example:**
 
 ```bash
-listy remove --list groceries egg milk bread
-listy remove --list todos clean cook
+listy remove-items --list groceries egg milk bread
+listy remove-items --list todos clean cook
 ```
 
 #### Options:
@@ -111,11 +109,11 @@ Enable verbose mode.
 
 #### Arguments:
 
-#### `list-name`
+#### `listName`
 
 The name of the list to create.
 
-#### `list-description` _optional_
+#### `listDescription` _optional_
 
 The description of the list to create.
 
@@ -139,15 +137,21 @@ Enable verbose mode.
 
 #### Arguments:
 
-#### `list-name`
+#### `listName`
 
 The name of the list to delete.
 
 ---
 
-### help &lt;command&gt;
+### view-list, vl
 
-Print help message for command
+View a specific list or all lists.
+
+**Example:**
+
+```bash
+listy view-list groceries
+```
 
 #### Options:
 
@@ -157,7 +161,25 @@ Enable verbose mode.
 
 #### Arguments:
 
-#### `command-name` _optional_
+#### `listName` _optional_
+
+The name of the list to view. Leave blank to view all lists.
+
+---
+
+### help, h &lt;command-name&gt;
+
+Show help message for a specific command.
+
+#### Options:
+
+#### `--verbose` _optional_
+
+Enable verbose mode.
+
+#### Arguments:
+
+#### `commandName` _optional_
 
 Command to print help for.  
 **Available commands:** `add-items`, `create-list`, `delete-list`, `remove-items`, `help`

@@ -1,7 +1,6 @@
 import type { OutputTypeWide } from "./io-types.ts";
 import type { InferSchemaOutputType, SchemaResult, SchemaType } from "./schema-types.ts";
 import type { CoerceMethod, CoerceTypes } from "./types.ts";
-import type { Widen } from "./utilities-types.ts";
 
 export interface PreparedType {
   schema: SchemaType;
@@ -11,20 +10,49 @@ export interface PreparedType {
   validate: (value: string | undefined) => SchemaResult;
 }
 
-// NOTE:
-// Putting these interfaces (`RequiredCoerce` and `OptionalCoerce`) in a union makes TypeScript treat them as a
-// combined structural type, so JSDoc doesn’t appear on hover.
-
 /** `schema` (generic) with required `coerce` */
 interface RequiredCoerce<Schema extends SchemaType> {
+  /**
+   * The schema to validate the input against.
+   *
+   * Any validation library that supports [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema) and
+   * allows primitive types to be optional or have default values can be used.
+   *
+   * @example
+   *   schema: z.boolean().optional(),
+   *   schema: z.number().default(0),
+   *   schema: z.string(),
+   *   schema: z.array(z.string())
+   */
   schema: Schema;
-  coerce: CoerceMethod<Widen<InferSchemaOutputType<Schema>>>;
+
+  /**
+   * A function to convert the terminal string input into the schema's output type.
+   *
+   * When the expected input type is `string`, this is not required and can be omitted.
+   *
+   * The return type of this function must be the same as the output type of the `schema`.
+   *
+   * @example
+   *   schema: z.boolean(),
+   *   coerce: coerce.boolean
+   *
+   *   schema: z.number(),
+   *   coerce: coerce.number
+   *
+   *   schema: z.string(),
+   *   // coerce is not required in this case
+   *
+   *   schema: z.array(z.string()),
+   *   coerce: coerce.stringArray(",")
+   */
+  coerce: CoerceMethod<InferSchemaOutputType<Schema>>;
 }
 
 /** `schema` (string) with optional `coerce` */
 interface OptionalCoerce {
   schema: SchemaType<string | undefined>;
-  coerce?: CoerceMethod<string | undefined>;
+  coerce?: never;
 }
 
 // Derived from `Subcommand`

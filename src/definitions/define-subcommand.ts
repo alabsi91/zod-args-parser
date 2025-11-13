@@ -1,6 +1,6 @@
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { prepareDefinitionTypes } from "../utilities.ts";
+import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Option, Subcommand } from "../types/definitions-types.ts";
 import type { AttachedMethods, AttachedMethodsWide } from "../types/types.ts";
@@ -24,7 +24,7 @@ type SubcommandInput<T extends Subcommand> = {
 };
 
 export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T> & Subcommand) {
-  const subcommandDefinition = input as Prettify<T & AttachedMethods<T>>;
+  const subcommandDefinition = input as T;
 
   prepareDefinitionTypes(subcommandDefinition.options);
   prepareDefinitionTypes(subcommandDefinition.arguments);
@@ -72,5 +72,5 @@ export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T>
     await Promise.all(handlers.map(async handler => await handler(validateResult)));
   };
 
-  return Object.assign(subcommandDefinition, { onExecute, execute, executeAsync });
+  return Object.assign(subcommandDefinition, { onExecute, execute, executeAsync }) as Prettify<T & AttachedMethods<T>>;
 }

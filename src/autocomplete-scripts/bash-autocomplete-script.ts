@@ -12,11 +12,10 @@ import type { Cli } from "../types/definitions-types.ts";
  */
 export function generateBashAutocompleteScript(cliDefinition: Cli): string {
   const subcommands = cliDefinition.subcommands ?? [];
-
   type MappedCommands = Record<string, { options: string[]; aliases: string[] }>;
 
+  // Map subcommands to options + aliases
   const mappedCommands: MappedCommands = {};
-
   for (const subcommand of subcommands) {
     mappedCommands[subcommand.name] = {
       options: subcommand.options ? Object.keys(subcommand.options).map(key => transformOptionToArgument(key)) : [],
@@ -24,19 +23,23 @@ export function generateBashAutocompleteScript(cliDefinition: Cli): string {
     };
   }
 
+  // Generate switch-case block for subcommands + aliases
   let switchCase = "";
-  for (const [key, { options, aliases }] of Object.entries(mappedCommands)) {
-    switchCase += `    ${key}${aliases.length > 0 ? "|" : ""}${aliases.join("|")})\n`;
+  for (const [name, { options, aliases }] of Object.entries(mappedCommands)) {
+    const caseNames = [name, ...aliases];
+    switchCase += `    ${caseNames.join("|")})\n`;
     switchCase += `      opts="${options.join(" ")}"\n`;
     switchCase += "      ;;\n";
   }
 
-  if (cliDefinition.options?.length) {
-    const optionsNames = cliDefinition.options
-      ? Object.keys(cliDefinition.options).map(key => transformOptionToArgument(key))
-      : [];
-    switchCase += `    "-"*)\n`;
-    switchCase += `      opts="${optionsNames.join(" ")}"\n`;
+  // Include global CLI options in a default case
+  const globalOptions = cliDefinition.options
+    ? Object.keys(cliDefinition.options).map(key => transformOptionToArgument(key))
+    : [];
+
+  if (globalOptions.length > 0) {
+    switchCase += `    *)\n`;
+    switchCase += `      opts="${globalOptions.join(" ")}"\n`;
     switchCase += "      ;;\n";
   }
 
@@ -52,8 +55,7 @@ _${cliDefinition.cliName}_autocomplete() {
   commands="${Object.keys(mappedCommands).join(" ")}"
 
   case "$subcommand" in
-${switchCase}
-  esac
+${switchCase}  esac
 
   used_opts=""
   if [[ " \${commands[@]} " =~ " $subcommand " ]]; then

@@ -1,4 +1,4 @@
-import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities.ts";
+import { indent, indentLines, insertAtEndOfFirstLine, ln } from "../utilities/utilities.ts";
 import { terminalMarkdown } from "./terminal-markdown.ts";
 
 import type { OptionMetadata } from "../types/metadata-types.ts";

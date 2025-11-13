@@ -28,7 +28,9 @@ _listy_autocomplete() {
     help|h)
       opts="--verbose"
       ;;
-
+    *)
+      opts="--help --version --db"
+      ;;
   esac
 
   used_opts=""

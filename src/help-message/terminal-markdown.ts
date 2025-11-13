@@ -7,7 +7,7 @@ const markdownStyle: Record<string, ColorFunctionType> = {
   bold: c.bold,
   italic: c.italic,
   boldItalic: c.bold.italic,
-  code: (...string) => c.bgHex("#333333").whiteBright(` ${string.join(" ")} `),
+  code: (...string) => c.bgHex("#282828").whiteBright(` ${string.join(" ")} `),
   strikethrough: c.strikethrough,
   link: c.underline,
   listBullet: c.whiteBright,

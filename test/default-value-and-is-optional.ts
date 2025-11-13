@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 import * as z from "zod";
 
-import { defaultValueAndIsOptional } from "../src/utilities.ts";
+import { defaultValueAndIsOptional } from "../src/utilities/schema-utilities.ts";
 import { spaceColumnEnd, spaceToColumn } from "./test-utils.ts";
 
 describe(defaultValueAndIsOptional.name.padEnd(spaceToColumn + spaceColumnEnd + 2), () => {

@@ -22,6 +22,7 @@ A strictly typed command-line arguments parser powered by schema validation.
   - [Positionals vs Typed Arguments](#positionals-vs-typed-arguments)
   - [Option and Argument Constraints](#option-and-argument-constraints)
   - [Negating a boolean option](#negating-a-boolean-option)
+  - [Structured Object Options](#structured-object-options)
   - [Execute commands programmatically](#execute-commands-programmatically)
   - [Creating a Custom Help Message Style](#creating-a-custom-help-message-style)
   - [Help Message as HTML](#help-message-as-html)
@@ -70,7 +71,13 @@ import { defineCLI, coerce } from "zod-args-parser";
 const cli = defineCLI({
   cliName: "hello",
   options: {
+    /**
+     * 💡 **Tip:** Adding a **JSDoc** comment here will be displayed in IDE hovers alongside the TypeScript type.
+     *
+     * `--name` or `-n`
+     */
     name: {
+      aliases: ["n"],
       schema: z.string().default("world"),
     },
   },
@@ -455,6 +462,64 @@ Short-form flags follow the same logic, but do **not** accept `=value` syntax:
 ```sh
 --no-v=true      false
 --no-v=false     true
+```
+
+### Structured Object Options
+
+Options using `coerce.object` receive **stringified JSON** and are parsed with `JSON.parse`.  
+They also support **dotted flags** to assign nested fields without writing full JSON.
+
+See [Coerce Helpers](./docs/api-reference.md#coerce-helpers).
+
+```ts
+import * as z from "zod";
+import { defineCLI, coerce } from "zod-args-parser";
+
+const cli = defineCLI({
+  cliName: "listy",
+  options: {
+    db: {
+      schema: z
+        .object({
+          host: z.string().default("localhost"),
+          port: z.number().default(5432),
+          https: z.boolean().default(false),
+          credentials: z.object({
+            user: z.string(),
+            pass: z.string(),
+          }),
+        })
+        .optional(),
+
+      // Accepts either a full JSON string or individual "dotted" flags,
+      // parsed with JSON.parse.
+      coerce: coerce.object({ coerceBoolean: true, coerceNumber: ["port"] }),
+
+      meta: {
+        placeholder: "<.host,.port,.credentials.user,.credentials.pass>",
+        description: "Database configuration object. Parsed as JSON; supports dotted flags.",
+        example: "--db.host=prod-db --db.credentials.user=alice --db.credentials.pass=secret",
+      },
+    },
+  },
+});
+
+cli.onExecute(({ options }) => {
+  console.log(options.db);
+});
+```
+
+#### Usage Examples
+
+```sh
+# Dotted flags for nested values using `=`
+listy --db.https=true --db.host=db.local --db.port=3306 --db.credentials.user=root --db.credentials.pass=toor
+
+# Dotted flags for nested values without `=`
+listy --db.https true --db.host db.local --db.port 3306 --db.credentials.user root --db.credentials.pass toor
+
+# Full JSON input (stringified)
+listy --db '{"host":"db.local","https":true,"credentials":{"user":"root","pass":"toor"}}'
 ```
 
 ### Execute commands programmatically

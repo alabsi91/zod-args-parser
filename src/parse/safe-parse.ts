@@ -1,5 +1,5 @@
 import { validateCliDefinition } from "../definitions/validate-cli-definition.ts";
-import { parseArgv } from "../utilities.ts";
+import { parseArgv } from "../utilities/parse-argv.ts";
 import { buildCliContext } from "./context/cli-context-builder.ts";
 import { findSubcommandDefinition } from "./parser-utilities.ts";
 import { validate } from "./validation/validate-context.ts";

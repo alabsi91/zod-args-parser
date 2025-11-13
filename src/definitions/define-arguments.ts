@@ -1,4 +1,4 @@
-import { prepareDefinitionTypes } from "../utilities.ts";
+import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument } from "../types/definitions-types.ts";
 

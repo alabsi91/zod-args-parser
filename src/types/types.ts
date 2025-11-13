@@ -2,8 +2,92 @@ import type { Cli, Subcommand } from "./definitions-types.ts";
 import type { PrintHelpOptions } from "./help-message-types.ts";
 import type { InferInputType, InputTypeWide, OutputType, OutputTypeWide } from "./io-types.ts";
 
-type PrimitiveTypeNames = "string" | "number" | "boolean" | "object" | "unknown";
-export type CoerceTypes = PrimitiveTypeNames | `${PrimitiveTypeNames}[]` | `set<${PrimitiveTypeNames}>` | (string & {});
+export type CoerceTypes = "boolean" | (string & {});
+
+export interface ObjectCoerceMethodOptions {
+  /**
+   * Converts `'true'` or `'false'` (case-sensitive) strings to boolean values.
+   *
+   * The coercion is applied after parsing the string as JSON.
+   *
+   * ```bash
+   * # coerced to boolean
+   * --obj.key=true       # true
+   * --obj.key false      # false
+   *
+   * # remains a string (case-sensitive)
+   * --obj.key=FALSE      # "FALSE"
+   * ```
+   *
+   * @example
+   *   coerce: coerce.object({ coerceBoolean: true }); // coerce all boolean-like keys
+   *   coerce: coerce.object({ coerceBoolean: ["key.nested"] }); // coerce only specific keys
+   */
+  coerceBoolean?: boolean | string[];
+
+  /**
+   * Converts strings matching a number regex to numbers.
+   *
+   * The coercion is applied after parsing the string as JSON.
+   *
+   * ```bash
+   * # parsed as number
+   * --obj.key=123
+   * --obj.key 123.45
+   * --obj.key -123.45
+   * --obj.key +123.45
+   *
+   * # remains a string (invalid number)
+   * --obj.key 1.23.45
+   * --obj.key string
+   * ```
+   *
+   * @example
+   *   coerce: coerce.object({ coerceNumber: true }); // coerce all numeric keys
+   *   coerce: coerce.object({ coerceNumber: ["key.nested"] }); // coerce only specific keys
+   */
+  coerceNumber?: boolean | string[];
+
+  /**
+   * Converts strings matching a number regex to bigints.
+   *
+   * The coercion is applied after parsing the string as JSON.
+   *
+   * ```bash
+   * # parsed as bigint
+   * --obj.key=12345678901234567890
+   *
+   * # remains a string (invalid bigint)
+   * --obj.key 123.45
+   * --obj.key string
+   * ```
+   *
+   * @example
+   *   coerce: coerce.object({ coerceBigint: true }); // coerce all bigint-like keys
+   *   coerce: coerce.object({ coerceBigint: ["key.id"] }); // coerce only specific keys
+   */
+  coerceBigint?: boolean | string[];
+
+  /**
+   * Converts tries to convert any string to `Date` objects.
+   *
+   * The coercion is applied after parsing the string as JSON.
+   *
+   * ```bash
+   * # parsed as Date
+   * --obj.key="2024-03-12T10:30:00Z"
+   * --obj.key "2025-11-13"
+   *
+   * # remains a string (invalid date)
+   * --obj.key "invalid-date"
+   * ```
+   *
+   * @example
+   *   coerce: coerce.object({ coerceDate: true }); // coerce all date-like keys
+   *   coerce: coerce.object({ coerceDate: ["user.createdAt"] }); // coerce only specific keys
+   */
+  coerceDate?: boolean | string[];
+}
 
 export interface CoerceMethod<Value> {
   (terminalInput: string): Value;
