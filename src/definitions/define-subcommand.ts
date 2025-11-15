@@ -1,5 +1,6 @@
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { validate } from "../parse/validation/validate-context.ts";
+import { CliError, DefinitionErrorCode, ErrorCause } from "../utilities/cli-error.ts";
 import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Option, Subcommand } from "../types/definitions-types.ts";
@@ -46,7 +47,11 @@ export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T>
     const handlers = subcommandDefinition._onExecute;
 
     if (!handlers) {
-      throw new Error("OnExecute is not defined");
+      throw new CliError({
+        cause: ErrorCause.Definition,
+        code: DefinitionErrorCode.MissingOnExecute,
+        context: { commandKind: "subcommand", commandName: subcommandDefinition.name },
+      });
     }
 
     const context = buildObjectContext(inputValues, subcommandDefinition);
@@ -63,7 +68,11 @@ export function defineSubcommand<T extends Subcommand>(input: SubcommandInput<T>
     const handlers = subcommandDefinition._onExecute;
 
     if (!handlers) {
-      throw new Error("OnExecute is not defined");
+      throw new CliError({
+        cause: ErrorCause.Definition,
+        code: DefinitionErrorCode.MissingOnExecute,
+        context: { commandKind: "subcommand", commandName: subcommandDefinition.name },
+      });
     }
 
     const context = buildObjectContext(inputValues, subcommandDefinition);

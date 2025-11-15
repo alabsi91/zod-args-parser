@@ -1,3 +1,4 @@
+import { CliError, ErrorCause, InternalErrorCode, ParseErrorCode } from "../../utilities/cli-error.ts";
 import {
   decoupleFlags,
   findOption,
@@ -5,7 +6,6 @@ import {
   isFlagArgument,
   isOptionArgument,
   splitAndGetKeys,
-  transformOptionToArgument,
 } from "../parser-utilities.ts";
 
 import type { ContextWide } from "../../types/context-types.ts";
@@ -14,9 +14,10 @@ import type { Cli } from "../../types/definitions-types.ts";
 /**
  * Parse argv and create a cli context
  *
- * @throws {Error}
+ * @throws {CliError}
  */
 export function buildCliContext(argv: string[], cliDefinition: Cli) {
+  const cliName = cliDefinition.cliName;
   const subcommandArray = cliDefinition.subcommands ?? [];
   const allSubcommands = new Set<string>(subcommandArray.flatMap(c => [c.name, ...(c.aliases || [])]));
 
@@ -51,36 +52,67 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
     const isNegated = argument.startsWith("--no-");
 
     if (isOptionArgument(argument)) {
+      const commandDefinition = getCommandDefinition();
+      const commandKind = context.subcommand === undefined ? "command" : "subcommand";
+      const commandName = context.subcommand ?? cliName;
+
       if (isFlagArgument(argument) && argumentWithEquals) {
-        throw new Error(`flag arguments cannot be assigned using "=": "${argvItem}"`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.FlagAssignedValue,
+          context: { commandKind, commandName, flag: argument, value: argumentValue },
+        });
       }
 
-      const commandDefinition = getCommandDefinition();
       if (!commandDefinition) {
-        throw new Error(`unknown subcommand: "${context.subcommand}"`);
+        if (context.subcommand === undefined) {
+          throw new CliError({
+            cause: ErrorCause.Internal,
+            code: InternalErrorCode.CannotFindCliDefinition,
+            context: { cliName },
+          });
+        }
+
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.UnknownSubcommand,
+          context: { commandName },
+        });
       }
 
       if (!commandDefinition.options) {
-        if (!context.subcommand) {
-          throw new Error(`options are not allowed here: "${argument}"`);
-        }
-
-        throw new Error(`subcommand "${context.subcommand}" does not accept options: "${argument}"`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.CommandWithoutOptions,
+          context: { commandKind, commandName, optionName: argument },
+        });
       }
 
       const nameOptionTuple = findOption(argument, commandDefinition.options);
       if (!nameOptionTuple) {
-        throw new Error(`unknown option: "${argument}"`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.UnknownOption,
+          context: { commandKind, commandName, optionName: argument },
+        });
       }
 
       const [optionName, optionDefinition] = nameOptionTuple;
 
       if (!optionWithKeys && context.options && optionName in context.options) {
-        throw new Error(`duplicated option: "${argument}"`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.DuplicateOptionProvided,
+          context: { commandKind, commandName, optionName },
+        });
       }
 
       if (!optionDefinition._preparedType) {
-        throw new Error(`internal error: missing prepared type for option "${optionName}"`);
+        throw new CliError({
+          cause: ErrorCause.Internal,
+          code: InternalErrorCode.MissingPreparedTypes,
+          context: { commandKind, commandName, kind: "option", name: optionName },
+        });
       }
 
       const { schema, optional, defaultValue, coerceTo } = optionDefinition._preparedType;
@@ -92,7 +124,11 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
       const isBoolean = coerceTo === "boolean";
 
       if (isNegated && !isBoolean) {
-        throw new Error(`cannot negate a non-boolean option: "${argument}"`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.InvalidNegationForNonBooleanOption,
+          context: { commandKind, commandName, optionName },
+        });
       }
 
       // infer value for boolean options
@@ -106,13 +142,12 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         }
       }
 
-      if (optionValue === undefined) {
-        throw new Error(`expected a value for "${argument}" but got nothing`);
-      }
-
-      // Next argument is an option while expecting a value: E.g `--option --option2`
-      if (!argumentWithEquals && isOptionArgument(optionValue)) {
-        throw new Error(`expected a value for "${argument}" but got an argument "${nextArgument}"`);
+      if (optionValue === undefined || (!argumentWithEquals && isOptionArgument(optionValue))) {
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.OptionMissingValue,
+          context: { commandKind, commandName, optionName },
+        });
       }
 
       context.options ??= {};
@@ -172,7 +207,16 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         const [name, argumentDefinition] = argumentDefinitionEntries[currentArgumentCount];
 
         if (!argumentDefinition._preparedType) {
-          throw new Error(`internal error: missing prepared type for argument "${currentArgumentCount}"`);
+          throw new CliError({
+            cause: ErrorCause.Internal,
+            code: InternalErrorCode.MissingPreparedTypes,
+            context: {
+              commandKind: context.subcommand ? "subcommand" : "command",
+              commandName: context.subcommand ?? cliName,
+              kind: "argument",
+              name,
+            },
+          });
         }
 
         const { schema, optional, defaultValue } = argumentDefinition._preparedType;
@@ -189,18 +233,32 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
       continue;
     }
 
-    if (!context.subcommand) {
-      throw new Error(`unexpected argument "${argvItem}": positionals arguments are not allowed here`);
-    }
-
-    throw new Error(
-      `unexpected argument "${argvItem}": positionals arguments are not allowed for subcommand "${context.subcommand}"`,
-    );
+    throw new CliError({
+      cause: ErrorCause.Parse,
+      code: ParseErrorCode.PositionalArgumentNotAllowed,
+      context: {
+        commandKind: context.subcommand ? "subcommand" : "command",
+        commandName: context.subcommand ?? cliName,
+        argumentName: argvItem,
+      },
+    });
   }
 
   const commandDefinition = getCommandDefinition();
   if (!commandDefinition) {
-    throw new Error(`unknown subcommand: "${context.subcommand}"`);
+    if (context.subcommand === undefined) {
+      throw new CliError({
+        cause: ErrorCause.Internal,
+        code: InternalErrorCode.CannotFindCliDefinition,
+        context: { cliName },
+      });
+    }
+
+    throw new CliError({
+      cause: ErrorCause.Parse,
+      code: ParseErrorCode.UnknownSubcommand,
+      context: { commandName: context.subcommand ?? cliName },
+    });
   }
 
   // Options
@@ -212,7 +270,16 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
       if (name in context.options) continue;
 
       if (!optionDefinition._preparedType) {
-        throw new Error(`internal error: missing prepared type for option "${name}"`);
+        throw new CliError({
+          cause: ErrorCause.Internal,
+          code: InternalErrorCode.MissingPreparedTypes,
+          context: {
+            commandKind: context.subcommand ? "subcommand" : "command",
+            commandName: context.subcommand ?? cliName,
+            kind: "option",
+            name,
+          },
+        });
       }
 
       const { schema, optional, defaultValue } = optionDefinition._preparedType;
@@ -228,8 +295,15 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         continue;
       }
 
-      // required option
-      throw new Error(`missing required option: ${transformOptionToArgument(name)}`);
+      throw new CliError({
+        cause: ErrorCause.Parse,
+        code: ParseErrorCode.MissingRequiredOption,
+        context: {
+          commandKind: context.subcommand ? "subcommand" : "command",
+          commandName: context.subcommand ?? cliName,
+          optionName: name,
+        },
+      });
     }
   }
 
@@ -248,7 +322,16 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         const [name, argumentDefinition] = argumentDefinitionEntries[index];
 
         if (!argumentDefinition._preparedType) {
-          throw new Error(`internal error: missing prepared type for the argument "${name}"`);
+          throw new CliError({
+            cause: ErrorCause.Internal,
+            code: InternalErrorCode.MissingPreparedTypes,
+            context: {
+              commandKind: context.subcommand ? "subcommand" : "command",
+              commandName: context.subcommand ?? cliName,
+              kind: "argument",
+              name,
+            },
+          });
         }
 
         const { schema, optional, defaultValue } = argumentDefinition._preparedType;
@@ -265,7 +348,15 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
         }
 
         // required argument
-        throw new Error(`The argument "${name}" is required`);
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.MissingRequiredArgument,
+          context: {
+            commandKind: context.subcommand ? "subcommand" : "command",
+            commandName: context.subcommand ?? cliName,
+            argumentName: name,
+          },
+        });
       }
     }
   }

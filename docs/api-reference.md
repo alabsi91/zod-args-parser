@@ -13,6 +13,7 @@
 - [Option](#option)
 - [Argument](#argument)
 - [Context Type](#context-type)
+- [Error Types](#error-types)
 
 ## Type Utilities
 
@@ -273,3 +274,76 @@ Useful for inspecting where values came from and what raw input was used.
 | `stringValue`  | Raw string from CLI when source is `terminal`.                                       |
 | `passedValue`  | Value passed programmatically when source is `programmatic`.                         |
 | `source`       | `"terminal"`, `"default"`, or `"programmatic"` indicates how the value was supplied. |
+
+## Error Types
+
+The library processes input in four stages. Errors can occur at any step:
+
+1. **Definition Validation** — Ensures the CLI and subcommand definitions are valid.
+2. **Argument Parsing** — Reads terminal input and builds the initial parse result.
+3. **Context Validation** — Applies schema validation and dependency rules.
+4. **Execution** — Runs the command or subcommand once all checks succeed.
+
+### Internal Errors
+
+Internal errors are thrown when something went wrong internally within the library.
+
+| Error Code                | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `MissingPreparedTypes`    | An internal type was not initialized correctly.                         |
+| `CannotFindCliDefinition` | A subcommand resolution unexpectedly failed to return a CLI definition. |
+
+### Definition Errors
+
+Definition errors are thrown when the CLI or subcommand definition is invalid.
+
+| Error Code                          | Description                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| `MissingDefinitionName`             | CLI or subcommand is missing a required `cliName`/`name`.                                  |
+| `MissingOnExecute`                  | A command or subcommand has no execution handler.                                          |
+| `MissingSchema`                     | An option or argument is missing its required schema.                                      |
+| `EmptyDefinitionGroup`              | `options`, `arguments`, or `subcommands` is defined but empty.                             |
+| `InvalidDefinitionOptionName`       | An option or alias name is written in a negated form (e.g., `noFoo`).                      |
+| `DuplicateDefinitionName`           | Duplicate option, argument, alias, or subcommand name detected.                            |
+| `InvalidDefinitionArgumentName`     | Argument names cannot be numeric.                                                          |
+| `InvalidOptionalArgumentDefinition` | Optional argument placement violates rules (e.g., optional not last, or positionals used). |
+| `EmptyStringAliasName`              | An option alias contains an empty string.                                                  |
+| `SelfRequire`                       | A definition lists itself inside `requires`.                                               |
+| `UnknownRequireName`                | A required dependency does not exist.                                                      |
+| `SelfConflict`                      | A definition lists itself inside `conflictWith`.                                           |
+| `UnknownConflictName`               | A conflict target does not exist.                                                          |
+| `DefinitionRequiresConflictOverlap` | The same name appears in both `requires` and `conflictWith`.                               |
+| `SubcommandHelpNotFound`            | Help was requested for a subcommand that does not exist.                                   |
+
+### Parse Errors
+
+Parse errors are thrown during parsing of the command line input.
+
+| Error Code                           | Description                                                           |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| `UnknownSubcommand`                  | No matching subcommand found in the CLI definition.                   |
+| `CommandWithoutOptions`              | A command received an option though it defines no options.            |
+| `UnknownOption`                      | An option was provided that is not defined.                           |
+| `DuplicateOptionProvided`            | The same option was provided more than once.                          |
+| `InvalidNegationForNonBooleanOption` | A `--no-` prefix was used on a non-boolean option.                    |
+| `PositionalArgumentNotAllowed`       | A positional argument was provided where positionals are disallowed.  |
+| `MissingRequiredOption`              | A required option was not provided.                                   |
+| `MissingRequiredArgument`            | A required typed argument was not provided.                           |
+| `OptionMissingValue`                 | An option that requires a value was given without one.                |
+| `FlagAssignedValue`                  | A short flag (e.g., `-v`) was incorrectly assigned a value using `=`. |
+
+### Validation Errors
+
+Validation errors are thrown during validation of the parsed command line input.
+
+| Error Code                  | Description                                                |
+| --------------------------- | ---------------------------------------------------------- |
+| `NoOptionsToValidate`       | Validation attempted but the command defines no options.   |
+| `NoArgumentsToValidate`     | Validation attempted but the command defines no arguments. |
+| `UnknownOptionValidation`   | Attempted to validate an option that does not exist.       |
+| `UnknownArgumentValidation` | Attempted to validate an argument that does not exist.     |
+| `SchemaValidationFailed`    | Schema validation failed for an option or argument.        |
+| `MutuallyExclusiveConflict` | A conflict rule was violated between options or arguments. |
+| `RequiredDependencyMissing` | A required dependent option or argument was not provided.  |
+| `AsyncSchemaNotSupported`   | An async schema was used in synchronous validation.        |
+| `CoercionFailed`            | Coercion to the expected type failed.                      |

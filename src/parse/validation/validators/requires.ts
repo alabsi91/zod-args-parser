@@ -1,3 +1,4 @@
+import { CliError, ErrorCause, ValidationErrorCode } from "../../../utilities/cli-error.ts";
 import {
   isArgumentExplicitlyPassed,
   isOptionExplicitlyPassed,
@@ -21,16 +22,16 @@ interface ValidateRequiresOptions {
   context: ContextWide;
 
   /** What we're checking */
-  type: "option" | "argument";
+  kind: "option" | "argument";
 }
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function validateRequires({
   name,
   commandDefinition,
   optionOrArgument,
   context,
-  type,
+  kind,
 }: ValidateRequiresOptions) {
   const requires = optionOrArgument.requires;
   if (!requires || requires.length === 0) return;
@@ -62,21 +63,9 @@ export function validateRequires({
 
   if (missingOptions.length === 0 && missingArguments.length === 0) return; // OK
 
-  const parts: string[] = [];
-
-  if (missingOptions.length > 0) {
-    const formatted = missingOptions.map(o => `"${o}"`).join(", ");
-    const s = missingOptions.length > 1 ? "s" : "";
-    parts.push(`option${s} ${formatted}`);
-  }
-
-  if (missingArguments.length > 0) {
-    const formatted = missingArguments.map(a => `"${a}"`).join(", ");
-    const s = missingArguments.length > 1 ? "s" : "";
-    parts.push(`argument${s} ${formatted}`);
-  }
-
-  const joinedParts = parts.join(" and ");
-
-  throw new Error(`${type} "${name}" cannot be used without the required ${joinedParts}.`);
+  throw new CliError({
+    cause: ErrorCause.Validation,
+    code: ValidationErrorCode.RequiredDependencyMissing,
+    context: { kind, name, missingArguments, missingOptions },
+  });
 }

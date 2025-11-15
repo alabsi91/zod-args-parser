@@ -20,8 +20,11 @@ export { defineSubcommand } from "./definitions/define-subcommand.ts";
 
 export { coerce } from "./coerce/coerce-methods.ts";
 
+export { CliError, DefinitionErrorCode, ErrorCause, InternalErrorCode, ParseErrorCode } from "./utilities/cli-error.ts";
+
 export type * from "./types/context-types.ts";
 export type * from "./types/definitions-types.ts";
+export type * from "./types/error-types.ts";
 export type * from "./types/help-message-types.ts";
 export type * from "./types/io-types.ts";
 export type * from "./types/metadata-types.ts";

@@ -29,6 +29,10 @@ Show listy version.
 
 **default:** `{"host":"localhost","port":5432,"https":false,"credentials":{"user":"postgres","pass":"postgres"}}`
 
+## Arguments:
+
+### `v`
+
 ## Subcommands:
 
 ### add-items, ai

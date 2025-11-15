@@ -4,12 +4,12 @@ export function stringToStringSet(stringValue: string, separator: string = ","):
   return new Set(stringToStringArray(stringValue, separator));
 }
 
-/** @throws {TypeError} - Because of `stringToNumber` */
+/** @throws {CliError} - Because of `stringToNumber` */
 export function stringToNumberSet(stringValue: string, separator: string = ","): Set<number> {
   return new Set(stringToNumberArray(stringValue, separator));
 }
 
-/** @throws {TypeError} - Because of `stringToBoolean` */
+/** @throws {CliError} - Because of `stringToBoolean` */
 export function stringToBooleanSet(stringValue: string, separator: string = ","): Set<boolean> {
   return new Set(stringToBooleanArray(stringValue, separator));
 }

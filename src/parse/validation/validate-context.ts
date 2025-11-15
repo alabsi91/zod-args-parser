@@ -5,7 +5,7 @@ import type { ContextWide } from "../../types/context-types.ts";
 import type { Cli, Subcommand } from "../../types/definitions-types.ts";
 import type { OutputTypeWide } from "../../types/io-types.ts";
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function validate(context: ContextWide, commandDefinition: Subcommand | Cli) {
   const output: OutputTypeWide = {
     subcommand: context.subcommand,

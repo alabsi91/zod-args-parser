@@ -1,4 +1,5 @@
-import { prettifyError, validateSync } from "../../../utilities/schema-utilities.ts";
+import { CliError, ErrorCause, InternalErrorCode, ValidationErrorCode } from "../../../utilities/cli-error.ts";
+import { validateSync } from "../../../utilities/schema-utilities.ts";
 import { validateConflictWith } from "./conflict.ts";
 import { validateExclusive } from "./exclusive.ts";
 import { validateRequires } from "./requires.ts";
@@ -13,33 +14,48 @@ interface ValidateOptions {
   output: OutputTypeWide;
 }
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function validateOptions({ commandDefinition, context, output }: ValidateOptions) {
   if (!context.options) return;
 
   output.options ??= {};
 
+  const commandKind = "cliName" in commandDefinition ? "command" : "subcommand";
+  const commandName = "cliName" in commandDefinition ? commandDefinition.cliName : commandDefinition.name;
+
   const optionsDefinition = commandDefinition.options;
   if (!optionsDefinition) {
-    throw new Error(`subcommand "${context.subcommand}" does not have options`);
+    throw new CliError({
+      cause: ErrorCause.Validation,
+      code: ValidationErrorCode.NoOptionsToValidate,
+      context: { commandKind, commandName },
+    });
   }
 
   for (const [optionName, option] of Object.entries(optionsDefinition)) {
-    validateRequires({ name: optionName, commandDefinition, optionOrArgument: option, context, type: "option" });
-    validateExclusive({ name: optionName, optionOrArgument: option, context, type: "option" });
-    validateConflictWith({ name: optionName, optionOrArgument: option, context, type: "option" });
+    validateRequires({ name: optionName, commandDefinition, optionOrArgument: option, context, kind: "option" });
+    validateExclusive({ name: optionName, optionOrArgument: option, context, kind: "option" });
+    validateConflictWith({ name: optionName, optionOrArgument: option, context, kind: "option" });
   }
 
   const optionContextEntries = Object.entries(context.options);
 
-  for (const [optionName, { passedValue, stringValue, flag, source, schema }] of optionContextEntries) {
+  for (const [optionName, { passedValue, stringValue, source, schema }] of optionContextEntries) {
     const option = optionsDefinition[optionName];
     if (!option) {
-      throw new Error(`subcommand "${context.subcommand}" does not have option "${optionName}"`);
+      throw new CliError({
+        cause: ErrorCause.Validation,
+        code: ValidationErrorCode.UnknownOptionValidation,
+        context: { commandKind, commandName, optionName },
+      });
     }
 
     if (!option._preparedType) {
-      throw new Error(`internal error: missing prepared type for option "${optionName}"`);
+      throw new CliError({
+        cause: ErrorCause.Internal,
+        code: InternalErrorCode.MissingPreparedTypes,
+        context: { commandKind, commandName, kind: "option", name: optionName },
+      });
     }
 
     const isProgrammatic = source === "programmatic";
@@ -49,11 +65,18 @@ export function validateOptions({ commandDefinition, context, output }: Validate
       : option._preparedType.validate(stringValue);
 
     if (safeParseResult.issues) {
-      throw new Error(
-        `invalid value ${isProgrammatic ? "" : `"${stringValue}"`} for "${isProgrammatic ? optionName : flag}": ${prettifyError(
-          safeParseResult.issues,
-        )}`,
-      );
+      throw new CliError({
+        cause: ErrorCause.Validation,
+        code: ValidationErrorCode.SchemaValidationFailed,
+        context: {
+          commandKind,
+          commandName,
+          kind: "option",
+          name: optionName,
+          inputValue: isProgrammatic ? passedValue : stringValue,
+          issues: safeParseResult.issues,
+        },
+      });
     }
 
     output.options[optionName] = safeParseResult.value;

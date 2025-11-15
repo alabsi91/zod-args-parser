@@ -540,12 +540,12 @@ import { listyCLI } from "./cli.ts";
 // In this example, Listy only defines options — no typed arguments or positionals.
 // To keep the function simple, we accept only the options as input.
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function executeListy(options: InferOptionsInputType<typeof listyCLI>) {
   listyCLI.execute({ options });
 }
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export async function executeListyAsync(options: InferOptionsInputType<typeof listyCLI>) {
   await listyCLI.executeAsync({ options });
 }

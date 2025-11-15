@@ -153,22 +153,6 @@ export function stripAnsi(string: string): string {
   return string.replace(regex, "");
 }
 
-export function findDuplicateStrings(values: readonly string[]): string[] {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
-
-  for (const value of values) {
-    if (seen.has(value)) {
-      duplicates.add(value);
-      continue;
-    }
-
-    seen.add(value);
-  }
-
-  return Array.from(duplicates);
-}
-
 type WalkCallback = (key: string, value: unknown, path: string) => unknown;
 
 /**

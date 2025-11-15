@@ -3,6 +3,7 @@ import { generateSubcommandHelpMessage } from "../help-message/generate-for-subc
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
 import { validate } from "../parse/validation/validate-context.ts";
+import { CliError, DefinitionErrorCode, ErrorCause } from "../utilities/cli-error.ts";
 import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
@@ -67,9 +68,12 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
     inputValues ??= {};
 
     const handlers = cliDefinition._onExecute;
-
     if (!handlers) {
-      throw new Error("OnExecute is not defined");
+      throw new CliError({
+        cause: ErrorCause.Definition,
+        code: DefinitionErrorCode.MissingOnExecute,
+        context: { commandKind: "command", commandName: cliDefinition.cliName },
+      });
     }
 
     const context = buildObjectContext(inputValues, cliDefinition);
@@ -86,7 +90,11 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
     const handlers = cliDefinition._onExecute;
 
     if (!handlers) {
-      throw new Error("OnExecute is not defined");
+      throw new CliError({
+        cause: ErrorCause.Definition,
+        code: DefinitionErrorCode.MissingOnExecute,
+        context: { commandKind: "command", commandName: cliDefinition.cliName },
+      });
     }
 
     const context = buildObjectContext(inputValues, cliDefinition);
@@ -102,7 +110,13 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
     },
     generateSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
       const foundSubcommand = cliDefinition.subcommands?.find(s => s.name === subcommandName);
-      if (!foundSubcommand) throw new Error(`Subcommand ${subcommandName} not found`);
+      if (!foundSubcommand) {
+        throw new CliError({
+          cause: ErrorCause.Definition,
+          code: DefinitionErrorCode.SubcommandHelpNotFound,
+          context: { cliName: cliDefinition.cliName, subcommandName },
+        });
+      }
       return generateSubcommandHelpMessage(foundSubcommand, options, cliDefinition.cliName);
     },
   };

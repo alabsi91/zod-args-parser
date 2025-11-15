@@ -1,3 +1,4 @@
+import { CliError, ErrorCause, ValidationErrorCode } from "../../../utilities/cli-error.ts";
 import { isOptionOrArgumentExplicitlyPassed } from "./explicitly-passed.ts";
 
 import type { ContextWide } from "../../../types/context-types.ts";
@@ -14,11 +15,11 @@ interface ValidateConflictOptions {
   context: ContextWide;
 
   /** What we're checking */
-  type: "option" | "argument";
+  kind: "option" | "argument";
 }
 
-/** @throws {Error} */
-export function validateConflictWith({ name, optionOrArgument, context, type }: ValidateConflictOptions) {
+/** @throws {CliError} */
+export function validateConflictWith({ name, optionOrArgument, context, kind }: ValidateConflictOptions) {
   const conflictWith = optionOrArgument.conflictWith;
   if (!conflictWith || conflictWith.length === 0) return;
 
@@ -48,21 +49,9 @@ export function validateConflictWith({ name, optionOrArgument, context, type }: 
 
   if (conflictedOptions.length === 0 && conflictedArguments.length === 0) return; // OK
 
-  const parts: string[] = [];
-
-  if (conflictedOptions.length > 0) {
-    const formatted = conflictedOptions.map(o => `"${o}"`).join(", ");
-    const s = conflictedOptions.length > 1 ? "s" : "";
-    parts.push(`option${s} ${formatted}`);
-  }
-
-  if (conflictedArguments.length > 0) {
-    const formatted = conflictedArguments.map(a => `"${a}"`).join(", ");
-    const s = conflictedArguments.length > 1 ? "s" : "";
-    parts.push(`argument${s} ${formatted}`);
-  }
-
-  const joinedParts = parts.join(" and ");
-
-  throw new Error(`${type} "${name}" cannot be used with the ${joinedParts} because they are mutually exclusive.`);
+  throw new CliError({
+    cause: ErrorCause.Validation,
+    code: ValidationErrorCode.MutuallyExclusiveConflict,
+    context: { kind, name, conflictedOptions, conflictedArguments },
+  });
 }

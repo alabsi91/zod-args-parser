@@ -1,16 +1,15 @@
 import { listyCLI } from "./cli.ts";
+
 // import "./scripts/generate-autocomplete-script.ts";
-import "./scripts/generate-markdown.ts";
+// import "./scripts/generate-markdown.ts";
 
 // * Test different inputs 👇
 
-// const input = `--db.https=true --db.credentials.user true --db.credentials.pass toor --db.port 3000`;
-// const input = `-h`;
-// const input = "-v";
+const input = "-v";
 
 // const input = "help --verbose";
 // const input = "help help --verbose";
-const input = "help add-items --verbose";
+// const input = "help add-items --verbose";
 // const input = "help create-list --verbose";
 // const input = "help delete-list --verbose";
 // const input = "help remove-items --verbose";

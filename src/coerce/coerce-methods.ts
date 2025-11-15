@@ -113,7 +113,7 @@ export const coerce = {
    * Coerces a string matching `"true"` or `"false"` (case-insensitive) to a boolean value.
    *
    * @since 2.0.0
-   * @throws {TypeError} If input is not a valid boolean string.
+   * @throws {CliError} If input is not a valid boolean string.
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   boolean,
@@ -122,7 +122,7 @@ export const coerce = {
    * Coerces a string matching a number to a number value.
    *
    * @since 2.0.0
-   * @throws {TypeError} If input is empty or not a valid number.
+   * @throws {CliError} If input is empty or not a valid number.
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   number,
@@ -131,7 +131,7 @@ export const coerce = {
    * Coerces a string matching a number to a bigint value.
    *
    * @since 2.0.0
-   * @throws {TypeError} If input is empty or not a valid bigint.
+   * @throws {CliError} If input is empty or not a valid bigint.
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   bigint,
@@ -166,7 +166,7 @@ export const coerce = {
    *
    * @since 2.0.0
    * @param separator - The separator to use to split the string.`
-   * @throws {TypeError} - When an item cannot be converted to a number
+   * @throws {CliError} - When an item cannot be converted to a number
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   numberArray,
@@ -178,7 +178,7 @@ export const coerce = {
    *
    * @since 2.0.0
    * @param separator - The separator to use to split the string.`
-   * @throws {TypeError} - When an item cannot be converted to a boolean
+   * @throws {CliError} - When an item cannot be converted to a boolean
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   booleanArray,
@@ -190,7 +190,7 @@ export const coerce = {
    *
    * @since 2.0.0
    * @param separator - The separator to use to split the string.`
-   * @throws {TypeError} - When an item cannot be converted to a number
+   * @throws {CliError} - When an item cannot be converted to a number
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   stringSet,
@@ -202,7 +202,7 @@ export const coerce = {
    *
    * @since 2.0.0
    * @param separator - The separator to use to split the string.
-   * @throws {TypeError} - When an item cannot be converted to a number
+   * @throws {CliError} - When an item cannot be converted to a number
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   numberSet,
@@ -214,7 +214,7 @@ export const coerce = {
    *
    * @since 2.0.0
    * @param separator - The separator to use to split the string.
-   * @throws {TypeError} - When an item cannot be converted to a boolean
+   * @throws {CliError} - When an item cannot be converted to a boolean
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   booleanSet,

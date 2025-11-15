@@ -1,19 +1,25 @@
+import { CliError, ErrorCause, ValidationErrorCode } from "./cli-error.ts";
+
 import type { Argument, Option, PreparedType } from "../types/definitions-types.ts";
 import type { SchemaResult, SchemaType } from "../types/schema-types.ts";
 import type { CoerceMethod } from "../types/types.ts";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
-/** @throws {TypeError} When schema is async */
+/** @throws {CliError} When schema is async */
 export function validateSync(schema: SchemaType, value?: unknown): SchemaResult {
   const results = schema["~standard"].validate(value);
   if (results instanceof Promise) {
-    throw new TypeError("async schema validation not supported");
+    throw new CliError({
+      cause: ErrorCause.Validation,
+      code: ValidationErrorCode.AsyncSchemaNotSupported,
+      context: { schema, value },
+    });
   }
 
   return results;
 }
 
-/** @throws {TypeError} When schema is async */
+/** @throws {CliError} When schema is async */
 export function defaultValueAndIsOptional(schema: SchemaType): { defaultValue: unknown; optional: boolean } {
   const results = validateSync(schema);
 
@@ -24,7 +30,7 @@ export function defaultValueAndIsOptional(schema: SchemaType): { defaultValue: u
   return { defaultValue: results.value, optional: true };
 }
 
-/** @throws {TypeError} When schema is async */
+/** @throws {CliError} When schema is async */
 function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unknown>): PreparedType {
   const { optional, defaultValue } = defaultValueAndIsOptional(schema);
 
@@ -37,7 +43,7 @@ function PrepareType(schema: SchemaType, coerceHandler: CoerceMethod<unknown>): 
   };
 }
 
-/** @throws {TypeError} When schema is async */
+/** @throws {CliError} When schema is async */
 export function prepareDefinitionTypes(definition: Record<string, Argument> | Record<string, Option> | undefined) {
   if (!definition) return;
 
@@ -53,7 +59,7 @@ export function prepareDefinitionTypes(definition: Record<string, Argument> | Re
 }
 
 /** Prettify Standard Schema V1 issues */
-export function prettifyError(issues: readonly StandardSchemaV1.Issue[]): string {
+export function prettifyError(issues: ReadonlyArray<StandardSchemaV1.Issue>): string {
   return issues
     .map(issue => {
       const path = issue.path?.map(seg => (typeof seg === "object" && "key" in seg ? seg.key : seg));

@@ -1,4 +1,5 @@
-import { prettifyError, validateSync } from "../../../utilities/schema-utilities.ts";
+import { CliError, ErrorCause, InternalErrorCode, ValidationErrorCode } from "../../../utilities/cli-error.ts";
+import { validateSync } from "../../../utilities/schema-utilities.ts";
 import { validateConflictWith } from "./conflict.ts";
 import { validateExclusive } from "./exclusive.ts";
 import { validateRequires } from "./requires.ts";
@@ -13,35 +14,50 @@ interface ValidateArgument {
   output: OutputTypeWide;
 }
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function validateArguments({ commandDefinition, context, output }: ValidateArgument) {
   if (!context.arguments) return;
 
   output.arguments ??= {};
 
+  const commandKind = "cliName" in commandDefinition ? "command" : "subcommand";
+  const commandName = "cliName" in commandDefinition ? commandDefinition.cliName : commandDefinition.name;
+
   const argumentsDefinition = commandDefinition.arguments;
   if (!argumentsDefinition) {
-    throw new Error(`Subcommand "${context.subcommand}" does not have arguments`);
+    throw new CliError({
+      cause: ErrorCause.Validation,
+      code: ValidationErrorCode.NoArgumentsToValidate,
+      context: { commandKind, commandName },
+    });
   }
 
   for (const [argumentName, argument] of Object.entries(argumentsDefinition)) {
-    validateRequires({ name: argumentName, commandDefinition, optionOrArgument: argument, context, type: "option" });
-    validateExclusive({ name: argumentName, optionOrArgument: argument, context, type: "option" });
-    validateConflictWith({ name: argumentName, optionOrArgument: argument, context, type: "option" });
+    validateRequires({ name: argumentName, commandDefinition, optionOrArgument: argument, context, kind: "option" });
+    validateExclusive({ name: argumentName, optionOrArgument: argument, context, kind: "option" });
+    validateConflictWith({ name: argumentName, optionOrArgument: argument, context, kind: "option" });
   }
 
   const argumentContextEntries = Object.entries(context.arguments);
 
-  for (const [name, { passedValue, stringValue, source, schema }] of argumentContextEntries) {
+  for (const [argumentName, { passedValue, stringValue, source, schema }] of argumentContextEntries) {
     const isProgrammatic = source === "programmatic";
 
-    const argument = argumentsDefinition[name];
+    const argument = argumentsDefinition[argumentName];
     if (!argument) {
-      throw new Error(`Subcommand "${context.subcommand}" does not have the argument "${name}"`);
+      throw new CliError({
+        cause: ErrorCause.Validation,
+        code: ValidationErrorCode.UnknownArgumentValidation,
+        context: { commandKind, commandName, argumentName },
+      });
     }
 
     if (!argument._preparedType) {
-      throw new Error(`internal error: missing prepared type for the argument "${name}"`);
+      throw new CliError({
+        cause: ErrorCause.Internal,
+        code: InternalErrorCode.MissingPreparedTypes,
+        context: { commandKind, commandName, kind: "argument", name: argumentName },
+      });
     }
 
     const safeParseResult = isProgrammatic
@@ -49,13 +65,20 @@ export function validateArguments({ commandDefinition, context, output }: Valida
       : argument._preparedType.validate(stringValue);
 
     if (safeParseResult.issues) {
-      throw new Error(
-        `The argument ${name} argument ${isProgrammatic ? "" : `"${stringValue}"`} is invalid: ${prettifyError(
-          safeParseResult.issues,
-        )}`,
-      );
+      throw new CliError({
+        cause: ErrorCause.Validation,
+        code: ValidationErrorCode.SchemaValidationFailed,
+        context: {
+          commandKind,
+          commandName,
+          kind: "option",
+          name: argumentName,
+          inputValue: isProgrammatic ? passedValue : stringValue,
+          issues: safeParseResult.issues,
+        },
+      });
     }
 
-    output.arguments[name] = safeParseResult.value;
+    output.arguments[argumentName] = safeParseResult.value;
   }
 }

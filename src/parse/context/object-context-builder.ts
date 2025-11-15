@@ -1,20 +1,18 @@
+import { CliError, ErrorCause, InternalErrorCode, ParseErrorCode } from "../../utilities/cli-error.ts";
+
 import type { ContextWide } from "../../types/context-types.ts";
 import type { Argument, Cli, Option, Subcommand } from "../../types/definitions-types.ts";
 import type { InputTypeWide } from "../../types/io-types.ts";
 
-/** @throws {Error} */
+/** @throws {CliError} */
 export function buildObjectContext(inputValues: InputTypeWide, commandDefinition: Subcommand | Cli) {
   const context: ContextWide = {
     subcommand: "cliName" in commandDefinition ? undefined : commandDefinition.name,
   };
 
-  if (commandDefinition.options) {
-    buildForOptionsOrArguments(commandDefinition.options, context, inputValues.options, "options");
-  }
+  buildForOptionsOrArguments(commandDefinition, context, inputValues.options, "options");
 
-  if (commandDefinition.arguments) {
-    buildForOptionsOrArguments(commandDefinition.arguments, context, inputValues.arguments, "arguments");
-  }
+  buildForOptionsOrArguments(commandDefinition, context, inputValues.arguments, "arguments");
 
   if (commandDefinition.allowPositionals) {
     context.positionals ??= inputValues.positionals;
@@ -24,16 +22,27 @@ export function buildObjectContext(inputValues: InputTypeWide, commandDefinition
 }
 
 function buildForOptionsOrArguments(
-  definitionRecord: Record<string, Option> | Record<string, Argument>,
+  commandDefinition: Subcommand | Cli,
   context: ContextWide,
   inputRecord: Record<string, unknown> | undefined,
   type: "options" | "arguments",
 ) {
-  const definitionEntries = Object.entries(definitionRecord) as [string, Option][] | [string, Argument][];
+  if (!commandDefinition[type]) return;
+
+  const optionOrArgumentDefinitions = commandDefinition[type];
+  const kind = type.slice(0, -1) as "option" | "argument";
+  const commandKind = "cliName" in commandDefinition ? "command" : "subcommand";
+  const commandName = "cliName" in commandDefinition ? commandDefinition.cliName : commandDefinition.name;
+
+  const definitionEntries = Object.entries(optionOrArgumentDefinitions) as [string, Option][] | [string, Argument][];
 
   for (const [name, definition] of definitionEntries) {
     if (!definition._preparedType) {
-      throw new Error(`internal error: missing prepared type for ${type.slice(0, -1)} "${name}"`);
+      throw new CliError({
+        cause: ErrorCause.Internal,
+        code: InternalErrorCode.MissingPreparedTypes,
+        context: { commandKind, commandName, kind, name },
+      });
     }
 
     const { schema, optional, defaultValue } = definition._preparedType;
@@ -53,7 +62,21 @@ function buildForOptionsOrArguments(
 
     // case the value is not passed
     if (!optional) {
-      throw new Error(`the ${type.slice(0, -1)} "${name}" is required`);
+      if (kind === "option") {
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.MissingRequiredOption,
+          context: { commandKind, commandName, optionName: name },
+        });
+      }
+
+      if (kind === "argument") {
+        throw new CliError({
+          cause: ErrorCause.Parse,
+          code: ParseErrorCode.MissingRequiredArgument,
+          context: { commandKind, commandName, argumentName: name },
+        });
+      }
     }
 
     // case the value is optional

@@ -1,3 +1,4 @@
+import { CliError, ErrorCause, ValidationErrorCode } from "../../../utilities/cli-error.ts";
 import { isOptionOrArgumentExplicitlyPassed } from "./explicitly-passed.ts";
 
 import type { ContextWide } from "../../../types/context-types.ts";
@@ -14,11 +15,11 @@ interface ValidateExclusiveOptions {
   context: ContextWide;
 
   /** What we're checking */
-  type: "option" | "argument";
+  kind: "option" | "argument";
 }
 
-/** @throws {Error} */
-export function validateExclusive({ name, optionOrArgument, context, type }: ValidateExclusiveOptions) {
+/** @throws {CliError} */
+export function validateExclusive({ name, optionOrArgument, context, kind }: ValidateExclusiveOptions) {
   const exclusive = optionOrArgument.exclusive;
   if (!exclusive) return;
 
@@ -27,15 +28,15 @@ export function validateExclusive({ name, optionOrArgument, context, type }: Val
 
   const requires = optionOrArgument.requires ?? [];
 
-  const mutuallyExclusiveOptions: string[] = [];
-  const mutuallyExclusiveArguments: string[] = [];
+  const conflictedOptions: string[] = [];
+  const conflictedArguments: string[] = [];
 
   if (context.options) {
     for (const [optionName, optionContext] of Object.entries(context.options)) {
       if (optionName === name) continue; // don't check self
       if (requires.includes(optionName)) continue; // allow required options
       if (optionContext.source === "default") continue; // not explicitly passed
-      mutuallyExclusiveOptions.push(optionName);
+      conflictedOptions.push(optionName);
     }
   }
 
@@ -44,27 +45,15 @@ export function validateExclusive({ name, optionOrArgument, context, type }: Val
       if (argumentName === name) continue; // don't check self
       if (requires.includes(argumentName)) continue; // allow required arguments
       if (argumentContext.source === "default") continue; // not explicitly passed
-      mutuallyExclusiveArguments.push(argumentName);
+      conflictedArguments.push(argumentName);
     }
   }
 
-  if (mutuallyExclusiveOptions.length === 0 && mutuallyExclusiveArguments.length === 0) return;
+  if (conflictedOptions.length === 0 && conflictedArguments.length === 0) return;
 
-  const parts: string[] = [];
-
-  if (mutuallyExclusiveOptions.length > 0) {
-    const formatted = mutuallyExclusiveOptions.map(o => `"${o}"`).join(", ");
-    const s = mutuallyExclusiveOptions.length > 1 ? "s" : "";
-    parts.push(`option${s} ${formatted}`);
-  }
-
-  if (mutuallyExclusiveArguments.length > 0) {
-    const formatted = mutuallyExclusiveArguments.map(a => `"${a}"`).join(", ");
-    const s = mutuallyExclusiveArguments.length > 1 ? "s" : "";
-    parts.push(`argument${s} ${formatted}`);
-  }
-
-  const joinedParts = parts.join(" and ");
-
-  throw new Error(`${type} "${name}" cannot be used with the ${joinedParts} because they are mutually exclusive.`);
+  throw new CliError({
+    cause: ErrorCause.Validation,
+    code: ValidationErrorCode.MutuallyExclusiveConflict,
+    context: { kind, name, conflictedOptions, conflictedArguments },
+  });
 }

@@ -108,10 +108,6 @@ export function decoupleFlags(arguments_: string[]): string[] {
  * @param name - Should start with `'--'` or `'-'`
  */
 export function optionArgumentToVariableNames(name: string): Set<string> {
-  if (!name.startsWith("-")) {
-    throw new Error(`invalid option name: ${name}`);
-  }
-
   name = name.startsWith("--") ? name.slice(2) : name.slice(1); // remove prefix
   name = name.toLowerCase(); // lowercase
 
