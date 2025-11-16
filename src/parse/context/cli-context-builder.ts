@@ -1,4 +1,7 @@
-import { CliError, ErrorCause, InternalErrorCode, ParseErrorCode } from "../../utilities/cli-error.ts";
+import { CliError } from "../../cli-error/cli-error.ts";
+import { ErrorCause } from "../../cli-error/error-cause.ts";
+import { InternalErrorCode } from "../../cli-error/error-code/internal-error-code.ts";
+import { ParseErrorCode } from "../../cli-error/error-code/parse-error-code.ts";
 import {
   decoupleFlags,
   findOption,

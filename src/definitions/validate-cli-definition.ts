@@ -1,5 +1,8 @@
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { DefinitionErrorCode } from "../cli-error/error-code/definition-error-code.ts";
+import { InternalErrorCode } from "../cli-error/error-code/internal-error-code.ts";
 import { transformOptionToArgument } from "../parse/parser-utilities.ts";
-import { CliError, InternalErrorCode, DefinitionErrorCode, ErrorCause } from "../utilities/cli-error.ts";
 
 import type { Cli, Subcommand } from "../types/definitions-types.ts";
 

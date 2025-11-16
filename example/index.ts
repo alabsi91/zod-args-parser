@@ -1,3 +1,5 @@
+import { ErrorCause, ValidationErrorCode } from "zod-args-parser";
+
 import { listyCLI } from "./cli.ts";
 
 // import "./scripts/generate-autocomplete-script.ts";
@@ -5,7 +7,7 @@ import { listyCLI } from "./cli.ts";
 
 // * Test different inputs 👇
 
-const input = "-v";
+const input = "-h";
 
 // const input = "help --verbose";
 // const input = "help help --verbose";
@@ -28,4 +30,24 @@ const results = listyCLI.run(input);
 if (results.error) {
   console.error(results.error.message);
   console.log("\n`listy --help` for more information, or `listy help <command>` for command-specific help\n");
+
+  // Check the type of error by its cause
+  if (results.error.cause === ErrorCause.Parse) {
+    // Handle parsing-related errors
+  }
+
+  // Check for a specific error code
+  if (results.error.code === ValidationErrorCode.SchemaValidationFailed) {
+    const { commandKind, commandName, kind, name, inputValue, issues } = results.error.context;
+
+    console.error(
+      "validation error:",
+      `the ${kind} "${name}"`,
+      `for ${commandKind} "${commandName}" failed to validate the input:`,
+      inputValue,
+    );
+
+    // Detailed validation issues
+    console.log(issues);
+  }
 }

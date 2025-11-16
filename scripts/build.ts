@@ -59,7 +59,7 @@ rmSync(libDir, { recursive: true, force: true });
 
 const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "**/*.d.ts"] });
 
-// mjs
+// mjs: transformed not bundled or minified targets only nodejs
 {
   console.log("⚙️ ", `Building for mjs...`);
 
@@ -69,15 +69,16 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "
     outExtension: { ".js": ".mjs" },
     format: "esm",
     platform: "node",
-    target: "es2020",
+    target: "esnext",
     sourcemap: true,
     bundle: true,
+    minify: false,
     packages: "external",
     plugins: [rewriteRelativeImportExtensionsPlugin({ replaceWith: ".mjs" })],
   });
 }
 
-// esm
+// esm: transformed not bundled or minified targets both nodejs and browsers
 {
   console.log("⚙️ ", `Building for esm...`);
 
@@ -85,16 +86,17 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "
     entryPoints: tsFilesWithoutTypes,
     outdir: path.join(libDir, "esm"),
     format: "esm",
-    platform: "browser",
+    platform: "neutral",
     target: "esnext",
     sourcemap: true,
     bundle: true,
+    minify: false,
     packages: "external",
     plugins: [rewriteRelativeImportExtensionsPlugin({ replaceWith: ".js" })],
   });
 }
 
-// iife
+// iife bundled for browser and minified later with terser
 {
   console.log("⚙️ ", `Building for iife...`);
 
@@ -115,7 +117,7 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "
 {
   console.log("🔻", `Minifying...`);
 
-  const outputFiles = globSync(`${libDir}/**/*.{cjs,mjs,js}`);
+  const outputFiles = globSync(`${libDir}/iife/**/*.js`);
 
   for (const filePath of outputFiles) {
     const mapFilePath = filePath + ".map";
@@ -137,7 +139,7 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "
 
 console.log("\n🚀", `Done!`);
 
-// esbuild plugin
+// esbuild plugin to map import extensions
 
 interface PluginOptions {
   replaceWith?: ".mjs" | ".cjs" | ".js";

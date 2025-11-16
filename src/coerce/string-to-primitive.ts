@@ -1,4 +1,6 @@
-import { CliError, ErrorCause, ValidationErrorCode } from "../utilities/cli-error.ts";
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { ValidationErrorCode } from "../cli-error/error-code/validation-error-code.ts";
 
 /** @throws {CliError} */
 export function stringToBoolean(string: string): boolean {

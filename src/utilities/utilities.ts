@@ -177,3 +177,9 @@ export function walkObject(object_: Record<string, unknown>, onVisit: WalkCallba
     }
   }
 }
+
+export function Enum<const T extends Record<string, undefined>>(value: T) {
+  const casted = value as Record<string, unknown>;
+  for (const [key] of Object.entries(casted)) casted[key] = key;
+  return Object.freeze(casted) as { [K in keyof T]: K };
+}

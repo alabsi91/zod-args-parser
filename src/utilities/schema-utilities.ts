@@ -1,4 +1,6 @@
-import { CliError, ErrorCause, ValidationErrorCode } from "./cli-error.ts";
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { ValidationErrorCode } from "../cli-error/error-code/validation-error-code.ts";
 
 import type { Argument, Option, PreparedType } from "../types/definitions-types.ts";
 import type { SchemaResult, SchemaType } from "../types/schema-types.ts";

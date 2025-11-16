@@ -1,5 +1,5 @@
-import type { CliError } from "../utilities/cli-error.ts";
 import type { Cli, Subcommand } from "./definitions-types.ts";
+import type { AllCliErrorInstances } from "./error-types.ts";
 import type { PrintHelpOptions } from "./help-message-types.ts";
 import type { InferInputType, InputTypeWide, OutputType, OutputTypeWide } from "./io-types.ts";
 
@@ -155,7 +155,7 @@ export type CliOutputType<S extends Cli> =
 
 export type CliParseResult<S extends Cli> =
   | { value: CliOutputType<S>; error?: undefined }
-  | { value?: never; error: CliError };
+  | { value?: never; error: AllCliErrorInstances };
 
 export type CliParseResultWide = { value: OutputTypeWide; error?: undefined } | { value?: never; error: Error };
 

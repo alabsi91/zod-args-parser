@@ -20,11 +20,24 @@ export { defineSubcommand } from "./definitions/define-subcommand.ts";
 
 export { coerce } from "./coerce/coerce-methods.ts";
 
-export { CliError, DefinitionErrorCode, ErrorCause, InternalErrorCode, ParseErrorCode } from "./utilities/cli-error.ts";
+export { CliError } from "./cli-error/cli-error.ts";
+export { ErrorCause } from "./cli-error/error-cause.ts";
+export { DefinitionErrorCode } from "./cli-error/error-code/definition-error-code.ts";
+export { InternalErrorCode } from "./cli-error/error-code/internal-error-code.ts";
+export { ParseErrorCode } from "./cli-error/error-code/parse-error-code.ts";
+export { ValidationErrorCode } from "./cli-error/error-code/validation-error-code.ts";
 
 export type * from "./types/context-types.ts";
 export type * from "./types/definitions-types.ts";
-export type * from "./types/error-types.ts";
+export type {
+  CliErrorI,
+  CliErrorOptionUnion,
+  DefinitionErrorI,
+  ErrorCauseI,
+  InternalErrorI,
+  ParseErrorI,
+  ValidationErrorI,
+} from "./types/error-types.ts";
 export type * from "./types/help-message-types.ts";
 export type * from "./types/io-types.ts";
 export type * from "./types/metadata-types.ts";

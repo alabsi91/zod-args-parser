@@ -125,9 +125,6 @@ const terminalRenderer: RendererObject<string, string> = {
   },
 };
 
-const terminalMarked = new Marked();
-terminalMarked.use({ renderer: terminalRenderer });
-
 export function terminalMarkdown(
   text: string,
   renderer: "terminal" | "html" = "terminal",
@@ -138,6 +135,8 @@ export function terminalMarkdown(
   }
 
   if (renderer === "terminal") {
+    const terminalMarked = new Marked();
+    terminalMarked.use({ renderer: terminalRenderer });
     return ansiTextColor(terminalMarked.parse(text) as string);
   }
 

@@ -289,3 +289,38 @@ export interface ValidationErrorI {
 }
 
 export interface CliErrorI extends DefinitionErrorI, ParseErrorI, ValidationErrorI, InternalErrorI {}
+
+export interface CliErrorImpl<O extends CliErrorOptionUnion = CliErrorOptionUnion> extends Error {
+  readonly cause: O["cause"];
+  readonly code: O["code"];
+  readonly context: O["context"];
+}
+
+/**
+ * Represents a subset of CliErrorOptions filtered by the provided cause. Removes the 'message' property and narrows the
+ * union to only relevant cause.
+ */
+export type CliErrorOptionByCause<K extends keyof ErrorCauseI, T = CliErrorOptionUnion> = T extends CliErrorOptionUnion
+  ? T["cause"] extends K
+    ? T
+    : never
+  : never;
+
+interface CliErrorOption<Code extends keyof CliErrorI> {
+  cause: { [K in keyof ErrorCauseI]: Code extends ErrorCauseI[K] ? K : never }[keyof ErrorCauseI];
+  code: Code;
+  context: CliErrorI[Code];
+  message?: string;
+}
+
+/** A union of all possible CLI error options, one per error code. Each member includes: */
+export type CliErrorOptionUnion = { [Code in keyof CliErrorI]: CliErrorOption<Code> }[keyof CliErrorI];
+
+/** A union of all possible CLI error instances */
+export type CliErrorInstanceUnion = CliErrorOptionUnion extends infer T
+  ? T extends CliErrorOptionUnion
+    ? CliErrorImpl<T>
+    : never
+  : never;
+
+export type AllCliErrorInstances = CliErrorInstanceUnion & {};

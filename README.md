@@ -26,6 +26,7 @@ A strictly typed command-line arguments parser powered by schema validation.
   - [Execute commands programmatically](#execute-commands-programmatically)
   - [Creating a Custom Help Message Style](#creating-a-custom-help-message-style)
   - [Help Message as HTML](#help-message-as-html)
+  - [Handling and Inspecting Errors](#handling-and-inspecting-errors)
 - [API Reference](#api-reference)
   - [Type Utilities](docs/api-reference.md#type-utilities)
   - [Coerce Helpers](docs/api-reference.md#coerce-helpers)
@@ -598,6 +599,47 @@ span._markdown * {
 }
 ```
 
+### Handling and Inspecting Errors
+
+The library processes input in four stages. Errors can occur at any step:
+
+1. **Definition Validation** — Ensures the CLI and subcommand definitions are valid.
+2. **Argument Parsing** — Reads terminal input and builds the initial parse result.
+3. **Context Validation** — Applies schema validation and dependency rules.
+4. **Execution** — Runs the command or subcommand once all checks succeed.
+
+After running your CLI, the returned result may contain an error. You can narrow down the error by its **cause** or **code** to handle it specifically.
+
+See [Error Reference](./docs/api-reference.md#error-types)
+
+```ts
+import { ErrorCause, ValidationErrorCode } from "zod-args-parser";
+
+const results = listyCLI.run(input);
+
+if (results.error) {
+  // Check the type of error by its cause
+  if (results.error.cause === ErrorCause.Parse) {
+    // Handle parsing-related errors
+  }
+
+  // Check for a specific error code
+  if (results.error.code === ValidationErrorCode.SchemaValidationFailed) {
+    const { commandKind, commandName, kind, name, inputValue, issues } = results.error.context;
+
+    console.error(
+      "validation error:",
+      `the ${kind} "${name}"`,
+      `for ${commandKind} "${commandName}" failed to validate the input:`,
+      inputValue,
+    );
+
+    // Detailed validation issues
+    console.log(issues);
+  }
+}
+```
+
 ## API Reference
 
 See the [API Reference](docs/api-reference.md) for more information.
@@ -605,3 +647,7 @@ See the [API Reference](docs/api-reference.md) for more information.
 ## License
 
 **zod-args-parser** library is licensed under [**The MIT License.**](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)
+
+```
+
+```

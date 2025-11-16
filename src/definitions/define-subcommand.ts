@@ -1,6 +1,8 @@
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { DefinitionErrorCode } from "../cli-error/error-code/definition-error-code.ts";
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { CliError, DefinitionErrorCode, ErrorCause } from "../utilities/cli-error.ts";
 import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Option, Subcommand } from "../types/definitions-types.ts";

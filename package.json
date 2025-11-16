@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "A TypeScript-first CLI argument parser with schema-based validation.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",
@@ -9,6 +9,7 @@
     "url": "https://github.com/alabsi91/zod-args-parser.git"
   },
   "type": "module",
+  "sideEffects": false,
   "scripts": {
     "dev": "tsx --watch example/index.ts",
     "build": "node scripts/build.ts",
@@ -42,7 +43,7 @@
     "@eslint/js": "^9.39.1",
     "@eslint/markdown": "^7.5.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "@typescript/native-preview": "^7.0.0-dev.20251104.1",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.1",
@@ -59,8 +60,8 @@
     "zod": "^4.1.12"
   },
   "dependencies": {
-    "@standard-schema/spec": "^1.0.0",
     "chalk": "^5.6.2",
-    "marked": "^17.0.0"
+    "marked": "^17.0.0",
+    "@standard-schema/spec": "^1.0.0"
   }
 }

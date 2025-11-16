@@ -1,9 +1,11 @@
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { DefinitionErrorCode } from "../cli-error/error-code/definition-error-code.ts";
 import { generateCliHelpMessage } from "../help-message/generate-for-cli.ts";
 import { generateSubcommandHelpMessage } from "../help-message/generate-for-subcommand.ts";
 import { buildObjectContext } from "../parse/context/object-context-builder.ts";
 import { safeParse, safeParseAsync } from "../parse/safe-parse.ts";
 import { validate } from "../parse/validation/validate-context.ts";
-import { CliError, DefinitionErrorCode, ErrorCause } from "../utilities/cli-error.ts";
 import { prepareDefinitionTypes } from "../utilities/schema-utilities.ts";
 
 import type { Argument, Cli, Option, Subcommand } from "../types/definitions-types.ts";
