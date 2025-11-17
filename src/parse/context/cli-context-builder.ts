@@ -2,6 +2,7 @@ import { CliError } from "../../cli-error/cli-error.ts";
 import { ErrorCause } from "../../cli-error/error-cause.ts";
 import { InternalErrorCode } from "../../cli-error/error-code/internal-error-code.ts";
 import { ParseErrorCode } from "../../cli-error/error-code/parse-error-code.ts";
+import { coerce } from "../../coerce/coerce-methods.ts";
 import {
   decoupleFlags,
   findOption,
@@ -158,7 +159,7 @@ export function buildCliContext(argv: string[], cliDefinition: Cli) {
       // Handle options with keys for type `object`
       // E.g. `--option.key.nested=value`
       if (optionWithKeys) {
-        const previousObject = JSON.parse(context.options[optionName]?.stringValue || "{}") as Record<string, any>;
+        const previousObject = coerce.json<Record<string, any>>(context.options[optionName]?.stringValue || "{}");
 
         let current = previousObject;
         for (let index = 0; index < keys.length; index++) {

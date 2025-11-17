@@ -69,7 +69,7 @@ The following example uses `zod` as the validation library, but you can use any 
 
 ```ts
 import * as z from "zod";
-import { defineCLI, coerce } from "zod-args-parser";
+import { defineCLI } from "zod-args-parser";
 
 const cli = defineCLI({
   cliName: "hello",
@@ -100,7 +100,9 @@ if (result.error) {
 
 ### Creating a subcommand
 
-Subcommands are defined using the `defineSubcommand` function, which accepts a [`Subcommand`](#subcommand) definition object.
+Subcommands are defined using the `defineSubcommand` function, which accepts a `Subcommand` definition object.
+
+See [Subcommand Definition](./docs/api-reference.md#subcommand).
 
 ```ts
 import { defineSubcommand, helpMessageStyles } from "zod-args-parser";
@@ -198,10 +200,16 @@ Options can be defined directly inside the CLI or subcommand definition. Or usin
 Option names can use any common case style:
 `camelCase`, `PascalCase`, `snake_case`, or `SCREAMING_SNAKE_CASE`.
 
-- ListName `=>` --list-name
-- list-name `=>` --list-name
-- listName `=>` --list-name
-- LIST_NAME `=>` --list-name
+| name        | as argument   |
+| ----------- | ------------- |
+| `listName`  | `--list-name` |
+| `ListName`  | `--list-name` |
+| `list_name` | `--list-name` |
+| `LIST_NAME` | `--list-name` |
+| `H`         | `-h`          |
+| `h`         | `-h`          |
+
+See [Option Definition](./docs/api-reference.md#option).
 
 ```ts
 import * as z from "zod";
@@ -290,6 +298,8 @@ The order of argument definitions matters.
 2. If `allowPositionals: false` → only the last typed argument may be optional.
 3. Argument names cannot be numeric, because it affects argument ordering.
 
+See [Argument Definition](./docs/api-reference.md#argument).
+
 ```ts
 import { defineSubcommand, coerce } from "zod-args-parser";
 
@@ -317,6 +327,8 @@ const createListCommand = defineSubcommand({
 ### Sharing options and typed arguments
 
 Options and typed arguments can be shared between subcommands/main CLI.
+
+See [Option Definition](./docs/api-reference.md#option) and [Argument Definition](./docs/api-reference.md#argument).
 
 ```ts
 // shared.ts

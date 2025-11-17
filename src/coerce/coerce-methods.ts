@@ -1,3 +1,6 @@
+import { CliError } from "../cli-error/cli-error.ts";
+import { ErrorCause } from "../cli-error/error-cause.ts";
+import { ValidationErrorCode } from "../cli-error/error-code/validation-error-code.ts";
 import { walkObject } from "../utilities/utilities.ts";
 import { stringToBooleanArray, stringToNumberArray, stringToStringArray } from "./string-to-array.ts";
 import { stringToBigint, stringToBoolean, stringToNumber } from "./string-to-primitive.ts";
@@ -8,9 +11,20 @@ import type { ObjectCoerceMethodOptions } from "../types/types.ts";
 const string = <T extends string | undefined>(terminalInput: string): T => terminalInput as T;
 const number = <T extends number | undefined>(terminalInput: string): T => stringToNumber(terminalInput) as T;
 const bigint = <T extends bigint | undefined>(terminalInput: string): T => stringToBigint(terminalInput) as T;
-const json = <T>(terminalInput: string): T => JSON.parse(terminalInput) as T;
 const boolean = <T extends boolean | undefined>(terminalInput: string): T => stringToBoolean(terminalInput) as T;
 boolean.type = "boolean";
+
+const json = <T>(terminalInput: string): T => {
+  try {
+    return JSON.parse(terminalInput) as T;
+  } catch {
+    throw new CliError({
+      cause: ErrorCause.Validation,
+      code: ValidationErrorCode.CoercionFailed,
+      context: { coerceToType: "json", providedValue: terminalInput },
+    });
+  }
+};
 
 const stringArray = (separator: string) => {
   return <T extends string[] | undefined>(terminalInput: string): T =>
@@ -44,7 +58,7 @@ const booleanSet = (separator: string) => {
 
 const object = (options: ObjectCoerceMethodOptions = {}) => {
   const coerceMethod = <T extends Record<string, unknown> | undefined>(terminalInput: string): T => {
-    const object = JSON.parse(terminalInput) as T;
+    const object = json<T>(terminalInput);
 
     if (!options.coerceBoolean && !options.coerceNumber && !options.coerceBigint && !options.coerceDate) {
       return object;
@@ -144,7 +158,7 @@ export const coerce = {
    * converted.
    *
    * @since 2.0.0
-   * @throws {SyntaxError} If input is not a valid JSON string.
+   * @throws {CliError} If input is not a valid JSON string.
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/README.md##structured-object-options}
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
@@ -223,7 +237,7 @@ export const coerce = {
    * Parses a JSON string into a JavaScript object.
    *
    * @since 2.0.0
-   * @throws {SyntaxError} If input is not a valid JSON string.
+   * @throws {CliError} If input is not a valid JSON string.
    * @see {@link https://github.com/alabsi91/zod-args-parser/blob/main/docs/api-reference.md#coerce-helpers}
    */
   json,
