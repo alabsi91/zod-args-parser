@@ -27,6 +27,7 @@ A strictly typed command-line arguments parser powered by schema validation.
   - [Creating a Custom Help Message Style](#creating-a-custom-help-message-style)
   - [Help Message as HTML](#help-message-as-html)
   - [Handling and Inspecting Errors](#handling-and-inspecting-errors)
+  - [Loading from a CDN](#loading-from-a-cdn)
 - [API Reference](#api-reference)
   - [Type Utilities](docs/api-reference.md#type-utilities)
   - [Coerce Helpers](docs/api-reference.md#coerce-helpers)
@@ -73,11 +74,7 @@ import { defineCLI, coerce } from "zod-args-parser";
 const cli = defineCLI({
   cliName: "hello",
   options: {
-    /**
-     * 💡 **Tip:** Adding a **JSDoc** comment here will be displayed in IDE hovers alongside the TypeScript type.
-     *
-     * `--name` or `-n`
-     */
+    /** `--name` or `-n` */
     name: {
       aliases: ["n"],
       schema: z.string().default("world"),
@@ -92,7 +89,6 @@ cli.onExecute(({ options }) => {
 const result = cli.run(process.argv.slice(2));
 if (result.error) {
   console.error(result.error.message);
-  process.exit(1);
 }
 ```
 
@@ -641,9 +637,34 @@ if (results.error) {
 }
 ```
 
+### Loading from a CDN
+
+**Global IIFE**
+
+```html
+<!-- using jsdelivr -->
+<script src="https://cdn.jsdelivr.net/npm/zod-args-parser"></script>
+
+<!-- using unpkg -->
+<script src="https://unpkg.com/zod-args-parser"></script>
+
+<script>
+  // Access the library as a global
+  const { defineCLI, coerce } = ZodArgsParser;
+</script>
+```
+
+**ESM Module**
+
+```html
+<script type="module">
+  import { defineCLI, coerce } from "https://cdn.jsdelivr.net/npm/zod-args-parser/+esm";
+</script>
+```
+
 ## API Reference
 
-See the [API Reference](docs/api-reference.md) for more information.
+See the [API Reference](./docs/api-reference.md) for more information.
 
 ## License
 

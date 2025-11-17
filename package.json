@@ -1,6 +1,6 @@
 {
   "name": "zod-args-parser",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0-beta.3",
   "description": "A TypeScript-first CLI argument parser with schema-based validation.",
   "author": "Ahmed ALABSI <alabsi91@gmail.com>",
   "license": "MIT",
@@ -16,15 +16,16 @@
     "test": "node --test && echo Checking types... && tsgo --noEmit && echo Linting... && eslint --config eslint.config.js --fix",
     "prepare": "npm run test && npm run build"
   },
+  "jsdelivr": "./lib/iife/index.js",
+  "unpkg": "./lib/iife/index.js",
   "exports": {
     ".": {
       "types": "./lib/types/index.d.ts",
       "browser": "./lib/esm/index.js",
-      "node": "./lib/mjs/index.mjs"
+      "node": "./lib/mjs/index.mjs",
+      "default": "./lib/esm/index.js"
     }
   },
-  "jsdelivr": "./lib/iife/index.js",
-  "unpkg": "./lib/iife/index.js",
   "files": [
     "lib",
     "src"

@@ -104,6 +104,7 @@ const tsFilesWithoutTypes = globSync("src/**/*.ts", { ignore: ["src/types/**", "
     entryPoints: [path.join("src", "index.ts")],
     outdir: path.join(libDir, "iife"),
     format: "iife",
+    globalName: "ZodArgsParser",
     platform: "browser",
     target: "esnext",
     treeShaking: true,
