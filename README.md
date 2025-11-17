@@ -39,6 +39,7 @@ A strictly typed command-line arguments parser powered by schema validation.
   - [Option](docs/api-reference.md#option)
   - [Argument](docs/api-reference.md#argument)
   - [Context Type](docs/api-reference.md#context-type)
+  - [Error Types](docs/api-reference.md#error-types)
 - [License](#license)
 
 ## Features
@@ -647,7 +648,3 @@ See the [API Reference](docs/api-reference.md) for more information.
 ## License
 
 **zod-args-parser** library is licensed under [**The MIT License.**](https://github.com/alabsi91/zod-args-parser/blob/main/LICENSE)
-
-```
-
-```
