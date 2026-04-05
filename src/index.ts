@@ -41,4 +41,5 @@ export type {
 export type * from "./types/help-message-types.ts";
 export type * from "./types/io-types.ts";
 export type * from "./types/metadata-types.ts";
+export type * from "./types/schema-types.ts";
 export type * from "./types/types.ts";

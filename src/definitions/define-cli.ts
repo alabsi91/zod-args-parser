@@ -105,34 +105,43 @@ export function defineCLI<T extends Cli>(input: CliInput<T> & Cli) {
     await Promise.all(handlers.map(async handler => await handler(validateResult)));
   };
 
-  // Add print methods for CLI schema and its subcommands
-  const generateHelpMethods: Pick<AttachedMethodsWide, "generateCliHelpMessage" | "generateSubcommandHelpMessage"> = {
-    generateCliHelpMessage(options?: PrintHelpOptions) {
-      return generateCliHelpMessage(cliDefinition, options);
-    },
-    generateSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
-      const foundSubcommand = cliDefinition.subcommands?.find(s => s.name === subcommandName);
-      if (!foundSubcommand) {
-        throw new CliError({
-          cause: ErrorCause.Definition,
-          code: DefinitionErrorCode.SubcommandHelpNotFound,
-          context: { cliName: cliDefinition.cliName, subcommandName },
-        });
+  const attachHelpMethods = () => {
+    // Add print methods for CLI schema and its subcommands
+    const generateHelpMethods: Pick<AttachedMethodsWide, "generateCliHelpMessage" | "generateSubcommandHelpMessage"> = {
+      generateCliHelpMessage(options?: PrintHelpOptions) {
+        return generateCliHelpMessage(cliDefinition, options);
+      },
+      generateSubcommandHelpMessage(subcommandName: string, options?: PrintHelpOptions) {
+        const foundSubcommand = cliDefinition.subcommands?.find(s => s.name === subcommandName);
+        if (!foundSubcommand) {
+          throw new CliError({
+            cause: ErrorCause.Definition,
+            code: DefinitionErrorCode.SubcommandHelpNotFound,
+            context: { cliName: cliDefinition.cliName, subcommandName },
+          });
+        }
+        return generateSubcommandHelpMessage(foundSubcommand, options, cliDefinition.cliName);
+      },
+    };
+
+    Object.assign(cliDefinition, generateHelpMethods);
+
+    if (cliDefinition.subcommands) {
+      for (const subcommandSchema of cliDefinition.subcommands) {
+        Object.assign(subcommandSchema, generateHelpMethods);
       }
-      return generateSubcommandHelpMessage(foundSubcommand, options, cliDefinition.cliName);
-    },
+    }
   };
 
-  Object.assign(cliDefinition, generateHelpMethods);
+  const run = (stringOrArgv: string | string[]) => {
+    attachHelpMethods();
+    return safeParse(stringOrArgv, cliDefinition);
+  };
 
-  if (cliDefinition.subcommands) {
-    for (const subcommandSchema of cliDefinition.subcommands) {
-      Object.assign(subcommandSchema, generateHelpMethods);
-    }
-  }
-
-  const run = (stringOrArgv: string | string[]) => safeParse(stringOrArgv, cliDefinition);
-  const runAsync = (stringOrArgv: string | string[]) => safeParseAsync(stringOrArgv, cliDefinition);
+  const runAsync = (stringOrArgv: string | string[]) => {
+    attachHelpMethods();
+    return safeParseAsync(stringOrArgv, cliDefinition);
+  };
 
   return Object.assign(cliDefinition, { onExecute, execute, executeAsync, run, runAsync }) as Prettify<
     T & AttachedMethods<T> & ValidateMethods<T>

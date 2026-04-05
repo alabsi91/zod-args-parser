@@ -5,7 +5,7 @@ import { listyCLI } from "./cli.ts";
 // import "./scripts/generate-autocomplete-script.ts";
 // import "./scripts/generate-markdown.ts";
 
-// * Test different inputs 👇
+// * Test different inputs
 
 const input = "-h";
 
@@ -22,7 +22,8 @@ const input = "-h";
 // const input = "view-list --verbose";
 // const input = "delete-list groceries --verbose";
 
-// const input = process.argv.slice(2); // 👈 use this in production
+// ? use this in production
+// const input = process.argv.slice(2);
 
 const results = listyCLI.run(input);
 
