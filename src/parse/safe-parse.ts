@@ -9,7 +9,9 @@ import type { CliParseResultWide } from "../types/types.ts";
 
 export function safeParse(stringOrArgv: string | string[], cliDefinition: Cli): CliParseResultWide {
   const core = safeParseCore(stringOrArgv, cliDefinition);
-  if (core.error) return { error: core.error };
+  if (core.error) {
+    return { error: core.error };
+  }
 
   const { validateResult, subcommandObject } = core;
 
@@ -25,7 +27,9 @@ export function safeParse(stringOrArgv: string | string[], cliDefinition: Cli): 
 
 export async function safeParseAsync(stringOrArgv: string | string[], cliDefinition: Cli): Promise<CliParseResultWide> {
   const core = safeParseCore(stringOrArgv, cliDefinition);
-  if (core.error) return { error: core.error };
+  if (core.error) {
+    return { error: core.error };
+  }
 
   const { validateResult, subcommandObject } = core;
 

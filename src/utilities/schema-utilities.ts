@@ -10,6 +10,7 @@ import type { StandardSchemaV1 } from "@standard-schema/spec";
 /** @throws {CliError} When schema is async */
 export function validateSync(schema: SchemaType, value?: unknown): SchemaResult {
   const results = schema["~standard"].validate(value);
+
   if (results instanceof Promise) {
     throw new CliError({
       cause: ErrorCause.Validation,
