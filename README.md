@@ -50,7 +50,7 @@ A strictly typed command-line arguments parser powered by schema validation.
 - **Boolean flags**: Handles negation (`--no-verbose`) and short flag coupling (`-rf`).
 - **Typed subcommands**: Define subcommands with their own typed options and arguments.
 - **Automatic help & docs**: Generate user-friendly CLI help messages and Markdown documentation.
-- **Shell autocompletion**: Auto-generate scripts for Bash, Zsh, and PowerShell.
+- **Shell autocompletion**: Auto-generate scripts for Bash, Zsh, Fish, and PowerShell.
 - **Schema-agnostic**: Works with any validation library supporting [`StandardSchemaV1`](https://github.com/standard-schema/standard-schema) and default/optional primitives.
 - **Cross-platform**: Fully supports Node.js, Bun, Deno, and modern browsers.
 

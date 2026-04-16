@@ -6,6 +6,7 @@ import {
   generateZshAutocompleteScript,
 } from "zod-args-parser";
 
+import { generateFishAutocompleteScript } from "../../src/autocomplete-scripts/fish-autocomplete-script.ts";
 import { listyCLI } from "../cli.ts";
 
 const outdir = path.join(import.meta.dirname, "..", "autocomplete-scripts");
@@ -42,3 +43,14 @@ writeFileSync(path.join(outdir, "powershell-autocomplete.ps1"), powershellScript
  */
 const zshScript = generateZshAutocompleteScript(listyCLI);
 writeFileSync(path.join(outdir, "zsh-autocomplete.zsh"), zshScript, { encoding: "utf8" });
+
+/**
+ * - Generates a fish autocomplete script for your CLI.
+ * - The generated script should be added to your `~/.config/fish/config.fish` file:
+ *
+ *   - Run: `nano $HOME/.config/fish/config.fish`
+ *   - Add the following line: `source <generated script path>`
+ *   - Save and reopen fish to take effect
+ */
+const fishScript = generateFishAutocompleteScript(listyCLI);
+writeFileSync(path.join(outdir, "fish-autocomplete.fish"), fishScript, { encoding: "utf8" });

@@ -56,7 +56,6 @@ _listy_autocomplete() {
           _arguments \
             '--help[Show help message.]' \
             '--version[Show listy version.]' \
-            '--db[]' \
             '*: :_files' \
             && ret=0
           ;;

@@ -30,7 +30,7 @@ function listy {
 
 Register-ArgumentCompleter -CommandName 'listy' -ParameterName 'subcommand' -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-    $subcommands = @('add-items', 'remove-items', 'create-list', 'delete-list', 'view-list', 'help', '--help', '--version', '--db')
+    $subcommands = @('add-items', 'remove-items', 'create-list', 'delete-list', 'view-list', 'help', '--help', '--version')
     $subcommands | Where-Object { $_ -like "$wordToComplete*" }
 }
 
@@ -50,7 +50,7 @@ Register-ArgumentCompleter -CommandName 'listy' -ParameterName 'arguments' -Scri
         'vl' { @('--verbose') }
         'help' { @('--verbose') }
         'h' { @('--verbose') }
-        default { @('--help', '--version', '--db') }
+        default { @('--help', '--version') }
     }
     $arguments | Where-Object { $_ -like "$wordToComplete*" }
 }

@@ -29,7 +29,7 @@ _listy_autocomplete() {
       opts="--verbose"
       ;;
     *)
-      opts="--help --version --db"
+      opts="--help --version"
       ;;
   esac
 

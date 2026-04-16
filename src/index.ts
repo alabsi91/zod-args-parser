@@ -6,6 +6,7 @@ export { HelpMessageStyle, helpMessageStyles } from "./help-message/styles.ts";
 export { generateBashAutocompleteScript } from "./autocomplete-scripts/bash-autocomplete-script.ts";
 export { generatePowerShellAutocompleteScript } from "./autocomplete-scripts/powershell-autocomplete-script.ts";
 export { generateZshAutocompleteScript } from "./autocomplete-scripts/zsh-autocomplete-script.ts";
+export { generateFishAutocompleteScript } from "./autocomplete-scripts/fish-autocomplete-script.ts";
 export { generateMarkdown } from "./markdown/generate-markdown.ts";
 
 export { getArgumentsMetadata } from "./metadata/arguments-metadata.ts";
